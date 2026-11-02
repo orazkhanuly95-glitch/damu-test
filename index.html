@@ -300,6 +300,12 @@ body.testing #camdot{bottom:calc(98px + env(safe-area-inset-bottom));width:58px;
 .flag.camw{color:var(--bad)}
 .flag.camf{color:var(--warn)}
 @media (prefers-reduced-motion:reduce){#cambar.show{animation:none}}
+.camdiag{display:grid;gap:8px;margin:12px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-sm);font-size:.86rem}
+.camdiag div{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.camdiag span{color:var(--ink-2)}
+.camdiag b{font-family:var(--f-mono);font-weight:600}
+.camdiag i{grid-column:1/-1;display:block;height:5px;border-radius:3px;background:linear-gradient(var(--ok),var(--ok)) 0 0/var(--w) 100% no-repeat,var(--line)}
+.camdiag i.over{background:linear-gradient(var(--bad),var(--bad)) 0 0/var(--w) 100% no-repeat,var(--line)}
 </style>
 </head>
 <body>
@@ -714,21 +720,25 @@ const CAMCFG = {
   max: 3,            // warnings → result 0
   start: 4000,       // quiet time right after the start (sitting down, calibrating)
   cool: 5000,        // after a warning: time to correct before anything counts again
-  turn: 0.2,         // head turn: nose position across the face moved this far from the student's own straight look
-  turnMs: 1500,
-  gaze: 0.65,        // eyes held to one side (blendshape score)
-  gazeMs: 2500,
+  turn: 0.28,        // head turn: nose position across the face moved this far from the student's usual look (≈ 25°)
+  turnMs: 2000,
+  baseN: 240,        // the usual look = median of the last ~30 s of frames, so it follows the student and the phone position
+  gaze: 0.75,        // eyes held to one side (blendshape score)
+  gazeMs: 3000,
   awayMs: 5000,      // no face in the picture
   twoSize: 0.55,     // a second face counts when it is at least this wide compared to the student's own
   twoMs: 1500,
-  jawHi: 0.18, jawLo: 0.07, talkWin: 3000, talkN: 4,   // talking: 4 open–close cycles of the jaw within 3 s
+  jawHi: 0.2, jawLo: 0.08, talkWin: 3000, talkN: 4,    // talking: 4 open–close cycles of the jaw within 3 s
+  stale: 1500,       // no new camera frame for this long: nothing is judged (a frozen picture is never taken as the student)
+  staleAway: 8000,   // the camera gives no picture at all for this long: counted as "face not visible"
   loadMs: 45000
 };
 const CAMMSG = { turn: 'Жан-жағыңызға қарамаңыз', talk: 'Сөйлеспеңіз', away: 'Бетіңіз камерада көрінбейді', two: 'Камерада басқа адам бар' };
 const CAMKIND = { turn: 'жан-жағына қарады', talk: 'сөйлесті', away: 'беті көрінбеді', two: 'қасында басқа адам' };
 const CAMHINT = { turn: 'Экранға қараңыз', gaze: 'Экранға қараңыз', talk: 'Сөйлемеңіз', away: 'Бетіңізді камераға көрсетіңіз', two: 'Камерада тек өзіңіз болыңыз' };
 const CAM = { state: 'off', stream: null, video: null, lm: null, loading: false, timer: 0, gap: 125, armed: false, warns: [],
-  cool: 0, since: {}, jaw: { open: false, cycles: [] }, base: null, samples: [], calib: 0, dead: false, face: null, ac: null, sent: '', practice: false };
+  cool: 0, since: {}, jaw: { open: false, cycles: [] }, base: null, samples: [], dead: false, face: null, ac: null, sent: '', practice: false,
+  fresh: 0, ct: -1, nfr: 0, done: -1, revAt: 0, reviving: false, diag: {} };
 function camLive(){ return G.on || CAM.practice; }
 
 function camReady(){ return CAM.state === 'ok' || CAM.state === 'ai' || CAM.state === 'noai'; }
@@ -754,7 +764,6 @@ function camEl(){
 
 /* ---------- sound + vibration ---------- */
 function camAudio(){   // called from a tap, so the phone lets the page play sound later
-  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){}
   try {
     const A = window.AudioContext || window.webkitAudioContext;
     if (!CAM.ac && A) CAM.ac = new A();
@@ -787,16 +796,33 @@ function camStart(){
   camSet('asking');
   md.getUserMedia({ audio: false, video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } }).then(st => {
     if (!CAM.practice && (!S || (!S.waiting && !G.on))){ st.getTracks().forEach(t => t.stop()); return; }
-    CAM.stream = st; CAM.dead = false;
-    const v = camEl().querySelector('video'); v.srcObject = st;
-    const p = v.play(); if (p && p.catch) p.catch(() => {});
-    st.getVideoTracks().forEach(tr => {
-      tr.addEventListener('ended', () => { CAM.dead = true; });
-      tr.addEventListener('mute', () => { CAM.dead = true; });
-      tr.addEventListener('unmute', () => { CAM.dead = false; });
-    });
+    camUse(st);
     camSet('ok'); camModel();
   }).catch(e => camSet(e && /NotAllowed|Security|Permission/i.test(e.name || '') ? 'denied' : 'nocam'));
+}
+function camUse(st){
+  if (CAM.stream && CAM.stream !== st){ try { CAM.stream.getTracks().forEach(t => t.stop()); } catch(e){} }
+  CAM.stream = st; CAM.dead = false;
+  const v = camEl().querySelector('video'); v.srcObject = st;
+  const p = v.play(); if (p && p.catch) p.catch(() => {});
+  st.getVideoTracks().forEach(tr => tr.addEventListener('ended', () => { if (CAM.stream === st) CAM.dead = true; }));
+  CAM.fresh = performance.now(); CAM.ct = -1;
+  if (v.requestVideoFrameCallback){
+    const cb = () => { if (CAM.video !== v || CAM.stream !== st) return; CAM.fresh = performance.now(); CAM.nfr++; v.requestVideoFrameCallback(cb); };
+    v.requestVideoFrameCallback(cb);
+  }
+}
+/* the picture stopped: play again, and if the camera itself ended, open it again (permission is already given) */
+function camRevive(){
+  const now = Date.now(); if (CAM.reviving || now - CAM.revAt < 4000) return; CAM.revAt = now;
+  const v = CAM.video; if (v){ try { const p = v.play(); if (p && p.catch) p.catch(() => {}); } catch(e){} }
+  const tr = CAM.stream && CAM.stream.getVideoTracks()[0];
+  if (tr && tr.readyState === 'live' && !CAM.dead) return;
+  const md = navigator.mediaDevices; if (!md || !md.getUserMedia) return;
+  CAM.reviving = true;
+  md.getUserMedia({ audio: false, video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } })
+    .then(st => { if (CAM.video) camUse(st); else st.getTracks().forEach(t => t.stop()); })
+    .catch(() => {}).then(() => { CAM.reviving = false; });
 }
 async function camLoad(){
   let lib = null, base = '';
@@ -825,10 +851,17 @@ function camModel(){
 function camLoop(){
   clearTimeout(CAM.timer);
   const step = () => {
-    if (!CAM.lm || !CAM.stream) return;
+    if (!CAM.lm || !CAM.stream || !CAM.video) return;
     const v = CAM.video, t0 = performance.now();
-    if (CAM.dead) camJudge({ faceLandmarks: [] }, Date.now());
-    else if (v && v.readyState >= 2 && v.videoWidth){
+    if (v.currentTime !== CAM.ct){ CAM.ct = v.currentTime; CAM.fresh = t0; CAM.nfr++; }
+    const quiet = t0 - CAM.fresh;
+    CAM.diag.stale = CAM.dead || quiet > CAMCFG.stale;
+    if (CAM.diag.stale){
+      camRevive();
+      if (CAM.dead || quiet > CAMCFG.staleAway) camJudge({ faceLandmarks: [] }, Date.now());
+      else { CAM.since = {}; camHint({}); }
+    } else if (CAM.nfr !== CAM.done && v.readyState >= 2 && v.videoWidth){
+      CAM.done = CAM.nfr;
       let res = null; try { res = CAM.lm.detectForVideo(v, t0); } catch(e){}
       if (res) camJudge(res, Date.now());
       CAM.gap = Math.min(400, Math.max(125, (performance.now() - t0) * 4));   // slow phones look less often
@@ -859,21 +892,22 @@ function camJudge(res, t){
     const L = f.pts[234], R = f.pts[454], N = f.pts[1];
     const ratio = L && R && N && Math.abs(R.x - L.x) > 1e-3 ? (N.x - L.x) / (R.x - L.x) : 0.5;
     const bs = {}; ((f.bs && f.bs.categories) || []).forEach(c => { bs[c.categoryName] = c.score; });
-    // where "looking at the screen" is for this student and this phone position
-    if (!CAM.armed || t < CAM.calib){
-      CAM.samples.push(ratio); if (CAM.samples.length > 40) CAM.samples.shift();
-      CAM.base = Math.min(0.7, Math.max(0.3, camMedian(CAM.samples)));
-    }
-    const base = CAM.base == null ? 0.5 : CAM.base;
-    sig.turn = Math.abs(ratio - base) > CAMCFG.turn;
-    sig.gaze = Math.max(Math.min(bs.eyeLookOutLeft || 0, bs.eyeLookInRight || 0), Math.min(bs.eyeLookInLeft || 0, bs.eyeLookOutRight || 0)) > CAMCFG.gaze;
+    // the student's usual look at the screen: median of the recent frames (follows the phone position, ignores short turns)
+    CAM.samples.push(ratio); if (CAM.samples.length > CAMCFG.baseN) CAM.samples.shift();
+    if (CAM.samples.length >= 8) CAM.base = Math.min(0.75, Math.max(0.25, camMedian(CAM.samples)));
+    const dev = CAM.base == null ? 0 : Math.abs(ratio - CAM.base);
+    const side = Math.max(Math.min(bs.eyeLookOutLeft || 0, bs.eyeLookInRight || 0), Math.min(bs.eyeLookInLeft || 0, bs.eyeLookOutRight || 0));
+    sig.turn = dev > CAMCFG.turn;
+    sig.gaze = side > CAMCFG.gaze;
     const jaw = bs.jawOpen || 0, J = CAM.jaw;
+    CAM.diag.dev = dev; CAM.diag.side = side; CAM.diag.jaw = jaw;
     if (!J.open && jaw > CAMCFG.jawHi){ J.open = true; J.cycles.push(t); }
     else if (J.open && jaw < CAMCFG.jawLo) J.open = false;
     J.cycles = J.cycles.filter(x => t - x < CAMCFG.talkWin);
     sig.talk = J.cycles.length >= CAMCFG.talkN;
     sig.two = faces.length > 1 && faces[1].w >= f.w * CAMCFG.twoSize;
   } else sig.away = true;
+  CAM.diag.faces = faces.length; CAM.diag.sig = sig;
   camHint(sig);
   if (!CAM.armed || !camLive()) return;
   if (t < CAM.cool){ CAM.since = {}; return; }
@@ -898,7 +932,6 @@ function camArm(){
   const t = Date.now();
   CAM.armed = true; CAM.warns = []; CAM.since = {}; CAM.jaw = { open: false, cycles: [] };
   CAM.cool = t + CAMCFG.start;
-  if (CAM.samples.length < 10) CAM.calib = t + CAMCFG.start;
   document.body.classList.add('cam-on'); camPaint();
 }
 function camWarn(kind){
@@ -962,11 +995,28 @@ function camPracticeView(){
       <p class="hint">Мұнда камера бақылауын тестсіз байқап көруге болады. Камераны қосып, бір сәт экранға қарап отырыңыз, содан кейін жан-жағыңызға бұрылып немесе сөйлеп көріңіз. Ескерту дыбыспен және дірілмен шығады. Бұл бетте ешқандай нәтиже жазылмайды, мұғалімге ештеңе жіберілмейді.</p>
       <div id="camst" aria-live="polite"></div>
       <div class="note" id="campr">Ескерту әзірге жоқ.</div>
+      <div class="camdiag" id="camdiag" hidden></div>
       <p class="hint camp">Видео жазылмайды және ешқайда жіберілмейді: бетті тану тек осы телефонның ішінде жүреді.</p>
       <button class="btn primary big" id="cam_go" type="button">Камераны қосу</button>
       <p class="foot"><a href="#">← Басты бет</a></p>
     </section></main>`;
-  $('#cam_go').onclick = () => { CAM.practice = true; $('#cam_go').hidden = true; camStart(); camPaint(); };
+  $('#cam_go').onclick = () => { CAM.practice = true; $('#cam_go').hidden = true; camStart(); camPaint(); camDiag(); };
+}
+/* what the camera sees right now, so the teacher can check the sensitivity on a real phone */
+function camDiag(){
+  let n0 = CAM.nfr, t0 = performance.now(), fps = 0;
+  const iv = setInterval(() => {
+    const box = $('#camdiag'); if (!box || !CAM.practice){ clearInterval(iv); return; }
+    const t = performance.now(); fps = Math.round((CAM.nfr - n0) * 1000 / (t - t0)); n0 = CAM.nfr; t0 = t;
+    const d = CAM.diag, f2 = x => (x || 0).toFixed(2), bar = (x, lim) => '<i style="--w:' + Math.min(100, Math.round((x || 0) / lim * 100)) + '%"' + ((x || 0) > lim ? ' class="over"' : '') + '></i>';
+    box.hidden = false;
+    box.innerHTML = CAM.state !== 'ai' ? '' :
+      '<div><span>Камера кадры</span><b>' + (d.stale ? 'келмей тұр' : fps + ' /с') + '</b></div>' +
+      '<div><span>Бет</span><b>' + (d.faces ? (d.faces > 1 ? d.faces + ' бет' : 'көрініп тұр') : 'көрінбейді') + '</b></div>' +
+      '<div><span>Бас бұрылысы</span><b>' + f2(d.dev) + ' / ' + CAMCFG.turn + '</b>' + bar(d.dev, CAMCFG.turn) + '</div>' +
+      '<div><span>Көз жанға</span><b>' + f2(d.side) + ' / ' + CAMCFG.gaze + '</b>' + bar(d.side, CAMCFG.gaze) + '</div>' +
+      '<div><span>Жақ (сөйлеу)</span><b>' + f2(d.jaw) + ' / ' + CAMCFG.jawHi + '</b>' + bar(d.jaw, CAMCFG.jawHi) + '</div>';
+  }, 400);
 }
 
 /* =====================================================================
