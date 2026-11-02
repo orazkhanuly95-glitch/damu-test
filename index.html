@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563c9">
+<title>DAMU тесттері</title>
+<meta name="description" content="DAMU білім беру орталығы: физикадан онлайн тест">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one friendly 720px column of rounded cards. Test screen: a brand-blue top band with the timer pill,
+   a colorful answer grid (green = answered), one question card with color-coded answer letters, fixed bottom navigation. */
+:root{
+  --bg:#f2f6fb; --card:#ffffff; --ink:#1b2a3a; --ink-2:#5a6a7c; --line:#dde5ef;
+  --brand:#2563c9; --brand-soft:#e7effc; --on-brand:#ffffff;
+  --bar:#2563c9; --on-bar:#ffffff; --bar-dim:rgba(255,255,255,.2); --bar-fill:#ffd166; --alarm:#e5483d; --on-alarm:#ffffff;
+  --c1:#2f6fe0; --c1s:#e8f0fe; --c2:#11936b; --c2s:#e0f4ed; --c3:#c27f00; --c3s:#fdf2da;
+  --c4:#d9493f; --c4s:#fde8e6; --c5:#8448d4; --c5s:#f1e8fc; --c6:#0a8a9e; --c6s:#ddf3f6; --on-c:#ffffff;
+  --ok:#13875a; --ok-soft:#e1f4ea; --warn:#9f5f00; --warn-soft:#fff3d9; --warn-line:#f1cb7e; --bad:#cc3a30; --bad-soft:#fde8e6;
+  --wa:#1d9a55; --on-wa:#ffffff; --scrim:rgba(20,32,50,.5);
+  --shadow:0 1px 2px rgba(27,42,58,.05),0 6px 18px rgba(27,42,58,.06);
+  --f-sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:18px; --r-sm:12px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e141d; --card:#162030; --ink:#e7edf5; --ink-2:#9db0c4; --line:#27354a;
+    --brand:#6ea2ff; --brand-soft:#1a2b4a; --on-brand:#0a1220;
+    --bar:#1c3463; --on-bar:#e7edf5; --bar-dim:rgba(255,255,255,.12); --bar-fill:#ffd166; --alarm:#ff7b70; --on-alarm:#2a0b08;
+    --c1:#6ea2ff; --c1s:#1a2b4a; --c2:#3ccf9c; --c2s:#12332a; --c3:#f2b53d; --c3s:#372a0e;
+    --c4:#ff877c; --c4s:#3d1d1b; --c5:#b38bff; --c5s:#2a1f45; --c6:#45c9dd; --c6s:#0f3139; --on-c:#0a1220;
+    --ok:#46c98e; --ok-soft:#12301f; --warn:#f0b44a; --warn-soft:#33270c; --warn-line:#6b5216; --bad:#ff8a7e; --bad-soft:#3a1a18;
+    --wa:#2fbf6d; --on-wa:#06140c; --scrim:rgba(0,0,0,.6); --shadow:0 1px 2px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#0e141d; --card:#162030; --ink:#e7edf5; --ink-2:#9db0c4; --line:#27354a;
+    --brand:#6ea2ff; --brand-soft:#1a2b4a; --on-brand:#0a1220;
+    --bar:#1c3463; --on-bar:#e7edf5; --bar-dim:rgba(255,255,255,.12); --bar-fill:#ffd166; --alarm:#ff7b70; --on-alarm:#2a0b08;
+    --c1:#6ea2ff; --c1s:#1a2b4a; --c2:#3ccf9c; --c2s:#12332a; --c3:#f2b53d; --c3s:#372a0e;
+    --c4:#ff877c; --c4s:#3d1d1b; --c5:#b38bff; --c5s:#2a1f45; --c6:#45c9dd; --c6s:#0f3139; --on-c:#0a1220;
+    --ok:#46c98e; --ok-soft:#12301f; --warn:#f0b44a; --warn-soft:#33270c; --warn-line:#6b5216; --bad:#ff8a7e; --bad-soft:#3a1a18;
+    --wa:#2fbf6d; --on-wa:#06140c; --scrim:rgba(0,0,0,.6); --shadow:0 1px 2px rgba(0,0,0,.25);
+    color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-sans);padding-bottom:24px;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+body.testing::before{background:var(--bar)}
+h1,h2,h3,p{margin:0}
+b{font-weight:600}
+
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:14px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 8px}
+.mast{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 0}
+.brand{font:700 1rem/1 var(--f-sans);letter-spacing:.18em;color:var(--brand)}
+.mast-r{font:600 .8rem/1 var(--f-sans);color:var(--brand);background:var(--brand-soft);border-radius:999px;padding:7px 12px}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.eyebrow{font:600 .8rem/1.2 var(--f-sans);color:var(--brand)}
+.title{font:700 1.45rem/1.3 var(--f-sans);text-wrap:balance}
+.h2{font:650 1.05rem/1.3 var(--f-sans)}
+.lbl{font:600 .82rem/1.2 var(--f-sans);color:var(--ink-2)}
+.hint{font-size:.88rem;color:var(--ink-2)}
+
+/* colored facts on the cover card */
+.spec{margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.spec>div{background:var(--cs);color:var(--c);border-radius:var(--r-sm);padding:10px 12px;min-width:0}
+.spec dt{font:600 .78rem/1.2 var(--f-sans);opacity:.9}
+.spec dd{margin:4px 0 0;font:700 1.4rem/1.1 var(--f-mono);font-variant-numeric:tabular-nums}
+.spec dd small{font:600 .8rem var(--f-sans)}
+
+.rules{margin:0;padding:0;list-style:none;counter-reset:r;display:flex;flex-direction:column;gap:10px}
+.rules li{counter-increment:r;display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;font-size:.96rem;line-height:1.5}
+.rules li::before{content:counter(r);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 .82rem/1 var(--f-sans);color:var(--c);background:var(--cs)}
+.rules li:nth-child(1){--c:var(--c1);--cs:var(--c1s)}
+.rules li:nth-child(2){--c:var(--c5);--cs:var(--c5s)}
+.rules li:nth-child(3){--c:var(--c4);--cs:var(--c4s)}
+.rules li:nth-child(4){--c:var(--c2);--cs:var(--c2s)}
+
+.fields{display:grid;grid-template-columns:minmax(0,1fr) 104px;gap:12px}
+.fields.one{grid-template-columns:minmax(0,1fr)}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+input[type=text],input[type=number]{width:100%;min-width:0;font:500 1rem var(--f-sans);color:var(--ink);background:var(--bg);
+  border:1.5px solid var(--line);border-radius:var(--r-sm);padding:12px 14px}
+input[type=number]{font-family:var(--f-mono)}
+input[readonly]{opacity:.8}
+input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+.agree{display:flex;gap:12px;align-items:center;font-size:.96rem;cursor:pointer;padding:12px 14px;border-radius:var(--r-sm);background:var(--brand-soft)}
+.agree input{width:22px;height:22px;margin:0;flex:none;accent-color:var(--brand)}
+
+.btn{font:600 .96rem/1.2 var(--f-sans);border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:var(--r-sm);
+  padding:11px 16px;min-height:48px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;text-align:center}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.btn.wa{background:var(--wa);border-color:var(--wa);color:var(--on-wa)}
+.btn.big{width:100%;min-height:54px;font-size:1.02rem}
+.btn.sm{min-height:42px;padding:8px 12px;font-size:.9rem}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn:focus-visible,.opt:focus-visible,.cell:focus-visible,.agree input:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>.btn{flex:1 1 140px}
+.cheerline{text-align:center;font-weight:600;color:var(--brand)}
+.note{border-radius:var(--r-sm);padding:11px 14px;font-size:.92rem;background:var(--bg)}
+.note.warn{background:var(--warn-soft);color:var(--warn);box-shadow:inset 0 0 0 1px var(--warn-line)}
+.note.bad{background:var(--bad-soft);color:var(--bad)}
+
+/* ---------- test screen ---------- */
+.tbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bar);color:var(--on-bar);box-shadow:var(--shadow)}
+.tb-in{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:12px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px}
+.tb-who{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.tbar .brand{color:var(--on-bar)}
+.who{font-size:.86rem;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .sep{margin:0 6px;opacity:.5}
+.timer{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--bar-dim);border-radius:14px;padding:6px 14px}
+.timer .tl{font:600 .62rem/1 var(--f-sans);letter-spacing:.06em;opacity:.85}
+.timer .tv{font:700 1.3rem/1.05 var(--f-mono);font-variant-numeric:tabular-nums}
+.timer.low{background:var(--alarm);color:var(--on-alarm)}
+.prog{height:4px;background:var(--bar-dim)}
+.prog i{display:block;height:100%;background:var(--bar-fill);border-radius:0 4px 4px 0;transition:width .25s}
+
+.sheetmap{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px}
+.sm-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sm-h .n{font:700 .8rem/1 var(--f-mono);color:var(--c2);background:var(--c2s);border-radius:999px;padding:5px 9px;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:8px 4px}
+.cell{font:600 .8rem/1 var(--f-mono);font-variant-numeric:tabular-nums;width:100%;max-width:40px;min-height:24px;aspect-ratio:1;justify-self:center;
+  padding:0;min-width:0;cursor:pointer;display:grid;place-items:center;border:1.5px solid var(--line);border-radius:50%;background:var(--card);color:var(--ink-2)}
+.cell.done{background:var(--c2s);border-color:var(--c2s);color:var(--c2)}
+.cell.cur{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+
+.qsheet{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.qhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.qno{font:700 .85rem/1 var(--f-sans);color:var(--brand);background:var(--brand-soft);border-radius:999px;padding:7px 12px}
+.qof{font:600 .85rem/1 var(--f-mono);color:var(--ink-2)}
+.tag{margin-left:auto;font:600 .78rem/1 var(--f-sans);color:var(--c5);background:var(--c5s);border-radius:999px;padding:7px 11px}
+.qtext{font:500 1.15rem/1.55 var(--f-sans);overflow-wrap:anywhere}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{font:500 1rem/1.45 var(--f-sans);text-align:left;display:flex;gap:12px;align-items:flex-start;width:100%;padding:12px 14px;min-height:56px;
+  border:1.5px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);cursor:pointer;transition:border-color .15s,background-color .15s}
+.opt .bub{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font:700 .9rem/1 var(--f-sans);color:var(--c);background:var(--cs);transition:background-color .15s,color .15s}
+.opt.multi .bub{border-radius:9px}
+.opt .ot{padding-top:4px;min-width:0;overflow-wrap:anywhere}
+@media (hover:hover){ .opt:hover{border-color:var(--c)} }
+.opt.on{border-color:var(--c);background:var(--cs)}
+.opt.on .bub{background:var(--c);color:var(--on-c)}
+.snav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(0,0,0,.05);
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.snav .in{max-width:688px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:10px}
+.spacer{height:88px}
+
+.modal{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;background:var(--scrim)}
+.dlg{background:var(--card);border-radius:20px;padding:20px;max-width:420px;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.dlg h3{font:700 1.15rem/1.3 var(--f-sans)}
+.miss{display:flex;flex-wrap:wrap;gap:5px}
+.miss span{font:600 .82rem/1 var(--f-mono);background:var(--bad-soft);color:var(--bad);border-radius:999px;padding:6px 9px}
+
+/* ---------- result ---------- */
+.verdict{display:flex;flex-direction:column;align-items:center;gap:10px;padding:6px 0 4px}
+.ring{width:156px;max-width:100%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--rc) calc(var(--p) * 1%), var(--line) 0)}
+.ring-in{width:124px;aspect-ratio:1;border-radius:50%;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.score{font:700 2.1rem/1 var(--f-mono);font-variant-numeric:tabular-nums}
+.score .of{font-size:1rem;color:var(--ink-2)}
+.pct{font:700 .95rem/1 var(--f-mono);color:var(--rc)}
+.cheer{font:650 1.08rem/1.35 var(--f-sans);color:var(--rc);text-align:center;text-wrap:balance}
+.protocol{margin:0;display:flex;flex-direction:column;background:var(--bg);border-radius:var(--r-sm);padding:4px 14px}
+.protocol>div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.protocol>div:last-child{border-bottom:0}
+.protocol dt{font-size:.86rem;color:var(--ink-2)}
+.protocol dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.protocol .m{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.state{display:inline-block;font:600 .8rem/1 var(--f-sans);border-radius:999px;padding:6px 10px}
+.state.ok{color:var(--ok);background:var(--ok-soft)} .state.bad{color:var(--bad);background:var(--bad-soft)} .state.warn{color:var(--warn);background:var(--warn-soft)}
+.rep{margin:0;padding:12px 14px;background:var(--bg);border:1.5px dashed var(--line);border-radius:var(--r-sm);font:500 .8rem/1.55 var(--f-mono);
+  white-space:pre-wrap;overflow-wrap:anywhere;-webkit-user-select:text;user-select:text}
+
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:999px;font-size:.9rem;font-weight:600;z-index:50;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
+#toast.on{opacity:1}
+body.testing,body.testing *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+sup,sub{line-height:0;font-size:.75em}
+@media (max-width:420px){
+  .title{font-size:1.3rem} .qtext{font-size:1.08rem} .spec dd{font-size:1.2rem}
+  .fields{grid-template-columns:minmax(0,1fr) 92px} .protocol>div{grid-template-columns:96px minmax(0,1fr)} .sheet,.qsheet{padding:16px}
+}
+@media (max-width:360px){ .cell{font-size:.72rem} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ---------- site: home, teacher monitor ---------- */
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+a{color:var(--brand)}
+.mast a.brand{text-decoration:none}
+.wrap.wide{max-width:900px}
+.hero{display:flex;flex-direction:column;gap:8px;padding:6px 2px 2px}
+.title.big{font-size:clamp(1.6rem,1.2rem + 2vw,2.2rem)}
+.tests{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+@media (min-width:720px){ .tests{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.tcard .trow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chip{font:600 .8rem/1 var(--f-sans);color:var(--brand);background:var(--brand-soft);border-radius:999px;padding:7px 11px}
+.ttl{font:700 1.2rem/1.3 var(--f-sans);text-wrap:balance}
+.foot{text-align:center;font-size:.92rem;padding:4px 0 10px}
+.narrow{max-width:460px;width:100%;margin:0 auto}
+.note.ok{background:var(--ok-soft);color:var(--ok)}
+.fallback{display:flex;flex-direction:column;gap:10px}
+.mhead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.live{display:inline-flex;align-items:center;gap:7px;font:600 .82rem/1 var(--f-sans);color:var(--ink-2);background:var(--bg);border-radius:999px;padding:8px 12px}
+.live i{width:9px;height:9px;border-radius:50%;background:var(--c4);flex:none}
+.live.on i{background:var(--ok);animation:pulse 1.6s infinite}
+.live.poll i{background:var(--c3)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(19,135,90,.45)}70%{box-shadow:0 0 0 8px rgba(19,135,90,0)}100%{box-shadow:0 0 0 0 rgba(19,135,90,0)}}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:600 .86rem/1 var(--f-sans);border:1.5px solid var(--line);background:var(--card);color:var(--ink-2);border-radius:999px;padding:8px 12px;cursor:pointer;min-height:36px}
+.chips button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.chips button:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.mstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:560px){ .mstats{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.stat{background:var(--cs);color:var(--c);border-radius:var(--r-sm);padding:12px 14px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.stat b{font:700 1.9rem/1 var(--f-mono);font-variant-numeric:tabular-nums}
+.stat span{font-size:.82rem;font-weight:600}
+.row.tight{gap:6px} .row.tight>.btn{flex:0 0 auto}
+.plist{display:flex;flex-direction:column;gap:8px}
+.prow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card)}
+.prow.run{border-color:var(--c1);background:var(--c1s)}
+.who2{display:flex;flex-direction:column;gap:3px;min-width:0}
+.who2 .nm{font-weight:600;overflow-wrap:anywhere}
+.who2 .sub{font-size:.8rem;color:var(--ink-2)}
+.flag{font-size:.76rem;font-weight:600;color:var(--c4)}
+.rt{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
+.sc{font:700 1rem/1 var(--f-mono);font-variant-numeric:tabular-nums}
+.sc.run{color:var(--c1)}
+.state.run{color:var(--c1);background:var(--c1s)}
+.empty{padding:18px;text-align:center;color:var(--ink-2);background:var(--bg);border-radius:var(--r-sm);font-size:.92rem}
+.linkrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.linkrow .lk{font-weight:600;min-width:110px}
+.linkrow code{flex:1 1 200px;min-width:0;font:500 .78rem/1.4 var(--f-mono);background:var(--bg);border-radius:10px;padding:8px 10px;overflow-wrap:anywhere}
+.linkrow .btn{flex:0 0 auto}
+.muted{color:var(--ink-2);font-weight:500}
+</style>
+</head>
+<body>
+<noscript><div class="wrap"><div class="note bad">Тест JavaScript-сіз ашылмайды. Браузер баптауынан қосыңыз.</div></div></noscript>
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+'use strict';
+/* DAMU тесттері: басты бет (#), тест (#termo, #vektor), мұғалім беті (#mugalim).
+   Тест деректері осы файлдың ішінде, дұрыс жауаптар хэштелген. Нәтижелер ntfy.sh арқылы мұғалім бетіне келеді. */
+
+/* ---------- utils ---------- */
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const LET = 'ABCDEFGHIJKL';
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function fmt(s){
+  let h = esc(s);
+  h = h.replace(/\^(\{[^}]*\}|[+\-−]?(?:\d+|[A-Za-zα-ωΑ-Ω]))/g, (m,a) => '<sup>' + (a[0] === '{' ? a.slice(1,-1) : a) + '</sup>');
+  h = h.replace(/_(\{[^}]*\}|\d+|[A-Za-zα-ωΑ-ΩА-яЁёӘәҒғҚқҢңӨөҰұҮүҺһІі])/g, (m,a) => '<sub>' + (a[0] === '{' ? a.slice(1,-1) : a) + '</sub>');
+  return h;
+}
+function cyrb53(str, seed){
+  let h1 = 0xdeadbeef ^ (seed||0), h2 = 0x41c6ce57 ^ (seed||0);
+  for (let i = 0, ch; i < str.length; i++){ ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+}
+function oh(salt, t){ return cyrb53(salt + '|' + t).toString(36); }
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e){ return false; } }
+};
+let toastT = 0;
+function toast(msg){ const t = $('#toast'); if (!t) return; t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2200); }
+function copyText(text, okMsg){
+  const done = () => toast(okMsg || 'Көшірілді');
+  const fallback = () => {
+    const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta);
+    ta.focus(); ta.select(); try { document.execCommand('copy'); done(); } catch(e){ toast('Көшіру мүмкін болмады. Мәтінді қолмен таңдаңыз.'); } ta.remove();
+  };
+  try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback(); } catch(e){ fallback(); }
+}
+function clean(s){ return String(s || '').replace(/[|\n\r]/g, ' ').replace(/\s+/g, ' ').trim(); }
+function machineLine(id, name, num, vn, score, total, status, secs){
+  return '#DAMU|' + [id, clean(name), clean(num), vn, score, total, status, secs, new Date().toISOString()].join('|');
+}
+function splitTitle(t){ const m = String(t).match(/^(.*?)\s*\(\s*(§[^)]*)\)\s*$/); return m ? [m[1], m[2]] : [String(t), '']; }
+function dur(secs){ secs = Math.max(0, secs | 0); return Math.floor(secs / 60) + ' мин ' + String(secs % 60).padStart(2, '0') + ' с'; }
+function fmtTime(ms){ ms = Math.max(0, ms); const s = Math.ceil(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+
+/* ---------- tests on this site ---------- */
+const TESTS = {
+  termo: { short: 'Термодинамика', p: [1,"1p58qbkg","Термодинамиканың бірінші заңы. Газдың және будың жұмысы (§13)",30,1,0,"77079960127","jjonw4wc",[["Дененің ішкі энергиясын өзгертудің қандай екі тәсілі бар? (бірнеше жауап)",["Жылуберілу","Сыртқы күштердің әсерінен механикалық жұмыс жасау","Денені жерден биікке көтеру","Дененің түсін өзгерту","Дененің массасын өлшеу"],["19kzhgelnns","10wxcvndfkx"]],["Термодинамиканың бірінші заңының өрнегін көрсетіңіз.",["ΔU = Q + A'","ΔU = Q − A'","ΔU = A' − Q","Q = ΔU − A'","ΔU = Q · A'"],["ju5eqkfx9k"]],["Бір күйден екінші күйге ауысқан дененің ішкі энергиясының өзгерісі неге тең?",["Денеге берілген жылу мөлшері мен сыртқы күштердің істеген жұмысының қосындысына","Жылу мөлшері мен сыртқы күштер жұмысының айырмасына","Тек денеге берілген жылу мөлшеріне","Тек сыртқы күштердің жұмысына","Әрдайым нөлге"],["1xbfaqck39g"]],["ΔU = Q + A' өрнегіндегі A' нені білдіреді?",["Сыртқы күштердің жұмысын","Ішкі энергияның өзгерісін","Жылу мөлшерін","Газдың көлемін","Газдың қысымын"],["1dkhzb3m9s3"]],["ΔU = Q + A' өрнегіндегі ΔU нені білдіреді?",["Ішкі энергияның өзгерісін","Жылу мөлшерін","Сыртқы күштердің жұмысын","Газдың көлемін","Газдың қысымын"],["1ygfz2t3jsk"]],["Жылу құбылыстары үшін қай заң термодинамиканың бірінші заңы деп аталады?",["Энергияның сақталу заңы","Массаның сақталу заңы","Паскаль заңы","Архимед заңы","Гук заңы"],["t77l8v1pnt"]],["Жылу мөлшері дегеніміз не?",["Бір денеден екінші денеге энергияның берілу өлшемі","Бір энергия түрінің екінші энергия түріне айналу өлшемі","Дененің температурасы","Дененің массасы","Газдың қысымы"],["1ozhaje3bkn"]],["Жұмыс дегеніміз не?",["Бір энергия түрінің екінші энергия түріне айналу өлшемі","Бір денеден екінші денеге энергияның берілу өлшемі","Дененің температурасы","Газдың көлемі","Поршеньнің ауданы"],["1uggwkpfdqt"]],["Қатты денелер мен сұйықтарға қарағанда газ (бу) өзіне берілген көлемде қалай таралады?",["Көлемге толық таралады","Тек ыдыстың түбіне жиналады","Көлемнің жартысын ғана алады","Ыдыстың бір бұрышына жиналады","Мүлде таралмайды"],["yfn8ok670e"]],["Газды (буды) қыздырғанда оның қысымы неліктен артады?",["Молекулалардың қозғалыс жылдамдығы артып, ыдыс қабырғасына соққылар саны мен соққы күші көбейеді","Газ молекулаларының саны артады","Газдың массасы артады","Молекулалардың өлшемі үлкейеді","Ыдыстың қабырғасы жұқарады"],["946kawiftk"]],["Қызған газ цилиндр поршенін қозғалтқанда не болады?",["Газ механикалық жұмыс жасайды","Газдың массасы артады","Газ сұйыққа айналады","Газдың қысымы нөлге тең болады","Поршень ериді"],["ofzmtzjiji"]],["Газдың поршеньге әсер ететін қысым күші қалай анықталады?",["F = pS","F = p / S","F = S / p","F = pΔV","F = p + S"],["2544af3wuki"]],["A = F·Δh формуласындағы Δh нені білдіреді?",["Поршеньнің орын ауыстыруын","Цилиндрдің биіктігін","Газдың қысымын","Поршеньнің ауданын","Газдың көлемін"],["1e92eagepnf"]],["SΔh көбейтіндісі нені білдіреді?",["Газ көлемінің өзгерісін (ΔV)","Газдың қысымын","Газдың жұмысын","Газдың ішкі энергиясын","Поршеньге әсер ететін күшті"],["27uypk3voaz"]],["Газдың жұмысын поршеньнің ауданы S, газ қысымы p және поршеньнің орын ауыстыруы Δh арқылы қалай жазуға болады?",["A = pSΔh","A = pS / Δh","A = pΔh / S","A = SΔh / p","A = p + S + Δh"],["zvxtau2s9i"]],["Газ жұмысының формуласын көрсетіңіз.",["A = pΔV","A = p / ΔV","A = ΔV / p","A = p + ΔV","A = pV^2"],["8mnu9yy1w5"]],["Жылжымалы поршень бекітілмеген кезде цилиндрдегі газдың сыртқы және ішкі қысымы қандай болады?",["Бірдей болады","Ішкі қысым әрдайым екі есе артық болады","Сыртқы қысым әрдайым артық болады","Ішкі қысым нөлге тең болады","Сыртқы қысым нөлге тең болады"],["1shz6dqh9ei"]],["Сыртқы күштердің жұмысы A' мен газдың жұмысы A өзара қалай байланысқан?",["A' = −A","A' = A","A' = 2A","A' = A / 2","A' = 0"],["1jwev7fx60o"]],["Неліктен сыртқы күштердің жұмысы газ жұмысының мәніне тең, бірақ таңбасы қарама-қарсы болады?",["Поршеньге сыртынан және ішінен әсер ететін қысым күштері тең, бірақ қарама-қарсы бағытталған","Газдың массасы өзгереді","Сыртқы күштер нөлге тең болады","Поршень мүлде қозғалмайды","Газдың көлемі өзгермейді"],["fkxo4fj3qz"]],["Газ жұмысы A арқылы жазылған термодинамиканың бірінші заңын көрсетіңіз.",["Q = ΔU + A","Q = ΔU − A","Q = A − ΔU","ΔU = Q + A","A = Q + ΔU"],["1c3h4cak2to"]],["Газға берілген жылу мөлшері неге жұмсалады?",["Оның ішкі энергиясының өзгерісіне және оның механикалық жұмыс атқаруына","Тек оның ішкі энергиясының өзгерісіне","Тек оның механикалық жұмыс атқаруына","Газдың массасын арттыруға","Ешнәрсеге жұмсалмайды"],["1rjjel62arn"]],["Мәңгі қозғалтқыш дегеніміз не?",["Отын немесе басқа энергия көзін жұмсамай-ақ механикалық жұмыс жасай алатын қозғалтқыш","Бензинмен жұмыс істейтін қозғалтқыш","Электр тогымен жұмыс істейтін қозғалтқыш","Тек түнде жұмыс істейтін қозғалтқыш","Өте баяу айналатын қозғалтқыш"],["1pidb8b2h1d"]],["Жылу мөлшері берілмейтін (Q = 0) жүйе үшін термодинамиканың бірінші заңы қалай жазылады?",["ΔU + A = 0, яғни A = −ΔU","ΔU = A","A = 0","ΔU = 0","Q = A"],["tea5z2eiog"]],["Термодинамиканың бірінші заңы бойынша бірінші ретті мәңгі қозғалтқыш жасау неліктен мүмкін емес?",["Жұмыс тек құрылғының ішкі энергиясы есебінен жасалады, ал ішкі энергияны шексіз төмендету мүмкін емес, сондықтан қозғалтқыш тоқтайды","Оған қажетті материалдар әлі ойлап табылмаған","Мұндай қозғалтқышты жасау өте қымбат","Мұндай қозғалтқыштың массасы тым үлкен болады","Мұндай қозғалтқышты ешкім жасап көрмеген"],["1jt9u2ijsxi"]],["Адиабаттық үдеріс дегеніміз не?",["Газдың сыртқы ортамен жылу алмасусыз бір күйден екінші күйге өтуі","Газдың сыртқы ортадан жылу алып ұлғаюы","Газдың сыртқы ортаға жылу беріп сығылуы","Газдың отын жағу арқылы қызуы","Газдың бір ыдыстан екінші ыдысқа ауысуы"],["t83lb02xoe"]],["Табиғаттағы адиабаттық үдеріске мысал келтіріңіз.",["Атмосфераның жоғарғы қабаттарына көтерілген ауа ағындарының бұлттар түзуі","Шәйнектегі судың қайнауы","Мұздың күн астында еруі","Үтіктің электр тогымен қызуы","Ыстық шайдың бөлмеде суынуы"],["tuobxm70k2"]],["Газды сыққанда ол неліктен қызады?",["Сыртқы күштер газ үстінен жұмыс жасап, газдың ішкі энергиясы артады","Газ сыртқы ортадан жылу алады","Газ молекулаларының саны артады","Газдың массасы артады","Газ сыртқы денелерге жұмыс жасайды"],["23u65eqhlwh"]],["2 МПа тұрақты қысымда көлемі 2 л-ден 12 л-ге дейін ұлғайған газ қандай жұмыс жасайды?",["20 кДж","24 кДж","4 кДж","20 Дж","200 кДж"],["2cjehy52uom"]],["Ұлғаю кезінде 4400 Дж жұмыс жасаған сутекке қанша жылу мөлшері берілген? Сутектің ішкі энергиясы өзгерген жоқ.",["4400 Дж","0 Дж","8800 Дж","2200 Дж","44 Дж"],["11pcuepjx4s"]],["Тұрақты қысымда 0,3 м³-тен 600 л-ге дейін көлемі ұлғайған газ 400 Дж жұмыс жасады. Газдың қысымы қандай?",["≈ 1,3 кПа","≈ 667 Па","120 Па","≈ 0,67 Па","400 кПа"],["qe31fo9b1p"]],["Адиабаттық үдеріс кезінде газ 10 Дж жұмыс жасады. Оның ішкі энергиясы қалай өзгерді?",["10 Дж-ге кеміді","10 Дж-ге артты","Өзгерген жоқ","20 Дж-ге кеміді","5 Дж-ге кеміді"],["1scx21sbtcp"]],["Газға 300 Дж жылу мөлшері берілді, газ 100 Дж жұмыс жасады. Газдың ішкі энергиясы қалай өзгерді?",["200 Дж-ге артты","400 Дж-ге артты","200 Дж-ге кеміді","300 Дж-ге артты","100 Дж-ге артты"],["2er052swe8g"]],["Газға 200 Дж жылу мөлшері берілді, сыртқы күштер 300 Дж жұмыс жасады. Газдың ішкі энергиясы қалай өзгерді?",["500 Дж-ге артты","100 Дж-ге артты","100 Дж-ге кеміді","500 Дж-ге кеміді","300 Дж-ге артты"],["1srjh9ln0tg"]],["Газға 400 Дж жылу мөлшері берілді, оның ішкі энергиясы 150 Дж-ге артты. Газ қандай жұмыс жасады?",["250 Дж","550 Дж","150 Дж","400 Дж","0 Дж"],["1dux4y9ruw"]],["Газ ұлғайып, 50 кДж жұмыс жасады. Сыртқы күштердің жұмысы қандай?",["−50 кДж","50 кДж","0","100 кДж","−100 кДж"],["1z60zitp98g"]],["150 кПа тұрақты қысымда газдың көлемі 0,4 м³-ге артты. Газ қандай жұмыс жасады?",["60 кДж","6 кДж","375 кДж","600 кДж","0,6 кДж"],["9ja19yqsyo"]],["Газ қысымы 2·10^5 Па, поршеньнің ауданы 0,01 м². Газ поршеньді 0,2 м-ге жылжытты. Газдың жұмысы қандай?",["400 Дж","4000 Дж","40 Дж","100 Дж","2000 Дж"],["1wpokv6k9lv"]],["Газ поршеньге 500 Н күшпен әсер етіп, оны 0,1 м-ге жылжытты. Газдың жұмысы қандай?",["50 Дж","5000 Дж","5 Дж","500 Дж","0,2 Дж"],["120oqju5cdn"]],["Цилиндрдегі газдың қысымы 10^5 Па, поршеньнің ауданы 0,02 м². Газдың поршеньге әсер ету күші қандай?",["2000 Н","200 Н","20 кН","5·10^6 Н","50 Н"],["20uuw1tfj7p"]],["Газ 3·10^5 Па тұрақты қысымда 1,2 кДж жұмыс жасады. Газдың көлемі қаншаға өзгерді?",["4 л","40 л","0,4 л","250 л","3,6 л"],["1hyfpa5o0g7"]]],[[[8,4,0,3,2,1],[38,1,3,4,2,0],[30,2,0,1,3,4],[18,2,1,4,0,3],[35,2,4,1,0,3],[0,1,0,3,4,2],[16,2,0,3,4,1],[7,2,0,4,1,3],[14,4,2,0,1,3],[19,2,1,4,0,3]],[[11,4,2,3,1,0],[1,1,0,2,4,3],[21,4,2,3,0,1],[27,2,3,4,1,0],[10,1,0,3,2,4],[9,2,3,1,4,0],[20,0,3,1,4,2],[25,4,0,2,3,1],[36,1,4,3,0,2],[31,0,2,3,4,1]],[[39,3,4,0,2,1],[4,1,3,2,4,0],[6,1,3,2,4,0],[37,4,3,1,0,2],[22,2,3,0,4,1],[24,4,1,0,2,3],[23,4,1,3,2,0],[12,1,4,2,3,0],[29,1,4,0,2,3],[15,1,4,2,3,0]],[[13,1,0,3,4,2],[3,4,3,2,1,0],[26,3,1,2,4,0],[17,1,0,2,4,3],[28,3,4,0,1,2],[34,0,3,1,2,4],[32,1,4,0,3,2],[33,0,1,4,3,2],[2,4,3,1,2,0],[5,1,2,3,0,4]],[[23,4,3,2,1,0],[34,1,4,3,0,2],[20,0,2,4,1,3],[11,2,0,3,4,1],[36,4,3,0,1,2],[8,0,2,1,3,4],[28,3,0,2,1,4],[24,1,3,4,2,0],[17,1,4,3,0,2],[18,2,4,1,0,3]]],"",0,"c",0] },
+  vektor: { short: 'Векторлар', p: [1,"esm0rlhp","Векторлар және тең айнымалы қозғалыс (§2–§3)",30,1,0,"77079960127","26d26p72",[["Екі векторды геометриялық жолмен қосуға қолданылатын ережелерді таңдаңыз (бірнеше жауап).",["Үшбұрыш ережесі","Параллелограмм ережесі","Сол қол ережесі","Гук заңы","Паскаль заңы"],["dptunp8y1g","1h4fdff6swk"]],["Үшбұрыш ережесі бойынша a және b векторларын қосқанда, қосынды вектор қалай бағытталады?",["Бірінші вектордың басынан екінші вектордың ұшына қарай","Бірінші вектордың ұшынан екінші вектордың басына қарай","Екінші вектордың басынан бірінші вектордың басына қарай","Бірінші векторға перпендикуляр","Екінші векторға қарама-қарсы"],["thcejkc7wl"]],["Шопан алдымен шығысқа қарай 4 км, содан кейін солтүстікке қарай 3 км жүрді. Оның орын ауыстыру векторының модулі қандай?",["7 км","1 км","5 км","12 км","3,5 км"],["w8l12w6fvv"]],["Бір түзудің бойымен қарама-қарсы бағытталған модульдері 6 м және 8 м екі орын ауыстыру векторы қосылды. Қосынды вектордың модулі қандай?",["14 м","2 м","10 м","48 м","7 м"],["i22ldshzr7"]],["Қайық тынық суда 3 м/с жылдамдықпен жүзеді. Өзен ағысының жылдамдығы 4 м/с. Қайық ағысқа перпендикуляр бағытта жүзсе, жағаға қатысты жылдамдығы қандай?",["7 м/с","1 м/с","12 м/с","5 м/с","3,5 м/с"],["199bugrghsi"]],["Параллелограмм ережесі бойынша бір нүктеден шығатын екі вектордың қосындысы параллелограмның неге тең?",["Қабырғасына","Сол нүктеден шығатын диагоналіне","Биіктігіне","Периметріне","Ауданына"],["1oqtn9muasd"]],["a векторына қарама-қарсы –a векторы a векторынан немен ерекшеленеді?",["Модулі бірдей, бағыты қарама-қарсы","Модулі екі есе кіші, бағыты бірдей","Модулі де, бағыты да бірдей","Бағыты перпендикуляр","Модулі нөлге тең"],["198k6cmt5x3"]],["Бір нүктеден шығатын a және b векторларының айырмасы (a – b) қалай бағытталады?",["a векторының басынан b векторының ұшына қарай","b векторының ұшынан a векторының ұшына қарай","a векторының ұшынан b векторының ұшына қарай","b векторының басынан a векторының басына қарай","a векторының ұшынан b векторының басына қарай"],["eoc26p8t0r"]],["Векторлық шамаларды таңдаңыз (бірнеше жауап).",["Орын ауыстыру","Жол","Уақыт","Үдеу","Масса"],["1uldr0dxjvp","1hjglfcnnty"]],["Вектордың Ох осіндегі проекциясы нөлге тең болады, егер вектор Ох осіне қатысты қалай орналасса?",["Осьпен бағыттас","Оське қарама-қарсы бағытталған","Оське перпендикуляр","Осьпен 30° бұрыш жасайды","Осьпен 60° бұрыш жасайды"],["3qp3qbo9gy"]],["Орын ауыстыру векторының модулі 7 м, ол Ох осіне қарама-қарсы бағытталған. Оның Ох осіндегі проекциясы s_x неге тең?",["7 м","–7 м","0","3,5 м","49 м"],["1siieqetm3f"]],["Дене координатасы x_1 = 2 м нүктеден x_2 = 8 м нүктеге ауысты. Орын ауыстырудың Ох осіндегі проекциясы қандай?",["–6 м","6 м","10 м","16 м","4 м"],["lnlhsrp3ge"]],["Дене координатасы x_1 = 9 м нүктеден x_2 = 3 м нүктеге ауысты. Орын ауыстырудың Ох осіндегі проекциясы қандай?",["6 м","12 м","–12 м","27 м","–6 м"],["1pii86zzy8c"]],["Жылдамдығы 20 м/с дене горизонтқа 60° бұрышпен лақтырылды. Жылдамдықтың горизонталь құраушысы v_x = v cosα неге тең? (cos 60° = 0,5)",["20 м/с","17,3 м/с","10 м/с","5 м/с","40 м/с"],["21np1cmsfkt"]],["Жылдамдығы 10 м/с дене горизонтқа 30° бұрышпен лақтырылды. Жылдамдықтың вертикаль құраушысы v_y = v sinα неге тең? (sin 30° = 0,5)",["10 м/с","8,7 м/с","20 м/с","5 м/с","2,5 м/с"],["199bugrghsi"]],["Орын ауыстыру векторының проекциялары s_x = 2 м, s_y = 3 м, s_z = 6 м. Орын ауыстыру модулі қандай?",["11 м","7 м","5 м","49 м","36 м"],["1h0x2bgkndp"]],["Вектордың осьтегі проекциясы қандай шама?",["Скаляр шама","Векторлық шама","Әрдайым оң шама","Әрдайым нөлге тең шама","Әрдайым модуліне тең шама"],["1mhfua7japh"]],["Дөңгелек сырғанамай домалап барады. Оның жоғарғы нүктесінің ілгерілемелі және айналмалы жылдамдықтары бағыттас, әрқайсысы 5 м/с. Нүктенің жердегі санақ жүйесіне қатысты жылдамдығы қандай?",["0","5 м/с","10 м/с","25 м/с","7,07 м/с"],["21np1cmsfkt"]],["Картаның масштабы 1:100 000. Картада орын ауыстыру векторының ұзындығы 5 см. Шын мәніндегі орын ауыстыру қандай?",["500 м","50 км","5 км","0,5 км","100 км"],["w8l12w6fvv"]],["Бірнеше векторды көпбұрыш ережесі бойынша қосқанда, қосынды вектор қалай бағытталады?",["Бірінші вектордың басынан соңғы вектордың ұшына қарай","Соңғы вектордың басынан бірінші вектордың ұшына қарай","Ең ұзын векторға параллель","Ең қысқа векторға қарама-қарсы","Бірінші векторға перпендикуляр"],["2cy9gg941uz"]],["Біркелкі емес қозғалыстағы орташа жылдамдық қалай анықталады?",["Бастапқы және соңғы жылдамдықтардың қосындысымен","Жол мен уақыттың көбейтіндісімен","Барлық жолдың барлық жүрген уақытқа қатынасымен","Жылдамдық өзгерісінің уақытқа көбейтіндісімен","Орын ауыстырудың жолға қатынасымен"],["ak4fpx4d17"]],["Велосипедші алғашқы 1 сағатта 12 км, келесі 2 сағатта 18 км жол жүрді. Оның бүкіл жолдағы орташа жылдамдығы қандай?",["15 км/сағ","10 км/сағ","10,5 км/сағ","30 км/сағ","6 км/сағ"],["2eegtzlwd4"]],["Дене жолдың бірінші жартысын 20 м/с, екінші жартысын 30 м/с жылдамдықпен өтті. Бүкіл жолдағы орташа жылдамдығы қандай?",["25 м/с","24 м/с","50 м/с","10 м/с","26 м/с"],["1zztpgwjlhd"]],["Лездік жылдамдық дегеніміз не?",["Дененің бүкіл жолдағы жылдамдығы","Дененің бастапқы кездегі жылдамдығы","Дененің траекторияның берілген нүктесіндегі (берілген уақыт мезетіндегі) жылдамдығы","Жылдамдықтың орташа мәні","Дененің соңғы кездегі жылдамдығы"],["1qvjddfmocq"]],["Автомобиль спидометрі қандай жылдамдықты көрсетеді?",["Орташа жылдамдықты","Лездік жылдамдықты","Бастапқы жылдамдықты","Үдеуді","Жолды"],["1gofbu4zb13"]],["Қандай қозғалыс тең айнымалы қозғалыс деп аталады?",["Жылдамдығы өзгермейтін қозғалыс","Кез келген тең уақыт аралықтарында жылдамдығы бірдей шамаға өзгеретін қозғалыс","Жолы өзгермейтін қозғалыс","Траекториясы дөңгелек болатын қозғалыс","Дене тыныштықта тұрған қозғалыс"],["izretnlr5i"]],["Үдеу дегеніміз не?",["Жолдың уақытқа қатынасы","Орын ауыстырудың жолға қатынасы","Жылдамдық өзгерісінің сол өзгеріс болған уақыт аралығына қатынасымен анықталатын физикалық шама","Жылдамдық пен уақыттың көбейтіндісі","Жолдың жылдамдыққа қатынасы"],["22158chwxvc"]],["Тең айнымалы қозғалыстағы үдеуді қай формуламен табады?",["a = (v + v_0)/t","a = v·t","a = (v – v_0)/t","a = s/t","a = (v – v_0)·t"],["dr8s21izlp"]],["Үдеудің халықаралық жүйедегі (СИ) өлшем бірлігі қандай?",["м/с","м/с^2","м·с^2","с/м","Н"],["1h7gf8i7bq3"]],["Дене тыныштықтан қозғала бастап, 5 с-та 20 м/с жылдамдыққа жетті. Оның үдеуі қандай?",["100 м/с^2","4 м/с^2","0,25 м/с^2","25 м/с^2","15 м/с^2"],["1fz0yov69d4"]],["Қозғалыс бағыты оң деп алынған. Жылдамдығы 20 м/с поезд тежеліп, 10 с-та тоқтады. Үдеудің проекциясы a_x қандай?",["2 м/с^2","–2 м/с^2","0,5 м/с^2","–0,5 м/с^2","200 м/с^2"],["2cyjh6rqbq"]],["Үдеу векторының бағыты қалай анықталады?",["Әрдайым бастапқы жылдамдық бағытымен бағыттас","Жылдамдық өзгерісі векторының бағытымен бағыттас","Әрдайым орын ауыстыруға перпендикуляр","Әрдайым жылдамдыққа қарама-қарсы","Әрдайым траекторияға перпендикуляр"],["po8obzywwt"]],["Үдеу векторының бағыты жылдамдық векторының бағытымен бағыттас болса, қозғалыс қалай аталады?",["Тең үдемелі қозғалыс","Тең кемімелі қозғалыс","Бірқалыпты түзу сызықты қозғалыс","Тыныштық","Шеңбер бойымен қозғалыс"],["t3qb9x8lrv"]],["Үдеу векторы жылдамдық векторына қарама-қарсы бағытталса, қозғалыс қалай аталады?",["Тең үдемелі қозғалыс","Тең кемімелі қозғалыс","Бірқалыпты түзу сызықты қозғалыс","Тыныштық","Еркін түсу"],["17ao5nk1lf"]],["Дененің жылдамдығы v = 4 + 2t (м/с) заңымен өзгереді. Бастапқы жылдамдығы мен үдеуі қандай?",["v_0 = 2 м/с, a = 4 м/с^2","v_0 = 4 м/с, a = 2 м/с^2","v_0 = 4 м/с, a = 6 м/с^2","v_0 = 0, a = 6 м/с^2","v_0 = 6 м/с, a = 2 м/с^2"],["2gem53pia1x"]],["Доп қабырғаға 8 м/с жылдамдықпен келіп соғылып, 8 м/с жылдамдықпен кері қайтты. Жылдамдық өзгерісінің модулі қандай?",["0","8 м/с","16 м/с","64 м/с","4 м/с"],["nsxr05s1h8"]],["Дене тыныштықтан 3 м/с^2 үдеумен қозғалды. 4 с-тан кейінгі жылдамдығы қандай?",["7 м/с","12 м/с","0,75 м/с","1,33 м/с","24 м/с"],["ga5f908nxa"]],["Дененің үдеуі 5 м/с^2 деген нені білдіреді?",["Дене 1 с-та 5 м жол жүреді","Дененің жылдамдығы әр секунд сайын 5 м/с-қа өзгереді","Дененің жылдамдығы 5 м/с-қа тең","Дененің жылдамдығы 5 с-та 1 м/с-қа өзгереді","Дене 5 с-та 5 м жол жүреді"],["1wnj6aed4jc"]],["Мотоциклші 10 м/с жылдамдықпен келе жатып, 2 м/с^2 үдеумен үдей бастады. 5 с-тан кейінгі жылдамдығы қандай?",["12 м/с","15 м/с","20 м/с","25 м/с","100 м/с"],["1yp60m36wm6"]],["Трамвай 15 м/с жылдамдықпен келе жатып, 0,5 м/с^2 үдеумен тежеле бастады. 10 с-тан кейінгі жылдамдығы қандай?",["5 м/с","10 м/с","20 м/с","14,5 м/с","0"],["21np1cmsfkt"]]],[[[13,3,4,0,1,2],[38,0,1,3,2,4],[24,1,0,2,3,4],[3,3,2,4,0,1],[25,1,3,2,4,0],[14,1,0,4,3,2],[27,3,4,2,1,0],[9,4,1,3,2,0],[0,0,3,4,2,1],[16,2,1,0,3,4],[10,4,0,2,1,3],[33,3,4,1,0,2],[31,1,4,3,2,0],[8,3,4,2,1,0],[20,3,1,2,0,4],[19,4,2,0,3,1],[6,2,1,3,0,4],[18,4,1,2,3,0],[17,4,1,2,0,3],[4,0,3,2,4,1]],[[15,3,0,2,4,1],[26,2,0,1,3,4],[1,0,3,1,2,4],[21,4,3,1,2,0],[29,3,4,0,2,1],[34,2,4,3,1,0],[7,0,3,4,2,1],[30,4,1,0,3,2],[5,4,1,3,2,0],[37,0,2,3,4,1],[39,4,1,2,0,3],[28,2,1,0,3,4],[36,4,1,3,2,0],[23,1,2,0,3,4],[11,0,3,4,1,2],[22,1,2,4,0,3],[2,1,3,2,4,0],[12,2,0,1,3,4],[32,3,4,2,1,0],[35,0,4,2,3,1]],[[31,3,1,0,4,2],[11,1,4,2,3,0],[39,4,1,3,2,0],[7,0,2,4,3,1],[17,1,3,4,2,0],[38,3,0,2,1,4],[22,4,3,1,2,0],[37,1,0,4,3,2],[14,1,4,3,2,0],[28,1,0,3,4,2],[25,2,0,3,1,4],[26,0,2,4,3,1],[16,2,1,0,3,4],[10,3,4,0,2,1],[24,4,0,1,2,3],[4,0,4,1,2,3],[5,0,4,1,3,2],[2,3,0,1,4,2],[32,2,1,0,3,4],[18,1,4,2,3,0]],[[21,3,1,4,0,2],[35,3,2,4,1,0],[9,2,1,4,3,0],[6,2,4,0,3,1],[3,3,1,4,0,2],[27,3,2,4,0,1],[12,3,0,2,4,1],[36,2,1,0,4,3],[13,1,2,0,3,4],[19,1,0,3,4,2],[23,3,2,1,0,4],[8,1,3,2,0,4],[0,3,0,1,4,2],[33,0,4,3,2,1],[30,1,4,2,3,0],[1,4,2,0,3,1],[34,1,0,2,4,3],[29,0,1,4,2,3],[20,1,2,3,0,4],[15,0,3,1,2,4]],[[3,3,0,4,1,2],[8,3,0,4,2,1],[27,1,2,0,3,4],[9,2,0,4,3,1],[31,4,2,1,0,3],[30,2,0,4,1,3],[38,3,4,2,1,0],[0,3,2,4,1,0],[23,0,2,4,1,3],[1,0,1,4,2,3],[13,1,2,3,4,0],[4,0,1,2,4,3],[14,2,0,1,3,4],[7,3,1,0,2,4],[12,1,3,4,0,2],[28,3,1,4,0,2],[5,1,0,2,3,4],[18,2,3,0,4,1],[17,3,0,1,4,2],[20,2,4,1,0,3]]],"",0,"c",0] }
+};
+const ORDER = ['termo', 'vektor'];
+const LIVE = { url: 'https://ntfy.sh/', topic: 'damu-0aj3egdgc0dn626ag0' };
+const PIN_HASH = 'n6jp6ra934';
+function baseUrl(){ return String(location.href).split('#')[0].split('?')[0]; }
+
+/* ---------- state ---------- */
+let S = null;
+const G = { on: false, base: 0, wl: null, tick: 0 };
+const WHY = {
+  hidden: 'басқа қолданбаға немесе бетке өттіңіз, не экран өшті',
+  blur: 'экран назары тест бетінен кетті (хабарландыру, қолданба ауыстыру)',
+  split: 'экран бөлінді немесе терезе кішірейді',
+  back: '«Артқа» әрекеті жасалды',
+  reload: 'бет жаңартылды, жабылды немесе басқа бетке өтілді',
+  screens: 'екінші экран анықталды'
+};
+function mast(){ return '<header class="mast"><a class="brand" href="#">DAMU</a><span class="mast-r">Физика · тест</span></header>'; }
+function fatal(msg){ $('#app').innerHTML = '<main class="wrap">' + mast() + '<section class="sheet"><h1 class="title">Тест ашылмады</h1><div class="note bad">' + esc(msg) + '</div></section></main>'; }
+function recKey(){ return 'damu_r_' + S.cfg.id + '_' + S.slug; }
+function getRec(){ return S.cfg.pv ? S.rec : store.get(recKey(), null); }
+function setRec(r){ S.rec = r; if (!S.cfg.pv){ store.set(recKey(), r); LOCK.write(r); } }
+
+/* ---------- one attempt per device ----------
+   The lock is keyed by the test, not by the student's name or number, so typing another name,
+   another journal number, reloading or opening a new tab all land on the same result screen.
+   It is kept in three places (localStorage, IndexedDB, a cookie) so clearing one is not enough. */
+function withTimeout(p, ms){ return Promise.race([p, new Promise(res => setTimeout(() => res(null), ms))]); }
+function idbOpen(){ return new Promise((res, rej) => { try { const q = indexedDB.open('damu', 1); q.onupgradeneeded = () => q.result.createObjectStore('kv'); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); } catch(e){ rej(e); } }); }
+function idbGet(k){ return withTimeout(idbOpen().then(db => new Promise((res, rej) => { const t = db.transaction('kv').objectStore('kv').get(k); t.onsuccess = () => res(t.result || null); t.onerror = () => rej(t.error); })).catch(() => null), 800); }
+function idbPut(k, v){ idbOpen().then(db => { try { db.transaction('kv', 'readwrite').objectStore('kv').put(v, k); } catch(e){} }).catch(() => {}); }
+const LOCK = {
+  key(){ return 'damu_lock_' + S.cfg.id; },
+  ck(){ return 'damu_l_' + S.cfg.id; },
+  ok(r){ return r && typeof r === 'object' && typeof r.st === 'string' ? r : null; },
+  readSync(){
+    let r = this.ok(store.get(this.key(), null));
+    if (!r){ try { const m = document.cookie.match(new RegExp('(?:^|; )' + this.ck() + '=([^;]*)')); if (m) r = this.ok(JSON.parse(decodeURIComponent(m[1]))); } catch(e){} }
+    return r;
+  },
+  read(){ const r = this.readSync(); return r ? Promise.resolve(r) : idbGet(this.key()).then(x => this.ok(x)); },
+  write(r){
+    store.set(this.key(), r);
+    try { document.cookie = this.ck() + '=' + encodeURIComponent(JSON.stringify(r)) + ';max-age=31536000;path=/;SameSite=None;Secure'; } catch(e){}
+    idbPut(this.key(), r);
+  }
+};
+function slugOf(name, num){ return (name.toLowerCase().replace(/\s+/g, ' ').trim() + '#' + (num || '')).slice(0, 80); }
+
+function studentBoot(p, tid){
+  if (!Array.isArray(p) || p[0] !== 1 || !Array.isArray(p[8]) || !Array.isArray(p[9]) || !p[9].length) return fatal('Тест деректері бүлінген. Мұғалімге хабарласыңыз.');
+  const cfg = { id: p[1], title: p[2], min: p[3], show: !!p[4], wa: p[6] || '', salt: p[7], bank: p[8], vs: p[9], name: p[10] || '', vn: p[11] || 0, mode: p[12], pv: !!p[13] };
+  S = { cfg: cfg, tid: tid, rec: null, ans: [], cur: 0, order: [], name: cfg.name, num: '', vi: 0, slug: '', again: false, sendState: null };
+  document.title = splitTitle(cfg.title)[0] + ' · DAMU';
+  if (cfg.pv) return gateView();
+  $('#app').innerHTML = '<main class="wrap">' + mast() + '<section class="sheet"><p class="hint">Тест ашылып жатыр…</p></section></main>';
+  LOCK.read().then(r => {
+    if (r) return resumeFromRec(r, true);
+    if (cfg.mode === 'p'){ S.slug = slugOf(cfg.name, ''); const old = getRec(); if (old) return resumeFromRec(old, true); }
+    gateView();
+  });
+}
+/* another tab of the same browser started the test while this one still shows the cover */
+window.addEventListener('storage', e => {
+  if (!S || S.cfg.pv || G.on || S.rec || !e.key || e.key !== LOCK.key() || !e.newValue) return;
+  const r = LOCK.readSync(); if (!r) return;
+  if (r.st === 'started'){ S.rec = r; S.name = r.name || ''; S.num = r.num || ''; S.vi = r.vi || 0; return blockedView(); }
+  resumeFromRec(r, true);
+});
+function blockedView(){
+  document.body.classList.remove('testing');
+  $('#app').innerHTML = '<main class="wrap">' + mast() + '<section class="sheet"><h1 class="title">Тест басқа терезеде ашылған</h1>' +
+    '<div class="note bad">Тестті бір рет қана тапсыруға болады. Бұл терезені жабыңыз.</div></section></main>';
+}
+function resumeFromRec(r, again){
+  if (again) S.again = true;
+  S.rec = r; S.name = r.name || S.name; S.num = r.num || ''; S.vi = r.vi || 0;
+  if (r.st === 'started'){ r.st = 'left'; r.why = 'reload'; r.score = 0; r.total = r.total || S.cfg.vs[S.vi].length; setRec(r); leftView(r.why); return report('LEFT', r); }
+  S.sendState = r.sent ? 'ok' : null;
+  if (r.st === 'left') leftView(r.why); else resultView(r);
+  if (!r.sent && !S.cfg.pv) report(finalEv(r), r);
+}
+
+/* ---------- cover sheet ---------- */
+function gateView(){
+  const c = S.cfg, nq = c.vs[0].length, common = c.mode !== 'p';
+  const tp = splitTitle(c.title);
+  document.body.classList.remove('testing');
+  $('#app').innerHTML = '<main class="wrap">' + mast() + `
+  <section class="sheet">
+    <p class="eyebrow">Тест${tp[1] ? ' · ' + esc(tp[1]) : ''}</p>
+    <h1 class="title">${esc(tp[0])}</h1>
+    <dl class="spec">
+      <div style="--c:var(--c1);--cs:var(--c1s)"><dt>Сұрақ</dt><dd>${nq}</dd></div>
+      <div style="--c:var(--c3);--cs:var(--c3s)"><dt>Уақыт</dt><dd>${c.min}<small> мин</small></dd></div>
+      ${common ? '<div style="--c:var(--c2);--cs:var(--c2s)"><dt>Нұсқалар</dt><dd>' + c.vs.length + '</dd></div>' : '<div style="--c:var(--c2);--cs:var(--c2s)"><dt>Нұсқа</dt><dd>' + c.vn + '</dd></div>'}
+    </dl>
+    ${c.pv ? '<div class="note warn">Сынақ режимі: нәтиже сақталмайды.</div>' : ''}
+  </section>
+  <section class="sheet">
+    <h2 class="h2">Тест ережесі</h2>
+    <ol class="rules">
+      <li><span>Тест басталған соң басқа қолданбаға, басқа бетке немесе басқа қойындыға өтуге болмайды.</span></li>
+      <li><span>Экранды өшіруге, бетті жаңартуға не жабуға, экранды екіге бөлуге болмайды.</span></li>
+      <li><span>Тестті бір рет қана тапсыруға болады. Ереже бұзылса, тест сол сәтте тоқтайды, нәтиже <b>0</b> болады және тестке қайта кіру мүмкін емес.</span></li>
+      <li><span>Тест аяқталғанда нәтиже мұғалімге өзі жіберіледі. Интернет болмаса, «Қайта жіберу» немесе WhatsApp батырмасы шығады.</span></li>
+    </ol>
+    <p class="hint">Бастар алдында «Мазаламаңыз» режимін қосып, заряд пен интернетті тексеріңіз.</p>
+  </section>
+  <section class="sheet">
+    <h2 class="h2">Тапсырушы</h2>
+    <div class="fields${common ? '' : ' one'}">
+      <div class="field"><label class="lbl" for="g_name">Аты-жөні</label><input type="text" id="g_name" autocomplete="name" maxlength="60" value="${esc(c.name)}" ${c.name ? 'readonly' : ''}></div>
+      ${common ? '<div class="field"><label class="lbl" for="g_num">Журнал №</label><input type="number" id="g_num" inputmode="numeric" min="1" max="99" placeholder="7"></div>' : ''}
+    </div>
+    <label class="agree" for="g_ok"><input type="checkbox" id="g_ok"><span>Ережемен таныстым және келісемін</span></label>
+    <div id="g_err"></div>
+    <button class="btn primary big" id="g_go" disabled>Тестті бастау</button>
+    <p class="cheerline">Сәттілік тілейміз!</p>
+  </section></main>`;
+  $('#g_ok').onchange = e => { $('#g_go').disabled = !e.target.checked; };
+  $('#g_go').onclick = startTest;
+}
+function startTest(){
+  const c = S.cfg, errBox = $('#g_err');
+  if (!$('#g_ok').checked) return;
+  const name = clean($('#g_name').value);
+  if (name.length < 3){ errBox.innerHTML = '<div class="note bad">Аты-жөніңізді толық жазыңыз.</div>'; return; }
+  let vi = 0, num = '';
+  if (c.mode !== 'p'){
+    num = String(parseInt(($('#g_num') || {}).value, 10) || '');
+    if (!num || +num < 1 || +num > 99){ errBox.innerHTML = '<div class="note bad">Журналдағы нөміріңізді жазыңыз (1–99).</div>'; return; }
+    vi = (+num - 1) % c.vs.length;
+  } else vi = Math.max(0, (c.vn || 1) - 1) % c.vs.length;
+  if (window.screen && window.screen.isExtended === true){ errBox.innerHTML = '<div class="note bad">Екінші экран анықталды. Қосымша мониторды ажыратып, бетті қайта ашыңыз.</div>'; return; }
+  S.name = name; S.num = num; S.vi = vi; S.slug = slugOf(name, num);
+  if (!c.pv){
+    const lk = LOCK.readSync(); if (lk) return resumeFromRec(lk, true);
+    const old = store.get(recKey(), null); if (old) return resumeFromRec(old, true);
+  }
+  S.order = c.vs[vi].map(e => ({ bi: e[0], perm: e.slice(1) }));
+  S.ans = S.order.map(() => []); S.cur = 0; S.t0 = Date.now(); S.endAt = S.t0 + c.min * 60000;
+  setRec({ st: 'started', name: name, num: num, vi: vi, t0: S.t0, total: S.order.length });
+  live('START', S.rec);
+  document.body.classList.add('testing');
+  armGuard();
+  testView();
+  clearInterval(G.tick); G.tick = setInterval(tick, 500);
+}
+
+/* ---------- guard: leaving the page = 0 ---------- */
+function armGuard(){
+  G.on = true; G.base = window.innerWidth * window.innerHeight;
+  try { history.pushState({ damu: 1 }, '', location.href); } catch(e){}
+  try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(l => { G.wl = l; }).catch(() => {}); } catch(e){}
+}
+function disarmGuard(){
+  G.on = false; clearInterval(G.tick);
+  try { if (G.wl){ G.wl.release(); G.wl = null; } } catch(e){}
+  document.body.classList.remove('testing');
+}
+function violate(why){
+  if (!G.on) return;
+  disarmGuard();
+  const m = $('.modal'); if (m) m.remove();
+  const r = Object.assign({}, S.rec || {}, { st: 'left', why: why, score: 0, total: S.order.length, secs: Math.round((Date.now() - S.t0) / 1000) });
+  setRec(r);
+  leftView(why);
+  report('LEFT', r, true);
+}
+document.addEventListener('visibilitychange', () => { if (G.on && document.visibilityState === 'hidden') violate('hidden'); });
+window.addEventListener('pagehide', () => { if (G.on) violate('reload'); });
+window.addEventListener('beforeunload', () => {
+  if (G.on && S && !S.cfg.pv){ const r = Object.assign({}, S.rec || {}, { st: 'left', why: 'reload', score: 0 }); store.set(recKey(), r); store.set(LOCK.key(), r); }
+});
+window.addEventListener('blur', () => { if (!G.on) return; setTimeout(() => { if (G.on && (document.hidden || !document.hasFocus())) violate('blur'); }, 350); });
+window.addEventListener('popstate', () => { if (G.on) violate('back'); });
+window.addEventListener('resize', () => {
+  if (!G.on) return; const a = window.innerWidth * window.innerHeight;
+  if (a > G.base) G.base = a; else if (a < G.base * 0.72) violate('split');
+});
+if (window.screen && window.screen.addEventListener) window.screen.addEventListener('change', () => { if (G.on && window.screen.isExtended === true) violate('screens'); });
+['contextmenu', 'copy', 'cut', 'paste', 'dragstart', 'selectstart'].forEach(ev => document.addEventListener(ev, e => { if (G.on) e.preventDefault(); }));
+document.addEventListener('gesturestart', e => { if (G.on) e.preventDefault(); });
+
+/* ---------- test screen ---------- */
+function tick(){
+  if (!G.on) return;
+  const left = S.endAt - Date.now(), v = $('#tv'), t = $('#tm');
+  if (v) v.textContent = fmtTime(left);
+  if (t) t.classList.toggle('low', left < 5 * 60000);
+  if (left <= 0) finish('TIME');
+}
+function testView(keepScroll){
+  const c = S.cfg, total = S.order.length, i = S.cur, sy = window.pageYOffset;
+  const e = S.order[i], q = c.bank[e.bi], multi = q[2].length > 1, sel = S.ans[i];
+  const answered = S.ans.filter(a => a.length).length, left = S.endAt - Date.now();
+  const who = esc(S.name) + (S.num ? ' · №' + esc(S.num) : '');
+  $('#app').innerHTML = `
+  <header class="tbar"><div class="tb-in">
+    <div class="tb-who"><span class="brand">DAMU</span><span class="who">${who}<span class="sep">|</span>${S.vi + 1}-нұсқа</span></div>
+    <div class="timer${left < 5 * 60000 ? ' low' : ''}" id="tm" role="timer" aria-label="Қалған уақыт"><span class="tl">Қалған уақыт</span><span class="tv" id="tv">${fmtTime(left)}</span></div>
+  </div><div class="prog" aria-hidden="true"><i style="width:${Math.round(answered / total * 100)}%"></i></div></header>
+  <main class="wrap">
+    <section class="sheetmap" aria-label="Жауап парағы">
+      <div class="sm-h"><span class="lbl">Жауап парағы</span><span class="n">${answered} / ${total}</span></div>
+      <nav class="grid" style="--cols:${Math.min(10, total)}">${S.ans.map((a, k) => '<button class="cell' + (a.length ? ' done' : '') + (k === i ? ' cur' : '') + '" data-k="' + k + '" aria-label="Сұрақ ' + (k + 1) + (a.length ? ', жауап берілді' : '') + '"' + (k === i ? ' aria-current="step"' : '') + '>' + (k + 1) + '</button>').join('')}</nav>
+    </section>
+    <article class="qsheet">
+      <div class="qhead"><span class="qno">Сұрақ ${i + 1}</span><span class="qof">/ ${total}</span>${multi ? '<span class="tag">Бірнеше дұрыс жауап</span>' : ''}</div>
+      <div class="qtext">${fmt(q[0])}</div>
+      <div class="opts" role="${multi ? 'group' : 'radiogroup'}">${e.perm.map((oi, k) => '<button class="opt' + (multi ? ' multi' : '') + (sel.includes(k) ? ' on' : '') + '" style="--c:var(--c' + (k % 6 + 1) + ');--cs:var(--c' + (k % 6 + 1) + 's)" data-k="' + k + '" role="' + (multi ? 'checkbox' : 'radio') + '" aria-checked="' + sel.includes(k) + '"><span class="bub">' + LET[k] + '</span><span class="ot">' + fmt(q[1][oi]) + '</span></button>').join('')}</div>
+    </article>
+    <div class="spacer"></div>
+  </main>
+  <footer class="snav"><div class="in">
+    <button class="btn" id="n_prev" ${i === 0 ? 'disabled' : ''}>← Алдыңғы</button>
+    ${i === total - 1 ? '<button class="btn primary" id="n_fin">Тестті аяқтау</button>' : '<button class="btn primary" id="n_next">Келесі →</button>'}
+  </div></footer>`;
+  window.scrollTo(0, keepScroll ? sy : 0);
+}
+document.addEventListener('click', e => {
+  if (!S || !G.on) return;
+  const opt = e.target.closest('.opt');
+  if (opt){
+    const k = +opt.dataset.k, q = S.cfg.bank[S.order[S.cur].bi], multi = q[2].length > 1; let a = S.ans[S.cur];
+    a = multi ? (a.includes(k) ? a.filter(x => x !== k) : a.concat(k)) : [k];
+    S.ans[S.cur] = a; testView(true); return;
+  }
+  const cell = e.target.closest('.cell'); if (cell){ S.cur = +cell.dataset.k; testView(); return; }
+  if (e.target.closest('#n_prev')){ if (S.cur > 0){ S.cur--; testView(); } return; }
+  if (e.target.closest('#n_next')){ if (S.cur < S.order.length - 1){ S.cur++; testView(); } return; }
+  if (e.target.closest('#n_fin')){ confirmFinish(); return; }
+  if (e.target.closest('#m_ok')){ finish('DONE'); return; }
+  if (e.target.closest('#m_no')){ const m = $('.modal'); if (m) m.remove(); return; }
+});
+function confirmFinish(){
+  const total = S.order.length, un = S.ans.map((a, k) => a.length ? 0 : k + 1).filter(Boolean);
+  const m = document.createElement('div'); m.className = 'modal';
+  m.innerHTML = '<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="m_t"><h3 id="m_t">Тестті аяқтау</h3>' +
+    '<dl class="protocol"><div><dt>Жауап берілді</dt><dd class="m">' + (total - un.length) + ' / ' + total + '</dd></div></dl>' +
+    (un.length ? '<p class="hint">Жауапсыз сұрақтар:</p><div class="miss">' + un.map(n => '<span>' + n + '</span>').join('') + '</div>' : '') +
+    '<p class="hint">Аяқтаған соң жауапты өзгертуге болмайды.</p>' +
+    '<div class="row"><button class="btn" id="m_no">Тестке оралу</button><button class="btn primary" id="m_ok">Аяқтау</button></div></div>';
+  document.body.appendChild(m);
+}
+function isCorrect(i){
+  const e = S.order[i], q = S.cfg.bank[e.bi], picked = S.ans[i] || [];
+  if (!picked.length) return false;
+  return picked.map(k => oh(S.cfg.salt, q[1][e.perm[k]])).sort().join(',') === q[2].slice().sort().join(',');
+}
+function finish(status){
+  if (!G.on) return; disarmGuard();
+  const m = $('.modal'); if (m) m.remove();
+  const total = S.order.length; let score = 0; for (let i = 0; i < total; i++) if (isCorrect(i)) score++;
+  const r = Object.assign({}, S.rec || {}, { st: 'done', score: score, total: total, secs: Math.round((Date.now() - S.t0) / 1000), end: status });
+  setRec(r); resultView(r);
+  report(status === 'TIME' ? 'TIME' : 'DONE', r);
+}
+
+/* ---------- result message for the teacher ---------- */
+function reportText(status, r){
+  const c = S.cfg, total = r.total || (S.order && S.order.length) || 0, vn = (r.vi != null ? r.vi : S.vi) + 1;
+  const head = { DONE: '✔ Аяқтады', TIME: '⏱ Уақыт бітті', LEFT: '✖ Беттен шықты — нәтиже 0' }[status];
+  const lines = [head + ' · ' + c.title, 'Оқушы: ' + clean(S.name) + (S.num ? ' (№' + S.num + ')' : ''), 'Нұсқа: ' + vn + '-нұсқа'];
+  if (status !== 'LEFT') lines.push('Балл: ' + r.score + ' / ' + total + ' (' + (total ? Math.round(r.score / total * 100) : 0) + '%)');
+  else lines.push('Себебі: ' + (WHY[r.why] || r.why || '—'));
+  if (r.secs) lines.push('Уақыты: ' + dur(r.secs));
+  if (r.t0){ const d = new Date(r.t0), p2 = n => String(n).padStart(2, '0'); lines.push('Басталды: ' + p2(d.getDate()) + '.' + p2(d.getMonth() + 1) + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes())); }
+  lines.push(machineLine(c.id, S.name, S.num, vn, status === 'LEFT' ? 0 : (r.score || 0), total, status, r.secs || 0));
+  return lines.join('\n');
+}
+function sendBlock(status, r){
+  const c = S.cfg;
+  if (c.pv) return '<section class="sheet"><div class="note">Сынақ режимі: нәтиже жіберілмейді.</div></section>';
+  const text = reportText(status, r);
+  const wa = 'https://wa.me/' + (c.wa || '') + '?text=' + encodeURIComponent(text);
+  return '<section class="sheet"><h2 class="h2">Мұғалімге жіберу</h2><div id="sendst">' + sendNote() + '</div>' +
+    '<div class="fallback" id="fallback"' + (S.sendState === 'fail' ? '' : ' hidden') + '>' +
+    '<div class="row"><button class="btn primary" id="r_retry">Қайта жіберу</button><button class="btn" id="r_cp">Мәтінді көшіру</button></div>' +
+    '<a class="btn primary wa big" target="_blank" rel="noopener" href="' + esc(wa) + '">Мұғалімге WhatsApp-пен жіберу</a>' +
+    '<pre class="rep">' + esc(text) + '</pre></div></section>';
+}
+function bindShare(status, r){ const cp = $('#r_cp'); if (cp) cp.onclick = () => copyText(reportText(status, r), 'Нәтиже көшірілді'); const rt = $('#r_retry'); if (rt) rt.onclick = () => report(status, S.rec || r); }
+function protocol(rows){ return '<dl class="protocol">' + rows.map(x => '<div><dt>' + x[0] + '</dt><dd' + (x[2] ? ' class="m"' : '') + '>' + x[1] + '</dd></div>').join('') + '</dl>'; }
+function candidateRows(r){
+  const rows = [['Тапсырушы', esc(S.name)]];
+  if (S.num) rows.push(['Журнал №', esc(S.num), 1]);
+  rows.push(['Нұсқа', ((r.vi != null ? r.vi : S.vi) + 1) + '-нұсқа']);
+  if (r.secs) rows.push(['Уақыты', dur(r.secs), 1]);
+  return rows;
+}
+function ring(score, total, pct, color, msg){
+  return '<div class="verdict" style="--rc:' + color + '"><div class="ring" style="--p:' + pct + '" role="img" aria-label="' + score + ' / ' + total + '"><div class="ring-in"><div class="score">' + score + '<span class="of"> / ' + total + '</span></div><div class="pct">' + pct + '%</div></div></div><p class="cheer">' + esc(msg) + '</p></div>';
+}
+function cheer(p){
+  if (p >= 90) return 'Керемет! Тақырыпты өте жақсы меңгергенсіз.';
+  if (p >= 70) return 'Жақсы нәтиже! Аздап қайталасаңыз болғаны.';
+  if (p >= 50) return 'Жаман емес. Қате жіберген тақырыптарды қайталап шығыңыз.';
+  return 'Тақырыпты тағы бір рет қайталаңыз, келесі жолы міндетті түрде шығады.';
+}
+function againNote(){ return S.again ? '<div class="note bad"><b>Тестке қайта кіруге болмайды.</b> Бұл тест осы құрылғыда бұрын ашылған, сондықтан тек алғашқы нәтиже көрсетіледі.</div>' : ''; }
+function resultView(r){
+  const c = S.cfg, total = r.total || 0, pct = total ? Math.round(r.score / total * 100) : 0;
+  const st = r.end === 'TIME' ? 'TIME' : 'DONE', tp = splitTitle(c.title);
+  document.body.classList.remove('testing');
+  const rows = candidateRows(r);
+  rows.push(['Күйі', st === 'TIME' ? '<span class="state warn">Уақыт бітті</span>' : '<span class="state ok">Аяқталды</span>']);
+  $('#app').innerHTML = '<main class="wrap">' + mast() + '<section class="sheet"><p class="eyebrow">Сіздің нәтижеңіз</p><h1 class="title">' + esc(tp[0]) + '</h1>' + againNote() +
+    (c.show ? ring(r.score, total, pct, pct >= 80 ? 'var(--ok)' : pct >= 50 ? 'var(--c3)' : 'var(--c4)', cheer(pct))
+            : '<div class="note">Жауаптарыңыз қабылданды. Нәтижені мұғалім хабарлайды.</div>') +
+    protocol(rows) + '</section>' + sendBlock(st, r) + '<p class="foot"><a href="#">← Басты бет</a></p></main>';
+  bindShare(st, r);
+  window.scrollTo(0, 0);
+}
+function leftView(why){
+  const c = S.cfg, r = S.rec || {}, tp = splitTitle(c.title);
+  const total = r.total || (S.order && S.order.length) || c.vs[0].length;
+  document.body.classList.remove('testing');
+  const rows = candidateRows(r);
+  rows.push(['Күйі', '<span class="state bad">Ереже бұзылды</span>']);
+  rows.push(['Себебі', esc(WHY[why] || '—')]);
+  $('#app').innerHTML = '<main class="wrap">' + mast() + '<section class="sheet"><p class="eyebrow">Сіздің нәтижеңіз</p><h1 class="title">' + esc(tp[0]) + '</h1>' + againNote() +
+    ring(0, total, 0, 'var(--bad)', 'Тест ережесі бұзылды') +
+    '<div class="note bad"><b>Тест беті тастап кетілді, сондықтан нәтиже 0.</b> Тестті қайта тапсыруға болмайды.</div>' +
+    protocol(rows) + '</section>' + sendBlock('LEFT', r) + '<p class="foot"><a href="#">← Басты бет</a></p></main>';
+  bindShare('LEFT', r);
+  window.scrollTo(0, 0);
+}
+
+
+/* =====================================================================
+   SITE: live results, home page, teacher monitor, router
+   ===================================================================== */
+function out(k, v){ $$('[data-o="' + k + '"]').forEach(e => { if (e.textContent !== v) e.textContent = v; }); }
+const DEV = (() => { let d = store.get('damu_dev', ''); if (!d){ d = Math.random().toString(36).slice(2, 10); store.set('damu_dev', d); } return d; })();
+function evPayload(ev, r){
+  const c = S.cfg;
+  return { v: 1, t: S.tid, id: c.id, ev: ev, name: clean(S.name), num: S.num || '', vn: (r.vi != null ? r.vi : S.vi) + 1,
+    score: ev === 'START' || ev === 'LEFT' ? 0 : (r.score || 0), total: r.total || (S.order && S.order.length) || c.vs[0].length,
+    secs: r.secs || 0, why: r.why || '', min: c.min, t0: r.t0 || S.t0 || 0, at: Date.now(), dev: DEV };
+}
+/* POST one event to the live channel; a beacon survives the page going away */
+function live(ev, r, beacon){
+  if (!S || S.cfg.pv) return Promise.resolve(false);
+  const body = JSON.stringify(evPayload(ev, r || S.rec || {})), url = LIVE.url + LIVE.topic;
+  if (beacon && navigator.sendBeacon){ try { if (navigator.sendBeacon(url, new Blob([body], { type: 'text/plain' }))) return Promise.resolve(true); } catch(e){} }
+  const once = () => fetch(url, { method: 'POST', body: body, keepalive: true }).then(x => x.ok).catch(() => false);
+  const wait = ms => new Promise(res => setTimeout(res, ms));
+  return once().then(ok => ok || wait(1500).then(once)).then(ok => ok || wait(4000).then(once));
+}
+/* final result: send, remember that it went through, show the state */
+function report(ev, r, beacon){
+  S.sendState = 'pending'; paintSend();
+  return live(ev, r, beacon).then(ok => {
+    S.sendState = ok ? 'ok' : 'fail';
+    if (ok && S.rec){ S.rec = Object.assign({}, S.rec, { sent: true }); store.set(recKey(), S.rec); LOCK.write(S.rec); }
+    paintSend();
+  });
+}
+function sendNote(){
+  if (S.sendState === 'ok') return '<div class="note ok"><b>Нәтиже мұғалімге жіберілді.</b> Бетті жабуға болады.</div>';
+  if (S.sendState === 'fail') return '<div class="note warn"><b>Нәтиже автоматты түрде жіберілмеді.</b> Интернетті тексеріп, «Қайта жіберу» батырмасын басыңыз немесе WhatsApp арқылы жіберіңіз.</div>';
+  return '<div class="note">Нәтиже мұғалімге жіберіліп жатыр…</div>';
+}
+function paintSend(){
+  const el = $('#sendst'); if (el) el.innerHTML = sendNote();
+  const fb = $('#fallback'); if (fb) fb.hidden = S.sendState !== 'fail';
+}
+function finalEv(r){ return r.st === 'left' ? 'LEFT' : r.end === 'TIME' ? 'TIME' : 'DONE'; }
+
+/* ---------- home ---------- */
+function lockFor(id){ const k = 'damu_lock_' + TESTS[id].p[1]; const r = store.get(k, null); return r && typeof r === 'object' && r.st ? r : null; }
+function homeView(){
+  S = null; document.title = 'DAMU тесттері'; document.body.classList.remove('testing');
+  const cards = ORDER.map((id, i) => {
+    const p = TESTS[id].p, tp = splitTitle(p[2]), nq = p[9][0].length, done = lockFor(id);
+    return `<article class="sheet tcard">
+      <div class="trow"><span class="chip">${esc(tp[1] || 'Тест')}</span>${done ? '<span class="state ok">Тапсырылды</span>' : ''}</div>
+      <h2 class="ttl">${esc(tp[0])}</h2>
+      <dl class="spec">
+        <div style="--c:var(--c1);--cs:var(--c1s)"><dt>Сұрақ</dt><dd>${nq}</dd></div>
+        <div style="--c:var(--c3);--cs:var(--c3s)"><dt>Уақыт</dt><dd>${p[3]}<small> мин</small></dd></div>
+        <div style="--c:var(--c2);--cs:var(--c2s)"><dt>Нұсқалар</dt><dd>${p[9].length}</dd></div>
+      </dl>
+      <a class="btn ${done ? '' : 'primary'} big" href="#${id}">${done ? 'Нәтижені көру' : 'Тестке кіру'}</a>
+    </article>`;
+  }).join('');
+  $('#app').innerHTML = '<main class="wrap">' + mast() + `
+    <section class="hero">
+      <p class="eyebrow">DAMU білім беру орталығы · Физика</p>
+      <h1 class="title big">Онлайн тест</h1>
+      <p class="hint">Мұғалім берген тестті таңдаңыз. Әр тестті бір рет қана тапсыруға болады, нәтиже мұғалімге өзі жіберіледі.</p>
+    </section>
+    <section class="tests">${cards}</section>
+    <p class="foot"><a href="#mugalim">Мұғалім беті</a></p>
+  </main>`;
+  window.scrollTo(0, 0);
+}
+
+/* ---------- teacher monitor ---------- */
+const MON = { es: null, ev: new Map(), filter: 'all', day: 'today', conn: 'off', timer: 0, poll: 0, last: 0, clearArm: false };
+function sget(k){ try { return sessionStorage.getItem(k); } catch(e){ return null; } }
+function sset(k, v){ try { sessionStorage.setItem(k, v); } catch(e){} }
+function pinView(){
+  document.title = 'Мұғалім беті · DAMU';
+  $('#app').innerHTML = '<main class="wrap">' + mast() + `
+    <section class="sheet narrow">
+      <p class="eyebrow">Мұғалім беті</p>
+      <h1 class="title">PIN-кодты енгізіңіз</h1>
+      <form id="pinf" class="fields one" autocomplete="off">
+        <div class="field"><label class="lbl" for="pin">PIN-код</label><input type="number" id="pin" inputmode="numeric" placeholder="••••••"></div>
+        <div id="pinerr"></div>
+        <button class="btn primary big" type="submit">Кіру</button>
+      </form>
+      <p class="hint"><a href="#">← Басты бет</a></p>
+    </section></main>`;
+  $('#pinf').onsubmit = e => {
+    e.preventDefault();
+    const v = String($('#pin').value || '').trim();
+    if (cyrb53('damu|' + v).toString(36) === PIN_HASH){ sset('damu_pin', '1'); monitorView(); }
+    else $('#pinerr').innerHTML = '<div class="note bad">PIN-код қате. Қайта жазып көріңіз.</div>';
+  };
+  setTimeout(() => { const i = $('#pin'); if (i) i.focus(); }, 50);
+}
+function monitorView(){
+  if (sget('damu_pin') !== '1') return pinView();
+  document.title = 'Мұғалім беті · DAMU';
+  const base = baseUrl();
+  $('#app').innerHTML = '<main class="wrap wide">' + mast() + `
+    <section class="sheet">
+      <div class="mhead"><div><p class="eyebrow">Мұғалім беті</p><h1 class="title">Тест барысы</h1></div><span class="live" id="conn"><i></i><span>Қосылуда…</span></span></div>
+      <div class="chips" id="flt">
+        <button data-f="all" aria-pressed="true">Барлық тест</button>${ORDER.map(id => '<button data-f="' + id + '" aria-pressed="false">' + esc(TESTS[id].short) + '</button>').join('')}
+      </div>
+      <div class="chips" id="day"><button data-d="today" aria-pressed="true">Бүгін</button><button data-d="all" aria-pressed="false">Барлығы</button></div>
+      <div class="mstats">
+        <div class="stat" style="--c:var(--c1);--cs:var(--c1s)"><b data-o="m_in">0</b><span>қазір тестте</span></div>
+        <div class="stat" style="--c:var(--c2);--cs:var(--c2s)"><b data-o="m_done">0</b><span>аяқтады</span></div>
+        <div class="stat" style="--c:var(--c4);--cs:var(--c4s)"><b data-o="m_left">0</b><span>беттен шықты</span></div>
+        <div class="stat" style="--c:var(--c5);--cs:var(--c5s)"><b data-o="m_avg">—</b><span>орташа балл</span></div>
+      </div>
+    </section>
+    <section class="sheet">
+      <div class="mhead"><h2 class="h2">Оқушылар</h2><div class="row tight"><button class="btn sm" id="m_copy">Excel-ге көшіру</button><button class="btn sm" id="m_clear">Тарихты тазалау</button></div></div>
+      <div class="plist" id="plist"></div>
+    </section>
+    <section class="sheet">
+      <h2 class="h2">Оқушыларға сілтеме</h2>
+      ${ORDER.map(id => '<div class="linkrow"><span class="lk">' + esc(TESTS[id].short) + '</span><code>' + esc(base + '#' + id) + '</code><button class="btn sm" data-copy="' + esc(base + '#' + id) + '">Көшіру</button></div>').join('')}
+      <p class="hint">Хабарламалар ntfy.sh тегін сервисі арқылы келеді, сервис оларды шамамен 12 сағат сақтайды. Бұл беттің өзі алған нәтижелерді осы құрылғыда сақтайды.</p>
+    </section></main>`;
+  $$('#flt button').forEach(b => b.onclick = () => { MON.filter = b.dataset.f; $$('#flt button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); renderMon(); });
+  $$('#day button').forEach(b => b.onclick = () => { MON.day = b.dataset.d; $$('#day button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); renderMon(); });
+  $$('[data-copy]').forEach(b => b.onclick = () => copyText(b.dataset.copy, 'Сілтеме көшірілді'));
+  $('#m_copy').onclick = () => copyText(monTSV(), 'Кесте көшірілді. Excel-ге қойыңыз.');
+  $('#m_clear').onclick = () => {
+    const b = $('#m_clear');
+    if (!MON.clearArm){ MON.clearArm = true; b.textContent = 'Растау: тазалау'; setTimeout(() => { MON.clearArm = false; if (b.isConnected) b.textContent = 'Тарихты тазалау'; }, 4000); return; }
+    MON.clearArm = false; MON.cleared = Date.now(); store.set('damu_mon_cleared', MON.cleared); MON.ev.clear(); saveMon(); renderMon(); b.textContent = 'Тарихты тазалау';
+  };
+  loadMon(); connectLive(); renderMon();
+  clearInterval(MON.timer); MON.timer = setInterval(renderMon, 2000);
+}
+function loadMon(){
+  MON.cleared = store.get('damu_mon_cleared', 0);
+  const arr = store.get('damu_mon', []);
+  if (Array.isArray(arr)) arr.forEach(x => { if (x && x.id && x.d && x.time * 1000 > MON.cleared) MON.ev.set(x.id, x); });
+}
+function saveMon(){ const arr = [...MON.ev.values()].sort((a, b) => a.time - b.time).slice(-3000); store.set('damu_mon', arr); }
+let saveT = 0;
+function ingest(m){
+  if (!m || m.event !== 'message' || !m.id || MON.ev.has(m.id)) return;
+  if (m.time * 1000 <= (MON.cleared || 0)) return;
+  let d; try { d = JSON.parse(m.message); } catch(e){ return; }
+  if (!d || d.v !== 1 || !TESTS[d.t] || typeof d.name !== 'string') return;
+  MON.ev.set(m.id, { id: m.id, time: m.time, d: d }); MON.last = Math.max(MON.last, m.time);
+  clearTimeout(saveT); saveT = setTimeout(saveMon, 400);
+  clearTimeout(MON.rt); MON.rt = setTimeout(renderMon, 120);
+}
+function setConn(s){
+  MON.conn = s; const el = $('#conn'); if (!el) return;
+  el.className = 'live' + (s === 'on' ? ' on' : s === 'poll' ? ' poll' : '');
+  el.lastChild.textContent = s === 'on' ? 'Тікелей байланыс' : s === 'poll' ? 'Әр 15 секунд сайын жаңарады' : 'Байланыс жоқ, қайта қосылуда…';
+}
+function pollOnce(){
+  const since = MON.last ? MON.last : 'all';
+  return fetch(LIVE.url + LIVE.topic + '/json?poll=1&since=' + since).then(r => r.ok ? r.text() : '').then(t => {
+    t.split('\n').forEach(line => { if (!line.trim()) return; try { ingest(JSON.parse(line)); } catch(e){} });
+    if (MON.conn !== 'on') setConn('poll');
+  }).catch(() => { if (MON.conn !== 'on') setConn('off'); });
+}
+function connectLive(){
+  if (MON.es){ try { MON.es.close(); } catch(e){} MON.es = null; }
+  clearInterval(MON.poll);
+  pollOnce();
+  if (window.EventSource){
+    try {
+      MON.es = new EventSource(LIVE.url + LIVE.topic + '/sse?since=' + (MON.last || 'all'));
+      MON.es.onopen = () => setConn('on');
+      MON.es.onerror = () => { if (MON.conn === 'on') setConn('off'); };
+      MON.es.onmessage = e => { try { ingest(JSON.parse(e.data)); } catch(x){} };
+    } catch(e){ MON.es = null; }
+  }
+  MON.poll = setInterval(() => { if (MON.conn !== 'on') pollOnce(); }, 15000);
+}
+function stopMon(){ clearInterval(MON.timer); clearInterval(MON.poll); if (MON.es){ try { MON.es.close(); } catch(e){} MON.es = null; } }
+function monRows(){
+  const now = Date.now(), d0 = new Date(); d0.setHours(0, 0, 0, 0);
+  const map = new Map();
+  [...MON.ev.values()].sort((a, b) => a.time - b.time).forEach(x => {
+    const d = x.d, t = x.time * 1000;
+    if (MON.filter !== 'all' && d.t !== MON.filter) return;
+    if (MON.day === 'today' && t < d0.getTime()) return;
+    const key = d.t + '|' + clean(d.name).toLowerCase() + '|' + (d.num || '');
+    let s = map.get(key);
+    if (!s){ s = { t: d.t, name: clean(d.name), num: d.num || '', vn: d.vn, total: d.total, min: d.min || 30, devs: new Set(), starts: 0, start: 0, fin: null }; map.set(key, s); }
+    s.devs.add(d.dev);
+    if (d.ev === 'START'){ s.starts++; if (!s.start) s.start = d.t0 || t; s.vn = d.vn; s.total = d.total; }
+    else if (!s.fin){ s.fin = d; s.vn = d.vn; s.total = d.total; if (!s.start) s.start = d.t0 || t; }
+  });
+  return [...map.values()].map(s => {
+    let st, cls, score = null, rank;
+    if (s.fin){
+      if (s.fin.ev === 'LEFT'){ st = 'Беттен шықты'; cls = 'bad'; score = 0; rank = 3; }
+      else { st = s.fin.ev === 'TIME' ? 'Уақыт бітті' : 'Аяқтады'; cls = s.fin.ev === 'TIME' ? 'warn' : 'ok'; score = s.fin.score; rank = 2; }
+    } else if (now - s.start < (s.min + 2) * 60000){ st = 'Тестте'; cls = 'run'; rank = 1; }
+    else { st = 'Аяқтамады'; cls = 'bad'; score = 0; rank = 4; }
+    return Object.assign(s, { st: st, cls: cls, score: score, rank: rank, secs: s.fin ? s.fin.secs : Math.round((now - s.start) / 1000), why: s.fin && s.fin.why });
+  }).sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name, 'kk'));
+}
+function hhmm(ms){ const d = new Date(ms), p = n => String(n).padStart(2, '0'); return p(d.getHours()) + ':' + p(d.getMinutes()); }
+function renderMon(){
+  const list = $('#plist'); if (!list) return;
+  const rows = monRows();
+  const inT = rows.filter(r => r.cls === 'run').length, fin = rows.filter(r => r.rank === 2), left = rows.filter(r => r.rank >= 3).length;
+  const avg = fin.length ? Math.round(fin.reduce((a, r) => a + (r.total ? r.score / r.total * 100 : 0), 0) / fin.length) + '%' : '—';
+  out('m_in', String(inT)); out('m_done', String(fin.length)); out('m_left', String(left)); out('m_avg', avg);
+  if (!rows.length){ list.innerHTML = '<div class="empty">Әзірге ешкім тест бастаған жоқ. Оқушы тестті бастаған сәтте ол осы жерде пайда болады.</div>'; return; }
+  list.innerHTML = rows.map(r => {
+    const multi = r.devs.size > 1 || r.starts > 1;
+    const right = r.cls === 'run' ? '<span class="sc run">' + Math.floor(r.secs / 60) + ':' + String(r.secs % 60).padStart(2, '0') + '</span>'
+      : '<span class="sc">' + (r.score != null ? r.score + ' / ' + r.total : '') + '</span>';
+    return '<div class="prow ' + r.cls + '"><div class="who2"><span class="nm">' + esc(r.name) + (r.num ? ' <span class="muted">№' + esc(r.num) + '</span>' : '') + '</span>' +
+      '<span class="sub">' + esc(TESTS[r.t].short) + ' · ' + r.vn + '-нұсқа · ' + hhmm(r.start) + (r.why && r.rank === 3 ? ' · ' + esc(WHY[r.why] || '') : '') + '</span>' +
+      (multi ? '<span class="flag">Бірнеше рет немесе басқа құрылғыдан ашқан</span>' : '') + '</div>' +
+      '<div class="rt"><span class="state ' + (r.cls === 'run' ? 'run' : r.cls) + '">' + r.st + '</span>' + right + '</div></div>';
+  }).join('');
+}
+function monTSV(){
+  const head = ['Аты-жөні', 'Журнал №', 'Тест', 'Нұсқа', 'Балл', 'Барлығы', '%', 'Күйі', 'Басталды', 'Уақыты (мин)'];
+  const rows = monRows().map(r => [r.name, r.num, TESTS[r.t].short, r.vn, r.score == null ? '' : r.score, r.total, r.score == null || !r.total ? '' : Math.round(r.score / r.total * 100), r.st, hhmm(r.start), (r.secs / 60).toFixed(1).replace('.', ',')]);
+  return [head].concat(rows).map(r => r.join('\t')).join('\n');
+}
+
+/* ---------- router ---------- */
+function route(){
+  if (G.on) return;                       // a running test is never navigated away from here
+  const h = (location.hash || '').slice(1);
+  if (h !== 'mugalim') stopMon();
+  if (TESTS[h]){ studentBoot(TESTS[h].p, h); window.scrollTo(0, 0); return; }
+  if (h === 'mugalim') return monitorView();
+  homeView();
+}
+window.addEventListener('hashchange', route);
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', route); else route();
+</script>
+</body>
+</html>
