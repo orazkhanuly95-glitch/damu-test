@@ -739,10 +739,10 @@ const CAMCFG = {
 const CAMMSG = { turn: 'Жан-жағыңызға қарамаңыз', talk: 'Сөйлеспеңіз', away: 'Бетіңіз камерада көрінбейді', two: 'Камерада басқа адам бар' };
 const CAMKIND = { turn: 'жан-жағына қарады', talk: 'сөйлесті', away: 'беті көрінбеді', two: 'қасында басқа адам' };
 const CAMHINT = { turn: 'Экранға қараңыз', talk: 'Сөйлемеңіз', away: 'Бетіңізді камераға көрсетіңіз', two: 'Камерада тек өзіңіз болыңыз' };
-const CAMVER = '2026-11-02 · 3';
+const CAMVER = '2026-11-02 · 4';
 const CAM = { state: 'off', stream: null, video: null, lm: null, loading: false, timer: 0, gap: 125, armed: false, warns: [],
   cool: 0, since: {}, jaw: { open: false, cycles: [] }, base: null, samples: [], dead: false, face: null, ac: null, sent: '', practice: false,
-  fresh: 0, ct: -1, nfr: 0, done: -1, revAt: 0, reviving: false, diag: {}, log: [] };
+  fresh: 0, ct: -1, nfr: 0, done: -1, revAt: 0, reviving: false, diag: {}, log: [], seen: false, engine: '', cv: null, cx: null };
 function camLive(){ return G.on || CAM.practice; }
 
 function camReady(){ return CAM.state === 'ok' || CAM.state === 'ai' || CAM.state === 'noai'; }
@@ -840,7 +840,8 @@ async function camLoad(){
   const files = await lib.FilesetResolver.forVisionTasks(base + '/wasm');
   const make = d => lib.FaceLandmarker.createFromOptions(files, { baseOptions: { modelAssetBuffer: buf.slice(), delegate: d },
     runningMode: 'VIDEO', numFaces: 2, outputFaceBlendshapes: true });
-  try { return await make('GPU'); } catch(e){ return await make('CPU'); }
+  // processor (CPU) first: on some Android phones (seen on a Samsung) the graphics-card path runs but never finds a face
+  try { const lm = await make('CPU'); CAM.engine = 'CPU'; return lm; } catch(e){ const lm = await make('GPU'); CAM.engine = 'GPU'; return lm; }
 }
 function camModel(){
   if (CAM.lm){ camSet('ai'); camLoop(); return; }
@@ -866,7 +867,7 @@ function camLoop(){
       else { CAM.since = {}; camHint({}); }
     } else if (CAM.nfr !== CAM.done && v.readyState >= 2 && v.videoWidth){
       CAM.done = CAM.nfr;
-      let res = null; try { res = CAM.lm.detectForVideo(v, t0); } catch(e){}
+      let res = null; try { res = CAM.lm.detectForVideo(camFrame(v), t0); } catch(e){}
       if (res) camJudge(res, Date.now());
       CAM.gap = Math.min(400, Math.max(125, (performance.now() - t0) * 4));   // slow phones look less often
     }
@@ -874,12 +875,22 @@ function camLoop(){
   };
   step();
 }
+/* copy the current camera frame into a small 2D canvas (≈400 px wide): the same picture on every phone, and less work */
+function camFrame(v){
+  if (!CAM.cv){ CAM.cv = document.createElement('canvas'); CAM.cx = CAM.cv.getContext('2d', { willReadFrequently: true }); }
+  const w = 400, h = Math.max(1, Math.round(w * v.videoHeight / v.videoWidth));
+  if (CAM.cv.width !== w || CAM.cv.height !== h){ CAM.cv.width = w; CAM.cv.height = h; }
+  CAM.cx.drawImage(v, 0, 0, w, h);
+  return CAM.cv;
+}
+/* what goes to the teacher: "noface" while the model is ready but has not found this student's face even once */
+function camWire(){ return CAM.state === 'ai' && !CAM.seen ? 'noface' : CAM.state; }
 function camStop(){
   CAM.armed = false; clearTimeout(CAM.timer);
   if (CAM.stream){ try { CAM.stream.getTracks().forEach(t => t.stop()); } catch(e){} CAM.stream = null; }
   const el = $('#camdot'); if (el) el.remove(); CAM.video = null;
   if (/^(asking|ok|ai|noai)$/.test(CAM.state)) CAM.state = 'off';
-  CAM.sent = ''; CAM.samples = []; CAM.base = null; CAM.practice = false;
+  CAM.sent = ''; CAM.samples = []; CAM.base = null; CAM.practice = false; CAM.seen = false;
   document.body.classList.remove('cam-on');
 }
 
@@ -898,6 +909,11 @@ function camJudge(res, t){
   const faces = all.filter((f, i) => !all.slice(0, i).some(g => camIoU(f.box, g.box) > 0.1));   // the same face found twice is one face
   const f = faces[0], sig = {};
   CAM.face = !!f;
+  if (f && !CAM.seen){   // first time the face is found: tell the teacher the watch really works for this student
+    CAM.seen = true;
+    if (S && S.waiting) live('JOIN', { vi: S.vi });
+    else if (S && G.on && S.rec) live('WARN', Object.assign({}, S.rec, { warn: CAM.warns.length, wk: '' }));
+  }
   if (f){
     const L = f.pts[234], R = f.pts[454], N = f.pts[1];
     const ratio = L && R && N && Math.abs(R.x - L.x) > 1e-3 ? (N.x - L.x) / (R.x - L.x) : 0.5;
@@ -921,6 +937,7 @@ function camJudge(res, t){
   if (t < CAM.cool){ CAM.since = {}; return; }
   const need = { away: CAMCFG.awayMs, two: CAMCFG.twoMs, turn: CAMCFG.turnMs, talk: 0 };
   for (const k of ['away', 'two', 'turn', 'talk']){
+    if (k === 'away' && !CAM.seen) continue;   // the model has never found this face: no "not visible" warnings (the teacher sees a flag instead)
     if (sig[k]){ if (!CAM.since[k]) CAM.since[k] = t; if (t - CAM.since[k] >= need[k]) return camWarn(k); }
     else delete CAM.since[k];
   }
@@ -1024,6 +1041,7 @@ function camDiag(){
     box.hidden = false;
     box.innerHTML = CAM.state !== 'ai' ? '' :
       '<div><span>Камера кадры</span><b>' + (d.stale ? 'келмей тұр' : fps + ' /с') + '</b></div>' +
+      '<div><span>Бет моделі</span><b>' + (CAM.engine || '—') + ', әр ' + Math.round(CAM.gap) + ' мс</b></div>' +
       '<div><span>Бет</span><b>' + (d.faces ? (d.faces > 1 ? d.faces + ' бет' : 'көрініп тұр') : 'көрінбейді') + '</b></div>' +
       '<div><span>Бас бұрылысы</span><b>' + f2(d.dev) + ' / ' + CAMCFG.turn + '</b>' + bar(d.dev, CAMCFG.turn) + '</div>' +
       '<div><span>Жақ (сөйлеу)</span><b>' + f2(d.jaw) + ' / ' + CAMCFG.jawHi + '</b>' + bar(d.jaw, CAMCFG.jawHi) + '</div>';
@@ -1045,7 +1063,7 @@ function evPayload(ev, r){
   return { v: 1, t: S.tid, id: c.id, ev: ev, name: clean(S.name), num: S.num || '', vn: (r.vi != null ? r.vi : S.vi) + 1,
     score: /^(START|LEFT|JOIN|LATE)$/.test(ev) ? 0 : (r.score || 0), total: r.total || (S.order && S.order.length) || c.vs[0].length,
     secs: r.secs || 0, why: r.why || '', min: c.min, t0: r.t0 || S.t0 || 0, sess: r.sess || S.sess || '', kl: S.kl || r.kl || '', at: Date.now(), dev: DEV,
-    cam: CAM.state, warn: r.warn != null ? r.warn : (r.warns || CAM.warns || []).length, wk: r.wk || (CAM.warns.length ? CAM.warns[CAM.warns.length - 1] : '') };
+    cam: camWire(), warn: r.warn != null ? r.warn : (r.warns || CAM.warns || []).length, wk: r.wk || (CAM.warns.length ? CAM.warns[CAM.warns.length - 1] : '') };
 }
 /* POST one event to the live channel; a beacon survives the page going away */
 function live(ev, r, beacon){
@@ -1557,7 +1575,7 @@ function renderMissing(rows){
   if (box.innerHTML !== html) box.innerHTML = html;
 }
 function camFlag(c){
-  const t = { denied: 'Камераға рұқсат бермеді', nocam: 'Камера ашылмады', asking: 'Камера рұқсатын күтуде', ok: 'Камера бақылауы жүктелуде', noai: 'Камера бар, бақылау жүктелмеді' }[c];
+  const t = { denied: 'Камераға рұқсат бермеді', nocam: 'Камера ашылмады', asking: 'Камера рұқсатын күтуде', ok: 'Камера бақылауы жүктелуде', noai: 'Камера бар, бақылау жүктелмеді', noface: 'Камера бетті әлі таппады' }[c];
   return t ? '<span class="flag camf">📷 ' + t + '</span>' : '';
 }
 function monTSV(){
