@@ -278,6 +278,28 @@ textarea{width:100%;min-width:0;font:500 .95rem/1.5 var(--f-sans);color:var(--in
 .codechip span{font-weight:700}
 .codechip b{font:700 1.05rem/1 var(--f-mono);letter-spacing:.14em;color:var(--brand)}
 input.codein{font-family:var(--f-mono);font-size:1.15rem;letter-spacing:.25em;text-transform:uppercase}
+/* camera watch */
+#camdot{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));width:84px;height:84px;z-index:60;pointer-events:none}
+body.testing #camdot{bottom:calc(98px + env(safe-area-inset-bottom));width:58px;height:58px}
+#camdot video{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;transform:scaleX(-1);background:#0b1220;border:3px solid var(--line);box-shadow:0 6px 18px rgba(16,32,64,.22);transition:border-color .2s}
+#camdot.ai video{border-color:var(--ok)}
+#camdot.bad video{border-color:var(--warn)}
+#camdot .cn{position:absolute;top:-6px;left:-6px;min-width:26px;text-align:center;background:var(--bad);color:#fff;border-radius:999px;font:700 .72rem/1 var(--f-mono);padding:5px 6px}
+#camdot .cn:empty,#camdot .ch:empty{display:none}
+#camdot .ch{position:absolute;right:calc(100% + 8px);top:50%;transform:translateY(-50%);white-space:nowrap;background:var(--warn);color:#fff;font:600 .78rem/1.1 var(--f-sans);padding:7px 10px;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,.18)}
+#cambar{position:fixed;left:10px;right:10px;top:calc(10px + env(safe-area-inset-top));z-index:120;display:grid;gap:3px;padding:14px 16px;border-radius:16px;background:var(--bad);color:#fff;box-shadow:0 12px 30px rgba(120,20,20,.35);transform:translateY(-140%);opacity:0;transition:transform .25s,opacity .25s;pointer-events:none}
+#cambar.show{transform:none;opacity:1;animation:camshake .45s 1}
+#cambar b{font-size:1.05rem}
+#cambar span{font-size:1rem;font-weight:600}
+#cambar small{font-size:.85rem;opacity:.92}
+@keyframes camshake{0%,100%{translate:0}20%{translate:-8px}40%{translate:8px}60%{translate:-5px}80%{translate:5px}}
+.cf{display:block;margin-top:4px;font-weight:600;color:var(--warn)}
+.cf.ok{color:var(--ok)}
+.crow{margin-top:10px}
+.camp{margin:2px 0 0;font-size:.82rem}
+.flag.camw{color:var(--bad)}
+.flag.camf{color:var(--warn)}
+@media (prefers-reduced-motion:reduce){#cambar.show{animation:none}}
 </style>
 </head>
 <body>
@@ -352,7 +374,8 @@ const WHY = {
   split: 'экран бөлінді немесе терезе кішірейді',
   back: '«Артқа» әрекеті жасалды',
   reload: 'бет жаңартылды, жабылды немесе басқа бетке өтілді',
-  screens: 'екінші экран анықталды'
+  screens: 'екінші экран анықталды',
+  cam: 'камера 3 рет ескерту берді (жан-жағына қарау, сөйлесу, бет көрінбеуі немесе қасындағы басқа адам)'
 };
 function mast(){ return '<header class="mast"><a class="brand" href="#">DAMU</a><span class="mast-r">Физика · тест</span></header>'; }
 function fatal(msg){ $('#app').innerHTML = '<main class="wrap">' + mast() + '<section class="sheet"><h1 class="title">Тест ашылмады</h1><div class="note bad">' + esc(msg) + '</div></section></main>'; }
@@ -443,6 +466,7 @@ function gateView(){
       <li><span>Тест басталған соң басқа қолданбаға, басқа бетке немесе басқа қойындыға өтуге болмайды.</span></li>
       <li><span>Экранды өшіруге, бетті жаңартуға не жабуға, экранды екіге бөлуге болмайды.</span></li>
       <li><span>Тест мұғалімнің белгісімен барлық оқушыда бірден басталады. Басталғаннан кейін 2 минуттан соң кіруге болмайды.</span></li>
+      <li><span>Тест кезінде телефонның алдыңғы камерасы қосулы тұрады, бетіңіз көрініп тұруы керек. Жан-жағыңызға қарасаңыз, сөйлессеңіз немесе бетіңіз көрінбесе, дыбыс пен діріл арқылы ескерту беріледі. <b>3 ескертуден кейін нәтиже 0.</b> Видео жазылмайды, ешқайда жіберілмейді.</span></li>
       <li><span>Тестті бір рет қана тапсыруға болады. Ереже бұзылса, тест сол сәтте тоқтайды, нәтиже <b>0</b> болады және тестке қайта кіру мүмкін емес.</span></li>
       <li><span>Тест аяқталғанда нәтиже мұғалімге өзі жіберіледі. Интернет болмаса, «Қайта жіберу» немесе WhatsApp батырмасы шығады.</span></li>
     </ol>
@@ -501,6 +525,7 @@ function disarmGuard(){
   G.on = false; clearInterval(G.tick);
   try { if (G.wl){ G.wl.release(); G.wl = null; } } catch(e){}
   document.body.classList.remove('testing');
+  camStop();
 }
 function violate(why){
   if (!G.on) return;
@@ -609,6 +634,7 @@ function reportText(status, r){
   const lines = [head + ' · ' + c.title, 'Оқушы: ' + clean(S.name) + (S.kl ? ', ' + S.kl + ' сынып' : '') + (S.num ? ' (№' + S.num + ')' : ''), 'Нұсқа: ' + vn + '-нұсқа'];
   if (status !== 'LEFT') lines.push('Балл: ' + r.score + ' / ' + total + ' (' + (total ? Math.round(r.score / total * 100) : 0) + '%)');
   else lines.push('Себебі: ' + (WHY[r.why] || r.why || '—'));
+  if (r.warns && r.warns.length) lines.push('Камера ескертуі: ' + r.warns.length + ' / ' + CAMCFG.max + ' (' + camList(r.warns) + ')');
   if (r.secs) lines.push('Уақыты: ' + dur(r.secs));
   if (r.t0){ const d = new Date(r.t0), p2 = n => String(n).padStart(2, '0'); lines.push('Басталды: ' + p2(d.getDate()) + '.' + p2(d.getMonth() + 1) + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes())); }
   lines.push(machineLine(c.id, S.name, S.num, vn, status === 'LEFT' ? 0 : (r.score || 0), total, status, r.secs || 0));
@@ -667,12 +693,281 @@ function leftView(why){
   rows.push(['Себебі', esc(WHY[why] || '—')]);
   $('#app').innerHTML = '<main class="wrap">' + mast() + '<section class="sheet"><p class="eyebrow">Сіздің нәтижеңіз</p><h1 class="title">' + esc(tp[0]) + '</h1>' + againNote() +
     ring(0, total, 0, 'var(--bad)', 'Тест ережесі бұзылды') +
-    '<div class="note bad"><b>Тест беті тастап кетілді, сондықтан нәтиже 0.</b> Тестті қайта тапсыруға болмайды.</div>' +
+    (why === 'cam' ? '<div class="note bad"><b>Камера ' + CAMCFG.max + ' рет ескерту берді, сондықтан нәтиже 0.</b> Ескертулер: ' + esc(camList(r.warns)) + '. Тестті қайта тапсыруға болмайды.</div>' : '<div class="note bad"><b>Тест беті тастап кетілді, сондықтан нәтиже 0.</b> Тестті қайта тапсыруға болмайды.</div>') +
     protocol(rows) + '</section>' + sendBlock('LEFT', r) + '<p class="foot"><a href="#">← Басты бет</a></p></main>';
   bindShare('LEFT', r);
   window.scrollTo(0, 0);
 }
 
+
+/* =====================================================================
+   CAMERA WATCH
+   The front camera picture never leaves the phone: a face model (MediaPipe Face Landmarker)
+   runs here in the browser, and only the number and kind of warnings go to the teacher.
+   Watched: head turned aside, eyes held to the side, talking (jaw opening and closing),
+   no face in the picture, a second person close to the camera.
+   Each warning: sound + vibration + red banner. Warning number CAMCFG.max → result 0.
+   ===================================================================== */
+const CAMCFG = {
+  lib: ['https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21', 'https://unpkg.com/@mediapipe/tasks-vision@0.10.21'],
+  model: ['vendor/face_landmarker.task', 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task'],
+  max: 3,            // warnings → result 0
+  start: 4000,       // quiet time right after the start (sitting down, calibrating)
+  cool: 5000,        // after a warning: time to correct before anything counts again
+  turn: 0.2,         // head turn: nose position across the face moved this far from the student's own straight look
+  turnMs: 1500,
+  gaze: 0.65,        // eyes held to one side (blendshape score)
+  gazeMs: 2500,
+  awayMs: 5000,      // no face in the picture
+  twoSize: 0.55,     // a second face counts when it is at least this wide compared to the student's own
+  twoMs: 1500,
+  jawHi: 0.18, jawLo: 0.07, talkWin: 3000, talkN: 4,   // talking: 4 open–close cycles of the jaw within 3 s
+  loadMs: 45000
+};
+const CAMMSG = { turn: 'Жан-жағыңызға қарамаңыз', talk: 'Сөйлеспеңіз', away: 'Бетіңіз камерада көрінбейді', two: 'Камерада басқа адам бар' };
+const CAMKIND = { turn: 'жан-жағына қарады', talk: 'сөйлесті', away: 'беті көрінбеді', two: 'қасында басқа адам' };
+const CAMHINT = { turn: 'Экранға қараңыз', gaze: 'Экранға қараңыз', talk: 'Сөйлемеңіз', away: 'Бетіңізді камераға көрсетіңіз', two: 'Камерада тек өзіңіз болыңыз' };
+const CAM = { state: 'off', stream: null, video: null, lm: null, loading: false, timer: 0, gap: 125, armed: false, warns: [],
+  cool: 0, since: {}, jaw: { open: false, cycles: [] }, base: null, samples: [], calib: 0, dead: false, face: null, ac: null, sent: '', practice: false };
+function camLive(){ return G.on || CAM.practice; }
+
+function camReady(){ return CAM.state === 'ok' || CAM.state === 'ai' || CAM.state === 'noai'; }
+function camSet(st){
+  if (CAM.state === st) return;
+  CAM.state = st; camPaint();
+  if (CAM.practice && st === 'ai') camArm();
+  if (S && S.waiting){
+    if (/^(ai|noai|denied|nocam)$/.test(st) && CAM.sent !== st){ CAM.sent = st; live('JOIN', { vi: S.vi }); }
+    if (typeof onCtl === 'function') onCtl();
+  }
+}
+function camEl(){
+  let el = $('#camdot');
+  if (!el){
+    el = document.createElement('div'); el.id = 'camdot'; el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = '<video muted autoplay playsinline webkit-playsinline></video><b class="cn"></b><span class="ch"></span>';
+    document.body.appendChild(el);
+    CAM.video = el.querySelector('video'); CAM.video.muted = true; CAM.video.playsInline = true;
+  }
+  return el;
+}
+
+/* ---------- sound + vibration ---------- */
+function camAudio(){   // called from a tap, so the phone lets the page play sound later
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){}
+  try {
+    const A = window.AudioContext || window.webkitAudioContext;
+    if (!CAM.ac && A) CAM.ac = new A();
+    const ac = CAM.ac; if (!ac) return;
+    if (ac.state === 'suspended') ac.resume();
+    const o = ac.createOscillator(), g = ac.createGain(); g.gain.value = 0.0001; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + 0.03);
+  } catch(e){}
+}
+function camBuzz(final){
+  try { if (navigator.vibrate) navigator.vibrate(final ? [600, 150, 600, 150, 600] : [350, 120, 350]); } catch(e){}
+  const ac = CAM.ac; if (!ac) return;
+  try {
+    if (ac.state === 'suspended') ac.resume();
+    const t0 = ac.currentTime + 0.03, n = final ? 5 : 3;
+    for (let i = 0; i < n; i++){
+      const o = ac.createOscillator(), g = ac.createGain(), s = t0 + i * 0.24;
+      o.type = 'square'; o.frequency.value = i % 2 ? 660 : 880;
+      g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(0.3, s + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, s + 0.19);
+      o.connect(g); g.connect(ac.destination); o.start(s); o.stop(s + 0.21);
+    }
+  } catch(e){}
+}
+
+/* ---------- camera + model ---------- */
+function camStart(){
+  camAudio(); camEl();
+  if (CAM.stream && CAM.stream.active){ camSet('ok'); camModel(); return; }
+  const md = navigator.mediaDevices;
+  if (!md || !md.getUserMedia){ camSet('nocam'); return; }
+  camSet('asking');
+  md.getUserMedia({ audio: false, video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } }).then(st => {
+    if (!CAM.practice && (!S || (!S.waiting && !G.on))){ st.getTracks().forEach(t => t.stop()); return; }
+    CAM.stream = st; CAM.dead = false;
+    const v = camEl().querySelector('video'); v.srcObject = st;
+    const p = v.play(); if (p && p.catch) p.catch(() => {});
+    st.getVideoTracks().forEach(tr => {
+      tr.addEventListener('ended', () => { CAM.dead = true; });
+      tr.addEventListener('mute', () => { CAM.dead = true; });
+      tr.addEventListener('unmute', () => { CAM.dead = false; });
+    });
+    camSet('ok'); camModel();
+  }).catch(e => camSet(e && /NotAllowed|Security|Permission/i.test(e.name || '') ? 'denied' : 'nocam'));
+}
+async function camLoad(){
+  let lib = null, base = '';
+  for (const b of CAMCFG.lib){ try { lib = await import(b + '/vision_bundle.mjs'); base = b; break; } catch(e){} }
+  if (!lib) throw new Error('lib');
+  let buf = null;
+  for (const u of CAMCFG.model){
+    try { const r = await fetch(u); if (r.ok){ const b = new Uint8Array(await r.arrayBuffer()); if (b.length > 100000){ buf = b; break; } } } catch(e){}
+  }
+  if (!buf) throw new Error('model');
+  const files = await lib.FilesetResolver.forVisionTasks(base + '/wasm');
+  const make = d => lib.FaceLandmarker.createFromOptions(files, { baseOptions: { modelAssetBuffer: buf.slice(), delegate: d },
+    runningMode: 'VIDEO', numFaces: 2, outputFaceBlendshapes: true });
+  try { return await make('GPU'); } catch(e){ return await make('CPU'); }
+}
+function camModel(){
+  if (CAM.lm){ camSet('ai'); camLoop(); return; }
+  if (CAM.loading) return;
+  CAM.loading = true;
+  const to = setTimeout(() => { if (!CAM.lm && CAM.state === 'ok') camSet('noai'); }, CAMCFG.loadMs);
+  camLoad().then(lm => {
+    clearTimeout(to); CAM.loading = false; CAM.lm = lm;
+    if (CAM.state === 'ok' || CAM.state === 'noai'){ camSet('ai'); camLoop(); }
+  }).catch(() => { clearTimeout(to); CAM.loading = false; if (CAM.state === 'ok') camSet('noai'); });
+}
+function camLoop(){
+  clearTimeout(CAM.timer);
+  const step = () => {
+    if (!CAM.lm || !CAM.stream) return;
+    const v = CAM.video, t0 = performance.now();
+    if (CAM.dead) camJudge({ faceLandmarks: [] }, Date.now());
+    else if (v && v.readyState >= 2 && v.videoWidth){
+      let res = null; try { res = CAM.lm.detectForVideo(v, t0); } catch(e){}
+      if (res) camJudge(res, Date.now());
+      CAM.gap = Math.min(400, Math.max(125, (performance.now() - t0) * 4));   // slow phones look less often
+    }
+    CAM.timer = setTimeout(step, CAM.gap);
+  };
+  step();
+}
+function camStop(){
+  CAM.armed = false; clearTimeout(CAM.timer);
+  if (CAM.stream){ try { CAM.stream.getTracks().forEach(t => t.stop()); } catch(e){} CAM.stream = null; }
+  const el = $('#camdot'); if (el) el.remove(); CAM.video = null;
+  if (/^(asking|ok|ai|noai)$/.test(CAM.state)) CAM.state = 'off';
+  CAM.sent = ''; CAM.samples = []; CAM.base = null; CAM.practice = false;
+  document.body.classList.remove('cam-on');
+}
+
+/* ---------- judging one frame ---------- */
+function camMedian(a){ const b = a.slice().sort((x, y) => x - y); return b[b.length >> 1]; }
+function camJudge(res, t){
+  const faces = (res.faceLandmarks || []).map((pts, i) => {
+    let a = 1, b = 0; for (const p of pts){ if (p.x < a) a = p.x; if (p.x > b) b = p.x; }
+    return { pts: pts, w: b - a, bs: res.faceBlendshapes && res.faceBlendshapes[i] };
+  }).sort((x, y) => y.w - x.w);
+  const f = faces[0], sig = {};
+  CAM.face = !!f;
+  if (f){
+    const L = f.pts[234], R = f.pts[454], N = f.pts[1];
+    const ratio = L && R && N && Math.abs(R.x - L.x) > 1e-3 ? (N.x - L.x) / (R.x - L.x) : 0.5;
+    const bs = {}; ((f.bs && f.bs.categories) || []).forEach(c => { bs[c.categoryName] = c.score; });
+    // where "looking at the screen" is for this student and this phone position
+    if (!CAM.armed || t < CAM.calib){
+      CAM.samples.push(ratio); if (CAM.samples.length > 40) CAM.samples.shift();
+      CAM.base = Math.min(0.7, Math.max(0.3, camMedian(CAM.samples)));
+    }
+    const base = CAM.base == null ? 0.5 : CAM.base;
+    sig.turn = Math.abs(ratio - base) > CAMCFG.turn;
+    sig.gaze = Math.max(Math.min(bs.eyeLookOutLeft || 0, bs.eyeLookInRight || 0), Math.min(bs.eyeLookInLeft || 0, bs.eyeLookOutRight || 0)) > CAMCFG.gaze;
+    const jaw = bs.jawOpen || 0, J = CAM.jaw;
+    if (!J.open && jaw > CAMCFG.jawHi){ J.open = true; J.cycles.push(t); }
+    else if (J.open && jaw < CAMCFG.jawLo) J.open = false;
+    J.cycles = J.cycles.filter(x => t - x < CAMCFG.talkWin);
+    sig.talk = J.cycles.length >= CAMCFG.talkN;
+    sig.two = faces.length > 1 && faces[1].w >= f.w * CAMCFG.twoSize;
+  } else sig.away = true;
+  camHint(sig);
+  if (!CAM.armed || !camLive()) return;
+  if (t < CAM.cool){ CAM.since = {}; return; }
+  const need = { away: CAMCFG.awayMs, two: CAMCFG.twoMs, turn: CAMCFG.turnMs, gaze: CAMCFG.gazeMs, talk: 0 };
+  for (const k of ['away', 'two', 'turn', 'gaze', 'talk']){
+    if (sig[k]){ if (!CAM.since[k]) CAM.since[k] = t; if (t - CAM.since[k] >= need[k]) return camWarn(k === 'gaze' ? 'turn' : k); }
+    else delete CAM.since[k];
+  }
+}
+function camHint(sig){
+  const el = $('#camdot'); if (!el) return;
+  const k = ['away', 'two', 'turn', 'gaze', 'talk'].find(x => sig[x]);
+  el.classList.toggle('bad', !!k);
+  const h = el.querySelector('.ch'), txt = k ? CAMHINT[k] : '';
+  if (h && h.textContent !== txt) h.textContent = txt;
+  const cf = $('#camface');
+  if (cf){ const v = CAM.face ? '✓ Бетіңіз көрініп тұр.' : 'Бетіңіз әзірге көрінбейді.'; if (cf.textContent !== v){ cf.textContent = v; cf.className = CAM.face ? 'cf ok' : 'cf'; } }
+}
+
+/* ---------- during the test ---------- */
+function camArm(){
+  const t = Date.now();
+  CAM.armed = true; CAM.warns = []; CAM.since = {}; CAM.jaw = { open: false, cycles: [] };
+  CAM.cool = t + CAMCFG.start;
+  if (CAM.samples.length < 10) CAM.calib = t + CAMCFG.start;
+  document.body.classList.add('cam-on'); camPaint();
+}
+function camWarn(kind){
+  const t = Date.now(); if (!CAM.armed || !camLive() || t < CAM.cool) return;
+  CAM.cool = t + CAMCFG.cool; CAM.since = {}; CAM.jaw.cycles = [];
+  CAM.warns.push(kind);
+  const n = CAM.warns.length, last = n >= CAMCFG.max;
+  camBuzz(last);
+  if (CAM.practice){
+    camBanner(n, kind, last);
+    const pr = $('#campr'); if (pr) pr.innerHTML = '<b>' + n + '-ескерту:</b> ' + esc(CAMMSG[kind]) + (last ? '. Нағыз тестте осы жерде нәтиже 0 болар еді. Санақ қайта басталды.' : '.');
+    if (last) CAM.warns = [];
+    camPaint(); return;
+  }
+  if (S.rec) setRec(Object.assign({}, S.rec, { warns: CAM.warns.slice() }));
+  camBanner(n, kind, last);
+  if (last){ violate('cam'); return; }
+  live('WARN', Object.assign({}, S.rec, { warn: n, wk: kind }));
+  camPaint();
+}
+function camBanner(n, kind, last){
+  let b = $('#cambar');
+  if (!b){ b = document.createElement('div'); b.id = 'cambar'; b.setAttribute('role', 'alert'); document.body.appendChild(b); }
+  const left = CAMCFG.max - n;
+  b.innerHTML = '<b>⚠ ' + n + '-ескерту (' + CAMCFG.max + '-тен)</b><span>' + esc(CAMMSG[kind] || '') + '</span><small>' +
+    (last ? (CAM.practice ? 'Нағыз тестте нәтиже 0 болар еді.' : 'Нәтиже 0 болды.') : left === 1 ? 'Тағы 1 ескерту алсаңыз, нәтиже 0 болады.' : 'Тағы ' + left + ' ескертуден кейін нәтиже 0 болады.') + '</small>';
+  b.className = 'show' + (last ? ' last' : '');
+  clearTimeout(b._t); b._t = setTimeout(() => { b.className = ''; }, last ? 6000 : 3800);
+}
+function camList(ws){ return (ws || []).map(k => CAMKIND[k] || k).join(', '); }
+
+/* ---------- waiting room status ---------- */
+function camPaint(){
+  const el = $('#camdot');
+  if (el){
+    el.classList.toggle('ai', CAM.state === 'ai'); el.classList.toggle('armed', CAM.armed);
+    const cn = el.querySelector('.cn'), v = CAM.armed && CAM.warns.length ? CAM.warns.length + '/' + CAMCFG.max : '';
+    if (cn && cn.textContent !== v) cn.textContent = v;
+  }
+  const box = $('#camst'); if (!box || box.dataset.s === CAM.state) return;
+  box.dataset.s = CAM.state;
+  const btn = '<div class="crow"><button class="btn sm" type="button" id="cam_retry">Камераны қосу</button></div>';
+  box.innerHTML = {
+    off: '',
+    asking: '<div class="note">📷 Камераға рұқсат сұралуда. Шыққан терезеде <b>«Рұқсат беру»</b> (Allow) батырмасын басыңыз.</div>',
+    denied: '<div class="note bad"><b>Камераға рұқсат берілмеді.</b> Камерасыз тест ашылмайды. Мекенжай жолындағы 🔒 белгісін басып, «Камера → Рұқсат беру» таңдаңыз, содан кейін төмендегі батырманы басыңыз.' + btn + '</div>',
+    nocam: '<div class="note bad"><b>Камера ашылмады.</b> Камера басқа қолданбада ашық болса, оны жабыңыз да, төмендегі батырманы басыңыз. Болмаса мұғаліміңізге айтыңыз.' + btn + '</div>',
+    ok: '<div class="note">📷 Камера қосулы. Бақылау жүйесі жүктелуде…</div>',
+    ai: '<div class="note ok"><b>Камера дайын.</b> Телефонды бетіңіз толық көрінетіндей ұстаңыз. <span id="camface" class="cf"></span></div>',
+    noai: '<div class="note warn"><b>Камера қосулы.</b> Бақылау жүйесі жүктелмеді, бірақ тестті тапсыра бересіз. Мұғалім мұны көреді.</div>'
+  }[CAM.state] || '';
+  const b = $('#cam_retry'); if (b) b.onclick = () => camStart();
+}
+
+/* ---------- trying the camera watch without a test (#kamera) ---------- */
+function camPracticeView(){
+  S = null; document.title = 'Камераны тексеру · DAMU'; document.body.classList.remove('testing');
+  $('#app').innerHTML = '<main class="wrap">' + mast() + `<section class="sheet">
+      <p class="eyebrow">Сынақ беті</p>
+      <h1 class="title">Камераны тексеру</h1>
+      <p class="hint">Мұнда камера бақылауын тестсіз байқап көруге болады. Камераны қосып, бір сәт экранға қарап отырыңыз, содан кейін жан-жағыңызға бұрылып немесе сөйлеп көріңіз. Ескерту дыбыспен және дірілмен шығады. Бұл бетте ешқандай нәтиже жазылмайды, мұғалімге ештеңе жіберілмейді.</p>
+      <div id="camst" aria-live="polite"></div>
+      <div class="note" id="campr">Ескерту әзірге жоқ.</div>
+      <p class="hint camp">Видео жазылмайды және ешқайда жіберілмейді: бетті тану тек осы телефонның ішінде жүреді.</p>
+      <button class="btn primary big" id="cam_go" type="button">Камераны қосу</button>
+      <p class="foot"><a href="#">← Басты бет</a></p>
+    </section></main>`;
+  $('#cam_go').onclick = () => { CAM.practice = true; $('#cam_go').hidden = true; camStart(); camPaint(); };
+}
 
 /* =====================================================================
    SITE: live results, home page, teacher monitor, router
@@ -683,7 +978,8 @@ function evPayload(ev, r){
   const c = S.cfg;
   return { v: 1, t: S.tid, id: c.id, ev: ev, name: clean(S.name), num: S.num || '', vn: (r.vi != null ? r.vi : S.vi) + 1,
     score: /^(START|LEFT|JOIN|LATE)$/.test(ev) ? 0 : (r.score || 0), total: r.total || (S.order && S.order.length) || c.vs[0].length,
-    secs: r.secs || 0, why: r.why || '', min: c.min, t0: r.t0 || S.t0 || 0, sess: r.sess || S.sess || '', kl: S.kl || r.kl || '', at: Date.now(), dev: DEV };
+    secs: r.secs || 0, why: r.why || '', min: c.min, t0: r.t0 || S.t0 || 0, sess: r.sess || S.sess || '', kl: S.kl || r.kl || '', at: Date.now(), dev: DEV,
+    cam: CAM.state, warn: r.warn != null ? r.warn : (r.warns || CAM.warns || []).length, wk: r.wk || (CAM.warns.length ? CAM.warns[CAM.warns.length - 1] : '') };
 }
 /* POST one event to the live channel; a beacon survives the page going away */
 function live(ev, r, beacon){
@@ -764,8 +1060,11 @@ function waitView(){
       <h1 class="title">Мұғалімнің белгісін күтіңіз</h1>
       <p class="hint">Мұғалім «Бастау» батырмасын басқанда, сұрақтар барлық оқушыда бірден ашылады. Бетті жаппаңыз.</p>
       ${protocol(rows)}
+      <div id="camst" aria-live="polite"></div>
+      <p class="hint camp">Видео жазылмайды және ешқайда жіберілмейді: бетті тану тек осы телефонның ішінде жүреді.</p>
       <div id="wst" aria-live="polite"><div class="note">Байланыс орнатылуда…</div></div>
     </section></main>`;
+  camStart(); camPaint();
   live('JOIN', { vi: S.vi });
   ctlConnect(onCtl);
 }
@@ -774,7 +1073,11 @@ function onCtl(){
   const st = ctlState(S.tid);
   if (S.waiting){
     if (st.mode === 'run'){
-      if (Date.now() - st.start <= SYNC.grace){ S.sess = st.sess; return beginTest(st.end); }
+      if (Date.now() - st.start <= SYNC.grace){
+        if (camReady()){ S.sess = st.sess; return beginTest(st.end); }
+        const w0 = $('#wst'); if (w0) w0.innerHTML = '<div class="note bad"><b>Тест басталды, бірақ камера қосылмайынша сұрақтар ашылмайды.</b> Камераны ' + Math.round(SYNC.grace / 60000) + ' минут ішінде қосыңыз.</div>';
+        return;
+      }
       return lateView();
     }
     const w = $('#wst');
@@ -795,11 +1098,12 @@ function beginTest(endAt){
   document.title = splitTitle(c.title)[0] + ' · DAMU';
   document.body.classList.add('testing');
   armGuard();
+  camArm();
   testView();
   clearInterval(G.tick); G.tick = setInterval(tick, 500);
 }
 function lateView(){
-  S.waiting = false; ctlStop();
+  S.waiting = false; ctlStop(); camStop();
   live('LATE', { vi: S.vi });
   $('#app').innerHTML = '<main class="wrap">' + mast() + `<section class="sheet">
       <p class="eyebrow">Тестке кіру жабық</p>
@@ -928,7 +1232,7 @@ function homeView(){
       <p class="hint">Мұғалім берген тестті таңдаңыз. Әр тестті бір рет қана тапсыруға болады, нәтиже мұғалімге өзі жіберіледі.</p>
     </section>
     <section class="tests">${cards}</section>
-    <p class="foot"><a href="#mugalim">Мұғалім беті</a></p>
+    <p class="foot"><a href="#kamera">Камераны тексеру</a> · <a href="#mugalim">Мұғалім беті</a></p>
   </main>`;
   window.scrollTo(0, 0);
 }
@@ -1005,7 +1309,7 @@ function monitorView(){
     </section>
     <section class="sheet">
       <h2 class="h2">Оқушыларға сілтеме</h2>
-      ${ORDER.map(id => '<div class="linkrow"><span class="lk">' + esc(TESTS[id].short) + '</span><code>' + esc(base + '#' + id) + '</code><button class="btn sm" data-copy="' + esc(base + '#' + id) + '">Көшіру</button></div>').join('')}
+      ${ORDER.concat(['kamera']).map(id => { const nm = id === 'kamera' ? 'Камераны тексеру' : TESTS[id].short; return '<div class="linkrow"><span class="lk">' + esc(nm) + '</span><code>' + esc(base + '#' + id) + '</code><button class="btn sm" data-copy="' + esc(base + '#' + id) + '">Көшіру</button></div>'; }).join('')}
       <p class="hint">Хабарламалар ntfy.sh тегін сервисі арқылы келеді, сервис оларды шамамен 12 сағат сақтайды. Бұл беттің өзі алған нәтижелерді осы құрылғыда сақтайды.</p>
     </section></main>`;
   $$('#flt button').forEach(b => b.onclick = () => { MON.filter = b.dataset.f; $$('#flt button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); renderMon(); });
@@ -1100,6 +1404,9 @@ function monRows(opt){
     let s = map.get(key);
     if (!s){ s = { t: d.t, kl: d.kl || '', name: clean(d.name), num: d.num || '', vn: d.vn, total: d.total, min: d.min || 30, devs: new Set(), starts: 0, start: 0, fin: null }; map.set(key, s); }
     s.devs.add(d.dev);
+    if (d.cam) s.cam = d.cam;
+    if (d.warn) s.warn = Math.max(s.warn || 0, d.warn);
+    if (d.ev === 'WARN'){ s.wk = d.wk; return; }
     if (d.ev === 'JOIN'){ s.join = t; s.vn = d.vn; s.total = d.total; }
     else if (d.ev === 'START'){ s.starts++; if (!s.start) s.start = d.t0 || t; s.vn = d.vn; s.total = d.total; }
     else if (!s.fin){ s.fin = d; s.vn = d.vn; s.total = d.total; if (!s.start) s.start = d.t0 || t; }
@@ -1161,7 +1468,9 @@ function renderMon(){
       : '<span class="sc">' + (r.score != null ? r.score + ' / ' + r.total : '') + '</span>';
     return '<div class="prow ' + r.cls + '"><div class="who2"><span class="nm">' + esc(r.name) + (r.num ? ' <span class="muted">№' + esc(r.num) + '</span>' : '') + '</span>' +
       '<span class="sub">' + (r.kl ? esc(r.kl) + ' · ' : '') + esc(TESTS[r.t].short) + (r.cls === 'wait' ? '' : ' · ' + r.vn + '-нұсқа') + ' · ' + hhmm(r.start) + (r.why && r.rank === 3 ? ' · ' + esc(WHY[r.why] || '') : '') + '</span>' +
-      (multi ? '<span class="flag">Бірнеше рет немесе басқа құрылғыдан ашқан</span>' : '') + '</div>' +
+      (multi ? '<span class="flag">Бірнеше рет немесе басқа құрылғыдан ашқан</span>' : '') +
+      (r.warn ? '<span class="flag camw">⚠ Камера ескертуі: ' + r.warn + ' / ' + CAMCFG.max + (r.wk && r.rank !== 3 ? ' · соңғысы: ' + esc(CAMKIND[r.wk] || '') : '') + '</span>' : '') +
+      (r.cls === 'wait' || r.cls === 'run' ? camFlag(r.cam) : '') + '</div>' +
       '<div class="rt"><span class="state ' + (r.cls === 'run' ? 'run' : r.cls) + '">' + r.st + '</span>' + right + '</div></div>';
   }).join('');
 }
@@ -1181,19 +1490,25 @@ function renderMissing(rows){
     : '<div class="missing ok"><b>Тізімдегі ' + list.length + ' оқушының бәрі кірді</b></div>';
   if (box.innerHTML !== html) box.innerHTML = html;
 }
+function camFlag(c){
+  const t = { denied: 'Камераға рұқсат бермеді', nocam: 'Камера ашылмады', asking: 'Камера рұқсатын күтуде', ok: 'Камера бақылауы жүктелуде', noai: 'Камера бар, бақылау жүктелмеді' }[c];
+  return t ? '<span class="flag camf">📷 ' + t + '</span>' : '';
+}
 function monTSV(){
-  const head = ['Аты-жөні', 'Сынып', 'Журнал №', 'Тест', 'Нұсқа', 'Балл', 'Барлығы', '%', 'Күйі', 'Басталды', 'Уақыты (мин)'];
-  const rows = monRows().map(r => [r.name, r.kl, r.num, TESTS[r.t].short, r.vn, r.score == null ? '' : r.score, r.total, r.score == null || !r.total ? '' : Math.round(r.score / r.total * 100), r.st, hhmm(r.start), (r.secs / 60).toFixed(1).replace('.', ',')]);
+  const head = ['Аты-жөні', 'Сынып', 'Журнал №', 'Тест', 'Нұсқа', 'Балл', 'Барлығы', '%', 'Күйі', 'Басталды', 'Уақыты (мин)', 'Камера ескертуі'];
+  const rows = monRows().map(r => [r.name, r.kl, r.num, TESTS[r.t].short, r.vn, r.score == null ? '' : r.score, r.total, r.score == null || !r.total ? '' : Math.round(r.score / r.total * 100), r.st, hhmm(r.start), (r.secs / 60).toFixed(1).replace('.', ','), r.warn || 0]);
   return [head].concat(rows).map(r => r.join('\t')).join('\n');
 }
 
 /* ---------- router ---------- */
 function route(){
   if (G.on) return;                       // a running test is never navigated away from here
+  camStop();
   const h = (location.hash || '').slice(1);
   stopMon();
   if (TESTS[h]){ studentBoot(TESTS[h].p, h); window.scrollTo(0, 0); return; }
   if (h === 'mugalim') return monitorView();
+  if (h === 'kamera') return camPracticeView();
   homeView();
 }
 window.addEventListener('hashchange', route);
