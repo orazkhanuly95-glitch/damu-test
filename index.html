@@ -271,6 +271,11 @@ textarea{width:100%;min-width:0;font:500 .95rem/1.5 var(--f-sans);color:var(--in
 .mchips{display:flex;flex-wrap:wrap;gap:6px}
 .mchips span{font-size:.86rem;font-weight:600;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
 .empty.small{padding:12px;font-size:.88rem}
+.codes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.codechip{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--bg)}
+.codechip span{font-weight:700}
+.codechip b{font:700 1.05rem/1 var(--f-mono);letter-spacing:.14em;color:var(--brand)}
+input.codein{font-family:var(--f-mono);font-size:1.15rem;letter-spacing:.25em;text-transform:uppercase}
 </style>
 </head>
 <body>
@@ -331,6 +336,7 @@ const TESTS = {
 const ORDER = ['termo', 'vektor'];
 const LIVE = { url: 'https://ntfy.sh/', topic: 'damu-0aj3egdgc0dn626ag0' };
 const PIN_HASH = 'n6jp6ra934';
+const ROSTER_ENC = {"iter":150000,"cls":{"7 Г":{"s":"alkiD8W5wxZ+v3augbGZhg==","i":"CQ/cYyiVIhU/bFf0","c":"JIky6stamsJd8R60gPV0fr1z1EsPwbmU8fowAlmTwasxpLljS5uchgQ9UqbCIgmfPly2fsoQkrFuJSAAB5TlVq/1t/xdPg6j8F+dra5DfvsxluvFT3GsWAdPQbSmiuBHeIVuGP5M+uNsyqQ6Umff+dY6oMkhajpARWzgIOYR8/usjttvdIT4GkTs5RklhaBEAD6/xa0gjnC4k2Qml6bkd97wenNMT/mhGIshhkEaGR1PPh8bq/PjabvwwIQGb9ePdsFYIR4O37l9Qefrybmllu2/Nxi3hRsxW3I8YdOgqGeN/olLNTnat3RBqLgC3X6PNT1cSJ7NagdLljphrPU5r8tI8M44tyXiTRyKkwIR8uJ2hPcB5/yJY5tgCPXR6zOBu5vI6Za6uRdLvOfXXBcSm8EXxdQDI0pTCLEXvXgW/3ykBB6z5adIy8JzLPaoJjwMScG9ekB7uZki2BPXnbHhZwVmpc7UcMGioiaufgppki8H8Ak+Pw/ZMCulrLawd/cj8WAKsHTduQYRuF8WxHJ1dTlacvrKe1FO4eV0yquz8jkH7RMLgZQAeXxw6h5NGn2eDs9JJ3kugZAW8rrTYuQrqrfDO3TKJ7tuEMsfa1B70ZvjqLDH+3cmUBu9O5M/5Eym3EowB/pxb6ni9jPETvsDox7XRUhNtpUMnJf+c6seVH+2eH2RFO/xzzQHfZXcuDF88QtIzf8htk/Z7NyNDgBvnchRw5vRNEGmsVi2w6Bb49SCj8CRUJUb2lnhl20cKSu/Hk1Sv8fdfx3jPUtt3g12xzEdFKypqdGsDws6O9kFZNaoqsKK8qLgy/YoaT93OXlaXSzWge5N9a0XFzqztWt/W/+tynCgJ2tpQGPBOjEfhmdaewGZHn8l7Sz1PbK6W3fNoPJiOJe39iQ84NUDaWJ3t7bvW4rnr9F1F9Bz5R2jZ9WASRVIRg8wxqw/SZBB9lqRjYWLY1C+Fe6EGsM="},"7 Ж":{"s":"hl6IFfUoGeGWJh/i3b3VXQ==","i":"f5CUBXvWaC+6OmU8","c":"ciZgOamr59Nve1eEIcMYbh2n+WCKHUqFc3+1smk29GbwlR2D8F8LuZARc64fjAE5eoM6UxfcyV2J2ECDKvBZN3VQMkAe2TtD/guYhMYN+wHN5bJM+3AyWCji0T1ti1XDvjfkcHcdld+hqbKTzCUY+xozj3cBsTA4KBUDz+oECA8ThrfS9afRTDyH25i9/eNq0i9ZBV+xhNg3xNu0s4hb2ywymTa9+Zo3Rpp20EdiQ6NHIaFfzapakdlTxA5xHCl9Xtbdz69RAb+xu0EYQu89T2kEGMyG89F17JPDCQWcBJWHodN8+LEmxDPvHxRoXDESKpa6G2dy+m9dDqL6HJPEwUvxoZ63+NhZ9Wf55cLOfG/XwyV6Zu6zX6CWIjmzQtRVGD8ZP+nay3RFXT9QgDbaX/+pnm5770v3jvHcMSbAGAoKNMUD/vB6YTteDr8f3m6TF3kwCHkwTjJP8qWig3fYtqwtcklyZau5YfeNDtlIQDF6RjkeM4n1Nj4ZDpUORahkWVqyJWvmymlg0IJMXBxPv0jdoK9q6bFCdLCnmRpDnUsByzMvOPLVWLSq4D75DnOclwFJ4+d4/ACjqPt1xiCzRaOUYoi86M1N3Ys8S2VtxmJ+MNoNw/A7EPPtijeQhmHuATKmMWKZtFNhIdjtyC/N+fUZHsAGrBsQy6lieY82xe9MR98cb8pHVYrA6YvaliQcM1qlJj7wSHSZhaHHuaPnUqiC1utAavV6pXxbcucixxRFK2cZoiU/B85gvuxIu4pPkTiAfmGaMGXZBb172ooLChQgl4oVqqYpJKc1/FboFkg5Vo7fSRZ6CR2fxeoqHcXjb4+yu2rq/nYinZccsxswfq+TUTxcUQv+nYFEW6+SapjsTJ5CGxvPKJOmURFmRxngbGrc5u54wou7y3qDfE8eKKiIs+sYZfNTq0IzF6JMUE94JS8FCBY4BGPD5YOcmAkTe0rnzhOo59E+H9G/U+QCX8Supaf0leHf6b1e7ISOSg=="},"8 В":{"s":"rmYAoXWv0G1sLPcYF8WYvg==","i":"sw4eZRmyaXcnyVqS","c":"rjQDYbGe7bh5yOc7FLdpI6B53LoBuoGwWEohsMP1pGAOjrB9HBDxw6fPUPTUlmlVVzLEYeeRVgFgG/DCECJDN4TVYuj2ubWAE/707l0ZsrV9cvRrFbZkA9OxQsMwQf8UqxUgGFEOKLyyUG8FHutabBfbyEJnipwmMDyINTLZ7oyIp4yViJMEeIV4QWswS5zRCVkcIwxzL1N9EgkQbKoZb9NwpZjELYERQSEczztThMuBNdh3yDNq52OYW4BQIh7x4vSqA7vVX7zN2fk4pFfhb+eep3CdMJM7bvJy5017oqavTnYfzbqJ6D9KbWGw2OliP7Rq3yDE2aeaxyos7vUaY6mzgbmkaPAMhbQfmhwW4iGLiBFjzdHQzP4p4uO6Ydjlh2nHy5bAxY5WHkEH74xejTOiYn44yCQvFvCAZWhUJCSYwqoJKr6klwQdopgR+S95eUgi8WN9Kwr9OXFp4sdPyDuGx/3K3Usz+bypICo8qzFC/i7MzEWU2dkJW9ZkJj8rXGVPORffYwa/mm1JwvRb+lktCt68hTejOZ7t6o5juqPBAX3ifWVSoJIrBhZIfuazCBOThHY8Xv2eWPqLRZ9Cosp+TqPhhUCGf4r9RSgwSMIol4qsdM9f73LULr3cVKxYSiHVJPq+EbaNddkrPeL4915Ia1xmahW4jl6h9jmvQDyirCkoyETeb9ZerG7715tHsnnByefvMwFDraq/LhDwBim/QoV+Fe6eaq8VNtXojuhnBZJaptCaY0BJuT3YTHLwpQ3LBpbHoVFrScEYjpPn9kJvJD44NhepCWCZfJX0e+qGsuCHG4MJrd/I6WnhqNTM8WwOG7id7ly2ewgezHmowm/Zo3ZsWTcTHkGSEXEKFTi3v3ae/Ld5WNZn2cOPAAB5rsOD4g7EMTnY4r4KUogevaMJjQTCNSNh9u2RtQT98dHVI8cI5PLWvhNdhjao2cVvRoOJXP/XxfdFswMtvoBuQbYj3/66cBUIsZsFYVlIRdinrvb5w3CmRG6irqM4fIzAALlMB/8w2F7DWj/tK2C2Fjo639+jtaU="},"8 Г":{"s":"VtnnhjzE3rHo04GYGRVwMA==","i":"G1I5LpbeEPgvpGW/","c":"cXdUtsI97ZdI0ARuKzmIM1KEYobFijNkraHcGzgdm2V/Y6/TNkr9maj4u7x74OJxXxPUsWu2dbUjZbaSS5bC4G4BOjl/GbkC/woDTTjDeuU5quFRrbOpZ843lwmNO7npWC+ZsbbIfT9xuc1WaCGWE4cDZz9rOyXUVP/Al7z6OxDFRtqdXqgVLqDUgUI1hDKn8nwECGXTewRBL3A/faXB+U0nTfDp1CLNwmezf+JvTrUgvbpXFhnUCcd8GExPHzxYvTOzg2HpE5EKf3OG1GvS4M9E+ozY8/ENru4InU/X4635TSYE8+bMNFwfStnpzP6XIJrTf6sQS7UpuoD7WVFky+dP3NYGBP8K+zuBi7mHaG2eHbMthAE+s4P2tOuonsBLoXnIszgpt7p/xMf66axvzr8UzDfrBTmSHT1lSqKj8vfyZXyipCJvyuu1+Vw+vWjkJHsT6HTO69UkZX+imqeabWjPWnhEHg3nSgTTaBj9GSzciJLXkGUbynomXzHjO/RaJKiEU2Deam91Wne1FP9aWiC9FmfUgA8iEwcp3979vIZ9deOa/6mmvQGQQbHSoqq2l2Iw416eBCoXQlhkExHMXbH9vZMVxanDJOOfbo9j/s4YSgpsXfjFp03yqrTFBCikYiBXQ1tdUa0p9VJKfwkvfPJhtNFeokCj+njuk2CgdFstlWt3lMDs73ohwCKVHSk1qEm5Xs1WLPjqRyeFZPfBa9z+iAemgKxZl8X1HJrZdZiSRYGp6C8FePqYeWgiL2gb3HVsSOYF0N/wnos="},"8 Ж":{"s":"d6Caysq8XDCkz9r3GaYw0w==","i":"uVxHiw7bdlI35LO7","c":"Ja5nlA1nOMAPblKHXwHYqT6EfNCUC1L2s1AudkybabtoDggq/gzZ3ZiSxGeUNyTl9bxmfMS4sl3Nquk+w5m4oMuqpCRAjfiaEwHj3jU8VFU9QnpdGtKYGHNeLVrdZ9Bt75YyKD372jyGZPblWuasqv8iG3sSBIjXCCKpk+u159zaw2f/NJf+B/N5T48tg4wiFvDGK4Iw90EDg782ftUyN7KVcCJC1g6X3Q94T/hqkcUdcYMXY9imi7vph/XK2BzmiQFewaljTxFNEZBhcImPTsly5PFDVs7ZOsuAcFPJGXEUuX8VfnMc0EuDCRgMP3poJwNSk3B3xSgkAkU97W3yVTL4/VW7EcN8fSCQL4L6RLdGirSQy53nzw94gOWviFcVBczpwqiEvVBxnnwZlOfzYjuqFJO8XKTusxijCGbMdhWqvVncRZYdmz1rgky9M3bXwPsltO0CpQJ8796uNU20Q5tn4dkgaMkAnH8lbESz1xHnQmLQD7IWmbYtNXeEq9rHGw3VF+jvA5KBmYGZcIpP7T0icM3Vmtvui8hrx5/JfWGUk8DTEd+04yuAN/wlzMw1iENv512HPK9VjCcCbV9DL05Fd/JMlHn6KdR4RsVSr31/bFUpvGWp4I3JFDWBH+3ecBy1pJPElSzu6sqyNp5Yu6PTOh1u5JoIYxv1pUbS53E7Iy053k6GUYmJEI+N/tYaEe6b4AMilzqR6nfYIoYh8BxO4Ajd9i0PRq9zJlkthZnew/NubZPfqyxGupGuSNp3TO32QdjSGsgunU8il+Vvfi87aYmpncvej1HWmqNPFgZkEpXn63/wzs0JE/Pmwhq0T0nb6T6Sabzy6nkoGYeWnJXk29yaBdtl5if0Ber8lwdrpOpA7Aj293HvJnD6YcsfuiVK5YP6uQph+3BbMXhJDY/R/xmn3KFYECghtEbiS1/GYePwupr664FbCiU4IKtFeAyb8tlws90O7dyOZv6V"},"10 А":{"s":"f01zh0hJWNbVis81mLPJZg==","i":"Fgvm2TKNw6Tsdwjp","c":"GQ5KJBQGLFHT787Vtn9+sCjfyGTXl23tZgxxxPe/13DrAo0BezG9xDJfmEMd6BbjFqj2LHzerNXs2myLvdet7iPOw0+4621X2eNLTa7nUXR51sPLwpluJ9O7YxHZGQH6lVqbJFUqVge91zmG6CnAxf+YUxDb1YurupFajH5N8bZEAQmieOtHQ25fxFR3FP77rwk3B23p0ezyvFfg0MGyYlTrrZLHOiu1H3hCde21XxEHqynX5kdHktOZKGcVp294JDHEiyp0nhoOofSPAcY6vHBk89ooY8EfsCHQnY2lP3pE+HsnBkbhuYEs2Er/350DsEdeQwvAmgSX1eGaIWNUEJxL3th0uVHKx8O6/j5vNByjsfQ+Tg3DK+b9GyZ3kAQSxYZ4lKKO9HEIGDL5lz5MzdrLCVXuC6Xv+WDBAl8FlKztgBpE3K0ObSyKe4mEYlmTI3zrSRN93oCURdsIXD1dRQziBx+pAVwSGMU5J71EbRLNyGWBH74dpUo88/5UN1gaC5nV4Fbv/iglIIoAoDeBoFs0zYhTYRHqxaepDeA3CQsRF6pl0Epm7ppvfizT8810/i8zVFnFeKHrMOjvNPjo86qZvMxLHg+w6LFgXwvCwSTInBqD7zPTHZgoY6x1+yzyNCSR2d1zLKc1YvtT0iPfTNl88E1aIqiN4HADfViHvV5efwLT4z/nYoSIhEaeeXxKLwYInMUACfxl360pt6HWsjQxbswyHL+k2/izLJo3vH/tYffgzpLqijNjZOTaHNV177/KkXUqTijXYRxOTRorr8SeLrVp2OuklFmPi9Dlz1cismGeE4WScA6qfL3LJuAM61NRhgchQNkYO6mBcat5LSYnB9HpYI159JlxOtnsXboDmn+pngW/qcc+7w+ybMuvwnWVFxp/CkoLFddd5M/U2qB9MViGPJiSl2YbV6yUSg0wXN0biXOUv5KYTCCoSlMSjP7R5NnL2ZEf/fSrsguFvuj3Za/yKkddAKUGbrEZJwgdWG7S+bfT4mTIS65IIHLdqiuRz78WD/eCJs+Ut3dknYWG0sO78PCmrIM/zZ09/6abAIf6Ega+lfua/Q=="},"10 Ә":{"s":"w9qQpikzgWr9V9siCbPaBw==","i":"gdQhAFbC7yDZAuOz","c":"4RKlskiBaWR9iiy3OmiT2zFKljSaT7zQrh29K3DVedTYFbB2pMp9it9soLdg7i0MqCWb+Azr0PVXcfI31zDYDxl2Vs5Xu6gLiqL8vY7maonwrrN9N+cYKBV/lihS1UEfd0b7ELlTDrb0+HDWUyDkeIrvt5SCQgbTYoWoDeINCB0t+7yVqfE154gZbLDBhv2Ena8XjjXYVfgNnQSWXj0gFUwXsRXC1KLGDXBuu1ySSsTCcwCjyiAz6uTE8XPjekyKPcTZn+DdIQbzPGxYUrC4dfT3aHB+0yR9Pzvdb0OqtjM4Sp9ljWim7U11yZs6BDkYGLMPXbw1Up6lRLsGAKwqg+FmkJPO8omQ/DtC3RsFZKbxHw0kA3HxIv9K4mdfY4a0TIPy+VgEi1N1JQAMa5VANdesgOGPEaqtw9bIskI38emzOus174zQf0abT8NaQcy8/Zie/LRWbYbI0oL4khtTVAzY8NI4ajFP/hMspfqaPVVe/x2HixWh6p9QgapdA3Zkz26hSzuNfXCQynS90e2CCGEHMeNViiG8rAdEd3AFjshJWSldmftmzArQd6DQ3KsAtgJas7jQ2lpwGzxEDWN3zigqSFKSGxuxFjqybt1xVdAaqzadBSwZDcvKAwI4Y/2VIZcSXYemdsk34XmqxN3AGsUaj9H4Dy9y2y+boUxDsKgssjYqK/J0w8+lwN+YVoDfmHB9AaqVXDdr9k0n/PjDFoPMQIM/+c2BczgmiLJqXP+AJeDBQMBUQoRbpm4Zmt/m3TKHlloawaywhiyx7y2Eb+DxCPAlASPO99jcUUdrjFO/Lq/x7IuNvFXfiQoO3L5FTXzpChIhzPe3b+gvd70iZLzTo3+XSVi2DeYKldbIGaoEwA+B8ox0mY/Aly1UpiiPld8BaUPySbB069JA3KCs1ybbE3ZH3M+5E2HcAmVyH5sPZVRDSRhRBj8A1D10P+3WIHU1kRfpGsTUG1W+ZkwoypHf0P1KYuCcfo6nB/TdhD9aDQJhFZ/LPyPIZI9ne46eNHDPjRo="},"10 В":{"s":"yplUuhYQUvlsTegU4j4Fbg==","i":"MUrmQvFX5c0CUorn","c":"AbnLJgYZKzQNynjuf6Wf/65qSjJrwy2NrI0d4OCMtPMhuBGtfab/uXu3LDYvpRVytDqf88B3Qs2mvONRme8o2ALMPIDo6kaxA5W32ThvCWgherO8LTC0MK0/S3VzfWAcYZmOh0RkfhEdbQIJGdZiVZZMWxPD3j7Glovd9KJVedw5JnXGgGdiiwzAuVt5QIdv3o3rQbKZ9hdwTkui85oR/E9K1KzGqNQgYeb1igrZgyR3juVBXblb2SsrV9moWcUGFPyZArYoIwU7oHySQo4Qo4jI+VczZ6ZCAavYYgRrYE4Xj7eoTn3Q2wQ7bB8yrNkqOSyvAwJh7vk6x7M6GpyoDDRE26j9b4zp3xFPIk+n1c1DrqG+sOXy/9R6cOy0O4AR9cYfp9387fNbaKVtEzAJYA1No2rQEROFS9ci+h/JLjCYNxjMmzda+kP2FdGyh9PeMb72GS4yP6l3i3ykYzhPpD+C3EwlK0nePs7fZCbO5wTVjp5BK2Sc2Wt9whQTDLkzB246oSomQrNvsjYUVHjXVwPoGCauVEC5ZGxHpKTH9Y+iXuDSJRCrIm5dgYT4bITMZqaJ0dD0OcqVVl8dHvOtWKDZD29WJVA+50lIaSd3es3TXj+fEwLTHR6W9RqEX1kRXvNhNEdaJfTZG8upSDQ0lQVJ+T80Wh6zecRSAufcUmSajfHR/cDQxK3sGVzxZmlXs2Ebu5orqqlsFtxl8MYqev87vtnqw2ic6xjJyDAyb9AXswvMjm25Jnx36WV/pgVGu3EAHPju4Lqi3IxE1oFvHhP6gk4RqSgJ63dIW8IGLE+gOadAMnlJL+Qe5Hy7kPQGVuzM27fdq3H106I73weoWR9DdMRXiBTAHpkPFfMggtnnKBRebYLq"},"10 Г":{"s":"0ueomjGO3R8YEhKd/GE31A==","i":"hXk4tCJ4ag+30zJY","c":"9982K3xtFuXzyWeICYPb+3M3MVPNSr/+TkEVh7JzqiBICs8Kq/yP32aQ7wwqw4N3EZE4O1DTR+PSUh7D50KzIp4D5dfsD/TpxiINIxso87eCwmRUyacV2QO8LdLnp/7oD1LD0u3EQG3kaC1gzw48OVAWr1CDXKYJ1MxtXg9EZFVR+ePh7OnONArYSmNyPjnZ73GgQWnS31NRuou6m25A9w/CBubrhPFLs0mMpdl6LvXtOCXaJ2EBf9qEyX1im4OyccOJ3bJIToW4gWWwolIwXdTdjeAQAnlY2MH5Hk6sBh2EicFLoEk5gzmDA4GVnoTW+E5+LycbFBXz8tlPP0mYx92Tjk0WqDYoa8SmyPOTgwduSxe9b6dqFLm/GNEd2fwgt8D3fOFE/AHufC6Sw3M4gpNSodbiYV/vbjM+94RiUneYNjkSLANJyUbaYAL0aPWZhxjCpSR9+YRlkfcbcz48e+Vdm5crq/1wT12HGgNnISnyi+y4NYNWyQkija8B2VGLjNElzSklgzzZz22XEI39Mb0hWHR9cWVPMKqVFqjP9X0p9JK+uILJ/p5c5lZwH8H+vB9RxzxDc0J3/pODivZ++cwswDIwGe0E0N1ZhPflIC2cMMANoH+qSao0Ea/fy3lU/A0C+m8k1zUgH075rG+UJvFpIHPSL5MCyZFf7xpiNtBQRw7Je+A15/+9MIpqBqNOtuMWbOR/xhclHVo9fTCPE/h8UUrGKXccZnBeUFwXkOXwRLDrmJ9vrUBBiZ+nitwDDkMkqK3gZIKfwSHHtQQmgjopHK4cYPs="}}};
 function baseUrl(){ return String(location.href).split('#')[0].split('?')[0]; }
 
 /* ---------- state ---------- */
@@ -441,7 +447,8 @@ function gateView(){
   <section class="sheet">
     <h2 class="h2">Тапсырушы</h2>
     <div class="fields one">${classField()}</div>
-    <div class="fields${common ? '' : ' one'}">
+    ${common ? codeFields() : ''}
+    <div class="fields${common ? '' : ' one'}" id="g_manual">
       <div class="field"><label class="lbl" for="g_name">Аты-жөні</label><input type="text" id="g_name" autocomplete="name" maxlength="60" value="${esc(c.name)}" ${c.name ? 'readonly' : ''}></div>
       ${common ? '<div class="field"><label class="lbl" for="g_num">Журнал №</label><input type="number" id="g_num" inputmode="numeric" min="1" max="99" placeholder="7"></div>' : ''}
     </div>
@@ -452,6 +459,7 @@ function gateView(){
   </section></main>`;
   $('#g_ok').onchange = e => { $('#g_go').disabled = !e.target.checked; };
   $('#g_go').onclick = startTest;
+  wireGate();
 }
 function startTest(){
   const c = S.cfg, errBox = $('#g_err');
@@ -459,6 +467,9 @@ function startTest(){
   const kl = ($('#g_kl') || {}).value || '';
   if (!kl){ errBox.innerHTML = '<div class="note bad">Сыныбыңызды таңдаңыз.</div>'; return; }
   S.kl = kl; store.set('damu_kl', kl);
+  const cf = $('#g_codef'), pf = $('#g_pickf');
+  if (cf && !cf.hidden && !S.rosterOk){ errBox.innerHTML = '<div class="note bad">Тақтада жазылған сынып кодын енгізіңіз.</div>'; return; }
+  if (pf && !pf.hidden && !$('#g_pick').value){ errBox.innerHTML = '<div class="note bad">Тізімнен атыңызды таңдаңыз.</div>'; return; }
   const name = clean($('#g_name').value);
   if (name.length < 3){ errBox.innerHTML = '<div class="note bad">Аты-жөніңізді толық жазыңыз.</div>'; return; }
   let vi = 0, num = '';
@@ -801,20 +812,77 @@ function classField(){
   return '<div class="field"><label class="lbl" for="g_kl">Сыныбыңыз</label><select id="g_kl"><option value="">Сыныпты таңдаңыз</option>' +
     CLASSES.map(c => '<option' + (c === last ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></div>';
 }
+/* ---------- class code → name list ----------
+   The class lists are in this file only encrypted (AES-GCM, key from the class code via PBKDF2).
+   The teacher writes the class code on the board; a student types it and picks their name. */
+const LOOKALIKE = { 'А': 'A', 'В': 'B', 'Е': 'E', 'К': 'K', 'М': 'M', 'Н': 'H', 'О': 'O', 'Р': 'P', 'С': 'C', 'Т': 'T', 'Х': 'X', 'У': 'Y', 'Ү': 'Y', 'Ұ': 'Y', 'З': '3' };
+function normCode(v){ return String(v || '').toUpperCase().replace(/\s+/g, '').split('').map(ch => LOOKALIKE[ch] || ch).join('').replace(/[^A-Z0-9]/g, ''); }
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function openRoster(kl, code){
+  const e = ROSTER_ENC.cls[kl]; if (!e || !window.crypto || !crypto.subtle) return null;
+  try {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(code), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64(e.s), iterations: ROSTER_ENC.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    const list = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(e.i) }, key, b64(e.c))));
+    return Array.isArray(list) ? list : null;
+  } catch(err){ return null; }
+}
+function codeFields(){
+  return '<div class="field" id="g_codef" hidden><label class="lbl" for="g_code">Сынып коды (тақтада жазылған)</label><input type="text" id="g_code" class="codein" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="8" placeholder="K7P2QX"></div>' +
+    '<div id="g_codemsg" aria-live="polite"></div>' +
+    '<div class="field" id="g_pickf" hidden><label class="lbl" for="g_pick">Аты-жөніңіз</label><select id="g_pick"></select></div>';
+}
+function wireGate(){
+  const sel = $('#g_kl'); if (!sel || !S || S.cfg.mode === 'p') return;
+  const codeF = $('#g_codef'), pickF = $('#g_pickf'), manual = $('#g_manual'), msg = $('#g_codemsg'), pick = $('#g_pick'), nameI = $('#g_name'), numI = $('#g_num');
+  const clearWho = () => { nameI.value = ''; if (numI) numI.value = ''; };
+  let busy = 0;
+  const refresh = () => {
+    const kl = sel.value, has = !!(kl && ROSTER_ENC.cls[kl]);
+    busy++; S.rosterOk = false; S.rosterList = null;
+    codeF.hidden = !has; pickF.hidden = true; manual.hidden = has; msg.innerHTML = ''; pick.innerHTML = ''; $('#g_code').value = ''; clearWho();
+  };
+  const tryCode = async () => {
+    const kl = sel.value, code = normCode($('#g_code').value);
+    S.rosterOk = false; pickF.hidden = true; manual.hidden = true; clearWho();
+    if (code.length < 6){ msg.innerHTML = ''; return; }
+    const my = ++busy; msg.innerHTML = '<div class="note">Код тексерілуде…</div>';
+    const list = await openRoster(kl, code.slice(0, 6));
+    if (my !== busy) return;
+    if (!list){ msg.innerHTML = '<div class="note bad">Код қате. Тақтадағы кодты тексеріп, қайта жазыңыз.</div>'; return; }
+    S.rosterOk = true; S.rosterList = list;
+    msg.innerHTML = '<div class="note ok">Код дұрыс. Енді тізімнен атыңызды таңдаңыз.</div>';
+    pick.innerHTML = '<option value="">Атыңызды таңдаңыз</option>' + list.map((n, i) => '<option value="' + (i + 1) + '">' + (i + 1) + '. ' + esc(n) + '</option>').join('') + '<option value="none">Менің атым тізімде жоқ</option>';
+    pickF.hidden = false;
+  };
+  sel.addEventListener('change', refresh);
+  $('#g_code').addEventListener('input', tryCode);
+  pick.addEventListener('change', () => {
+    const v = pick.value;
+    if (v === 'none'){ manual.hidden = false; clearWho(); nameI.focus(); return; }
+    manual.hidden = true;
+    if (!v) return clearWho();
+    nameI.value = S.rosterList[+v - 1]; if (numI) numI.value = v;
+  });
+  refresh();
+}
+
 /* class lists live only on the teacher's device (never in the public site) */
 function rosters(){ const r = store.get('damu_roster', {}); return r && typeof r === 'object' ? r : {}; }
 /* one class, or several at once: a line holding only a class name ("8 В", "# 8 В", "8В сыныбы") starts that class */
 function parseRoster(txt, fallback){
-  const out = {}; let cur = null, multi = false;
+  const out = {}, codes = {}; let cur = null, multi = false;
   String(txt).split('\n').forEach(line => {
     const l = clean(line); if (!l) return;
+    const cm = l.match(/^код\s*[:\-]?\s*([A-Za-z0-9]{6})$/i);
+    if (cm){ if (cur) codes[cur] = cm[1].toUpperCase(); return; }
     const h = l.replace(/^#+\s*/, '').replace(/\s*сыныб[ыі]?\s*$/i, '').replace(/\s+/g, '').toUpperCase();
     const kl = CLASSES.find(c => c.replace(/\s+/g, '').toUpperCase() === h);
     if (kl){ cur = kl; multi = true; out[kl] = out[kl] || []; return; }
     const name = clean(l.replace(/^\s*\d+\s*[.)]?\s*/, ''));
     if (name.length >= 3 && !/\d/.test(name)){ const k = cur || fallback; (out[k] = out[k] || []).push(name); }
   });
-  return { out: out, multi: multi };
+  return { out: out, multi: multi, codes: codes };
 }
 function normName(n){ return clean(n).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-яәғқңөұүһі\s-]/gi, '').split(/\s+/).filter(Boolean); }
 function sameStudent(rosterName, typed){
@@ -893,6 +961,11 @@ function monitorView(){
     
     </section>
     <section class="sheet">
+      <h2 class="h2">Сынып кодтары</h2>
+      <div class="codes" id="codes"></div>
+      <p class="hint">Сабақ басында сынып кодын тақтаға жазыңыз. Оқушы кодты жазғанда ғана сыныптың тізімі ашылады. Кодтар сайтта жоқ, тек осы құрылғыда сақталады.</p>
+    </section>
+    <section class="sheet">
       <h2 class="h2">Сабақты басқару</h2>
       <div class="ctlbox" id="ctlbox"></div>
       <p class="hint">Оқушылар тестке кіріп, күту залында отырады. «Бастау» басылғанда тест барлығында бірден ашылады, ${Math.round(SYNC.grace / 60000)} минуттан кейін кіру жабылады. Уақыт біткенде немесе «Тоқтату» басылғанда барлық жұмыс өздігінен тапсырылады.</p>
@@ -937,6 +1010,7 @@ function monitorView(){
     const all = rosters(), k = $('#r_kl').value, p = parseRoster($('#r_txt').value, k);
     if (p.multi){
       const ks = Object.keys(p.out).filter(x => p.out[x].length); ks.forEach(x => { all[x] = p.out[x]; });
+      if (Object.keys(p.codes).length){ store.set('damu_codes', Object.assign(store.get('damu_codes', {}) || {}, p.codes)); renderCodes(); }
       store.set('damu_roster', all); showRoster(); toast(ks.length + ' сыныптың тізімі сақталды'); renderMon(); return;
     }
     const names = p.out[k] || [];
@@ -960,7 +1034,7 @@ function monitorView(){
       const st = ctlState(t); publishCtl(t, 'stop', st.sess || '');
     }
   };
-  loadMon(); connectLive(); ctlConnect(renderMon); renderMon();
+  loadMon(); connectLive(); ctlConnect(renderMon); renderCodes(); renderMon();
   clearInterval(MON.timer); MON.timer = setInterval(renderMon, 1000);
 }
 function loadMon(){
@@ -1083,6 +1157,12 @@ function renderMon(){
       (multi ? '<span class="flag">Бірнеше рет немесе басқа құрылғыдан ашқан</span>' : '') + '</div>' +
       '<div class="rt"><span class="state ' + (r.cls === 'run' ? 'run' : r.cls) + '">' + r.st + '</span>' + right + '</div></div>';
   }).join('');
+}
+function renderCodes(){
+  const box = $('#codes'); if (!box) return;
+  const c = store.get('damu_codes', {}) || {}, ks = CLASSES.filter(k => c[k]);
+  box.innerHTML = ks.length ? ks.map(k => '<div class="codechip"><span>' + esc(k) + '</span><b>' + esc(c[k]) + '</b></div>').join('')
+    : '<div class="empty small">Кодтар бұл құрылғыда жоқ. Тізім файлын «Сынып тізімдері» бөліміне қойсаңыз, кодтар да енгізіледі.</div>';
 }
 function renderMissing(rows){
   const box = $('#missing'); if (!box) return;
