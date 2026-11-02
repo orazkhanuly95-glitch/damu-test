@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#2563c9">
 <title>DAMU тесттері</title>
-<meta name="description" content="DAMU білім беру орталығы: физикадан онлайн тест">
+<meta name="description" content="DAMU білім беру орталығы. Физикадан онлайн тест. Мұғалім: Ысмайл Рамазан Оразханұлы">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
@@ -217,8 +217,9 @@ a{color:var(--brand)}
 .chips button{font:600 .86rem/1 var(--f-sans);border:1.5px solid var(--line);background:var(--card);color:var(--ink-2);border-radius:999px;padding:8px 12px;cursor:pointer;min-height:36px}
 .chips button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
 .chips button:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
-.mstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-@media (max-width:560px){ .mstats{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.mstats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+@media (max-width:700px){ .mstats{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:400px){ .mstats{grid-template-columns:repeat(2,minmax(0,1fr))} }
 .stat{background:var(--cs);color:var(--c);border-radius:var(--r-sm);padding:12px 14px;display:flex;flex-direction:column;gap:5px;min-width:0}
 .stat b{font:700 1.9rem/1 var(--f-mono);font-variant-numeric:tabular-nums}
 .stat span{font-size:.82rem;font-weight:600}
@@ -240,6 +241,28 @@ a{color:var(--brand)}
 .linkrow code{flex:1 1 200px;min-width:0;font:500 .78rem/1.4 var(--f-mono);background:var(--bg);border-radius:10px;padding:8px 10px;overflow-wrap:anywhere}
 .linkrow .btn{flex:0 0 auto}
 .muted{color:var(--ink-2);font-weight:500}
+/* waiting room + lesson control */
+.rules li:nth-child(5){--c:var(--c3);--cs:var(--c3s)}
+.wtop{display:flex;align-items:center;gap:10px}
+.pulse{width:12px;height:12px;border-radius:50%;background:var(--c1);flex:none;animation:wpulse 1.4s infinite}
+@keyframes wpulse{0%{box-shadow:0 0 0 0 rgba(47,111,224,.45)}70%{box-shadow:0 0 0 12px rgba(47,111,224,0)}100%{box-shadow:0 0 0 0 rgba(47,111,224,0)}}
+.ctlbox{display:flex;flex-direction:column;gap:10px}
+.ctlrow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-sm)}
+.ctlrow.run{border-color:var(--c2);background:var(--c2s)}
+.cinfo{display:flex;flex-direction:column;gap:3px;min-width:0}
+.cname{font-weight:700}
+.cst{font-size:.88rem;color:var(--ink-2)}
+.cst b{font-family:var(--f-mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.ctlrow .btn{flex:0 0 auto;min-width:120px}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.state.wait{color:var(--c5);background:var(--c5s)}
+.prow.wait{border-color:var(--c5)}
+@media (prefers-reduced-motion:reduce){ .pulse,.live.on i{animation:none} }
+.tline{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--r-sm);background:var(--brand-soft);align-self:flex-start;max-width:100%}
+.tava{width:38px;height:38px;border-radius:50%;background:var(--brand);color:var(--on-brand);font:700 .85rem/1 var(--f-sans);display:grid;place-items:center;flex:none;letter-spacing:.02em}
+.tinfo{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tname{font-weight:700;overflow-wrap:anywhere}
+.trole{font-size:.85rem;color:var(--ink-2)}
 </style>
 </head>
 <body>
@@ -388,6 +411,7 @@ function gateView(){
   <section class="sheet">
     <p class="eyebrow">Тест${tp[1] ? ' · ' + esc(tp[1]) : ''}</p>
     <h1 class="title">${esc(tp[0])}</h1>
+    ${teacherLine()}
     <dl class="spec">
       <div style="--c:var(--c1);--cs:var(--c1s)"><dt>Сұрақ</dt><dd>${nq}</dd></div>
       <div style="--c:var(--c3);--cs:var(--c3s)"><dt>Уақыт</dt><dd>${c.min}<small> мин</small></dd></div>
@@ -400,6 +424,7 @@ function gateView(){
     <ol class="rules">
       <li><span>Тест басталған соң басқа қолданбаға, басқа бетке немесе басқа қойындыға өтуге болмайды.</span></li>
       <li><span>Экранды өшіруге, бетті жаңартуға не жабуға, экранды екіге бөлуге болмайды.</span></li>
+      <li><span>Тест мұғалімнің белгісімен барлық оқушыда бірден басталады. Басталғаннан кейін 2 минуттан соң кіруге болмайды.</span></li>
       <li><span>Тестті бір рет қана тапсыруға болады. Ереже бұзылса, тест сол сәтте тоқтайды, нәтиже <b>0</b> болады және тестке қайта кіру мүмкін емес.</span></li>
       <li><span>Тест аяқталғанда нәтиже мұғалімге өзі жіберіледі. Интернет болмаса, «Қайта жіберу» немесе WhatsApp батырмасы шығады.</span></li>
     </ol>
@@ -413,7 +438,7 @@ function gateView(){
     </div>
     <label class="agree" for="g_ok"><input type="checkbox" id="g_ok"><span>Ережемен таныстым және келісемін</span></label>
     <div id="g_err"></div>
-    <button class="btn primary big" id="g_go" disabled>Тестті бастау</button>
+    <button class="btn primary big" id="g_go" disabled>Күту залына кіру</button>
     <p class="cheerline">Сәттілік тілейміз!</p>
   </section></main>`;
   $('#g_ok').onchange = e => { $('#g_go').disabled = !e.target.checked; };
@@ -436,14 +461,7 @@ function startTest(){
     const lk = LOCK.readSync(); if (lk) return resumeFromRec(lk, true);
     const old = store.get(recKey(), null); if (old) return resumeFromRec(old, true);
   }
-  S.order = c.vs[vi].map(e => ({ bi: e[0], perm: e.slice(1) }));
-  S.ans = S.order.map(() => []); S.cur = 0; S.t0 = Date.now(); S.endAt = S.t0 + c.min * 60000;
-  setRec({ st: 'started', name: name, num: num, vi: vi, t0: S.t0, total: S.order.length });
-  live('START', S.rec);
-  document.body.classList.add('testing');
-  armGuard();
-  testView();
-  clearInterval(G.tick); G.tick = setInterval(tick, 500);
+  waitView();   // the test itself opens on the teacher's start signal (beginTest)
 }
 
 /* ---------- guard: leaving the page = 0 ---------- */
@@ -463,6 +481,7 @@ function violate(why){
   const m = $('.modal'); if (m) m.remove();
   const r = Object.assign({}, S.rec || {}, { st: 'left', why: why, score: 0, total: S.order.length, secs: Math.round((Date.now() - S.t0) / 1000) });
   setRec(r);
+  ctlStop();
   leftView(why);
   report('LEFT', r, true);
 }
@@ -552,7 +571,7 @@ function finish(status){
   const m = $('.modal'); if (m) m.remove();
   const total = S.order.length; let score = 0; for (let i = 0; i < total; i++) if (isCorrect(i)) score++;
   const r = Object.assign({}, S.rec || {}, { st: 'done', score: score, total: total, secs: Math.round((Date.now() - S.t0) / 1000), end: status });
-  setRec(r); resultView(r);
+  setRec(r); ctlStop(); resultView(r);
   report(status === 'TIME' ? 'TIME' : 'DONE', r);
 }
 
@@ -635,8 +654,8 @@ const DEV = (() => { let d = store.get('damu_dev', ''); if (!d){ d = Math.random
 function evPayload(ev, r){
   const c = S.cfg;
   return { v: 1, t: S.tid, id: c.id, ev: ev, name: clean(S.name), num: S.num || '', vn: (r.vi != null ? r.vi : S.vi) + 1,
-    score: ev === 'START' || ev === 'LEFT' ? 0 : (r.score || 0), total: r.total || (S.order && S.order.length) || c.vs[0].length,
-    secs: r.secs || 0, why: r.why || '', min: c.min, t0: r.t0 || S.t0 || 0, at: Date.now(), dev: DEV };
+    score: /^(START|LEFT|JOIN|LATE)$/.test(ev) ? 0 : (r.score || 0), total: r.total || (S.order && S.order.length) || c.vs[0].length,
+    secs: r.secs || 0, why: r.why || '', min: c.min, t0: r.t0 || S.t0 || 0, sess: r.sess || S.sess || '', at: Date.now(), dev: DEV };
 }
 /* POST one event to the live channel; a beacon survives the page going away */
 function live(ev, r, beacon){
@@ -667,6 +686,105 @@ function paintSend(){
 }
 function finalEv(r){ return r.st === 'left' ? 'LEFT' : r.end === 'TIME' ? 'TIME' : 'DONE'; }
 
+/* ---------- synchronized start ----------
+   The teacher's page posts {kind:'ctl', t, cmd:'start'|'stop', sess} to a second channel.
+   Students wait in a waiting room; 'start' opens the test for everyone at once with one common end time;
+   entry closes SYNC.grace ms after the start; 'stop' hands in every running test. */
+const SYNC = { grace: 120000 };
+const CTL = { es: null, list: [], seen: new Set(), skew: 0, conn: 'off', poll: 0, cb: null };
+function ctlUrl(){ return LIVE.url + LIVE.topic + '-ctl'; }
+function ctlIngest(m){
+  if (!m || m.event !== 'message' || !m.id || CTL.seen.has(m.id)) return false;
+  let d; try { d = JSON.parse(m.message); } catch(e){ return false; }
+  if (!d || d.v !== 1 || d.kind !== 'ctl' || !TESTS[d.t] || !/^(start|stop)$/.test(d.cmd)) return false;
+  CTL.seen.add(m.id); CTL.list.push({ id: m.id, time: m.time, d: d }); return true;
+}
+function ctlFire(){ if (CTL.cb) CTL.cb(); }
+function ctlConnect(cb){
+  ctlStop(); CTL.cb = cb;
+  const skewFrom = e => { try { const x = JSON.parse(e.data); if (x && x.time) CTL.skew = Date.now() - x.time * 1000; } catch(_){} };
+  const poll = () => fetch(ctlUrl() + '/json?poll=1&since=all').then(r => r.ok ? r.text() : Promise.reject()).then(t => {
+      t.split('\n').forEach(l => { if (l.trim()) try { ctlIngest(JSON.parse(l)); } catch(e){} });
+      if (CTL.conn !== 'on') CTL.conn = 'poll'; ctlFire();
+    }).catch(() => { if (CTL.conn !== 'on'){ CTL.conn = 'off'; ctlFire(); } });
+  poll();
+  if (window.EventSource){
+    try {
+      const es = CTL.es = new EventSource(ctlUrl() + '/sse?since=all');
+      es.addEventListener('open', e => { CTL.conn = 'on'; if (e.data) skewFrom(e); ctlFire(); });
+      es.addEventListener('keepalive', skewFrom);
+      es.onerror = () => { if (CTL.conn === 'on'){ CTL.conn = 'off'; ctlFire(); } };
+      es.onmessage = e => { try { if (ctlIngest(JSON.parse(e.data))) ctlFire(); } catch(x){} };
+    } catch(e){ CTL.es = null; }
+  }
+  CTL.poll = setInterval(() => { if (CTL.conn !== 'on') poll(); }, 5000);
+}
+function ctlStop(){ clearInterval(CTL.poll); CTL.cb = null; if (CTL.es){ try { CTL.es.close(); } catch(e){} CTL.es = null; } }
+function ctlLast(t){ let b = null; CTL.list.forEach(x => { if (x.d.t === t && (!b || x.time >= b.time)) b = x; }); return b; }
+function ctlState(t){
+  const last = ctlLast(t), min = TESTS[t].p[3];
+  if (!last || last.d.cmd !== 'start') return { mode: 'idle', last: last };
+  const start = last.time * 1000 + CTL.skew, end = start + min * 60000;
+  if (Date.now() >= end) return { mode: 'idle', last: last, ended: true };
+  return { mode: 'run', start: start, end: end, sess: last.d.sess, last: last };
+}
+function waitView(){
+  S.waiting = true; document.title = 'Күту залы · DAMU'; document.body.classList.remove('testing');
+  const rows = [['Тапсырушы', esc(S.name)]]; if (S.num) rows.push(['Журнал №', esc(S.num), 1]);
+  $('#app').innerHTML = '<main class="wrap">' + mast() + `<section class="sheet waitc">
+      <div class="wtop"><span class="pulse" aria-hidden="true"></span><p class="eyebrow">Күту залы</p></div>
+      <h1 class="title">Мұғалімнің белгісін күтіңіз</h1>
+      <p class="hint">Мұғалім «Бастау» батырмасын басқанда, сұрақтар барлық оқушыда бірден ашылады. Бетті жаппаңыз.</p>
+      ${protocol(rows)}
+      <div id="wst" aria-live="polite"><div class="note">Байланыс орнатылуда…</div></div>
+    </section></main>`;
+  live('JOIN', { vi: S.vi });
+  ctlConnect(onCtl);
+}
+function onCtl(){
+  if (!S || S.cfg.pv) return;
+  const st = ctlState(S.tid);
+  if (S.waiting){
+    if (st.mode === 'run'){
+      if (Date.now() - st.start <= SYNC.grace){ S.sess = st.sess; return beginTest(st.end); }
+      return lateView();
+    }
+    const w = $('#wst');
+    if (w) w.innerHTML = CTL.conn === 'off' ? '<div class="note warn">Байланыс жоқ. Интернетті тексеріңіз, бет өзі қайта қосылады.</div>'
+      : '<div class="note ok">Байланыс бар. Мұғалім тестті әлі бастаған жоқ.</div>';
+    return;
+  }
+  if (G.on && st.last && st.last.d.cmd === 'stop' && S.sess && st.last.d.sess === S.sess) finish('TIME');
+}
+function beginTest(endAt){
+  const c = S.cfg, vi = S.vi;
+  if (!c.pv){ const lk = LOCK.readSync(); if (lk){ S.waiting = false; ctlStop(); return resumeFromRec(lk, true); } }
+  S.waiting = false;
+  S.order = c.vs[vi].map(e => ({ bi: e[0], perm: e.slice(1) }));
+  S.ans = S.order.map(() => []); S.cur = 0; S.t0 = Date.now(); S.endAt = Math.min(endAt || Infinity, S.t0 + c.min * 60000);
+  setRec({ st: 'started', name: S.name, num: S.num, vi: vi, t0: S.t0, total: S.order.length, sess: S.sess || '' });
+  live('START', S.rec);
+  document.title = splitTitle(c.title)[0] + ' · DAMU';
+  document.body.classList.add('testing');
+  armGuard();
+  testView();
+  clearInterval(G.tick); G.tick = setInterval(tick, 500);
+}
+function lateView(){
+  S.waiting = false; ctlStop();
+  live('LATE', { vi: S.vi });
+  $('#app').innerHTML = '<main class="wrap">' + mast() + `<section class="sheet">
+      <p class="eyebrow">Тестке кіру жабық</p>
+      <h1 class="title">Тест басталып кетті</h1>
+      <div class="note bad">Тест басталғаннан кейін ${Math.round(SYNC.grace / 60000)} минуттан соң кіруге болмайды. Мұғаліміңізге хабарласыңыз.</div>
+      <p class="foot"><a href="#">← Басты бет</a></p>
+    </section></main>`;
+}
+
+/* ---------- teacher ---------- */
+const TEACHER = { name: 'Ысмайл Рамазан Оразханұлы', role: 'Физика пәні мұғалімі', initials: 'ЫР' };
+function teacherLine(){ return '<div class="tline"><span class="tava" aria-hidden="true">' + TEACHER.initials + '</span><span class="tinfo"><span class="tname">' + esc(TEACHER.name) + '</span><span class="trole">' + esc(TEACHER.role) + '</span></span></div>'; }
+
 /* ---------- home ---------- */
 function lockFor(id){ const k = 'damu_lock_' + TESTS[id].p[1]; const r = store.get(k, null); return r && typeof r === 'object' && r.st ? r : null; }
 function homeView(){
@@ -686,8 +804,9 @@ function homeView(){
   }).join('');
   $('#app').innerHTML = '<main class="wrap">' + mast() + `
     <section class="hero">
-      <p class="eyebrow">DAMU білім беру орталығы · Физика</p>
-      <h1 class="title big">Онлайн тест</h1>
+      <p class="eyebrow">DAMU білім беру орталығы</p>
+      <h1 class="title big">Физикадан онлайн тест</h1>
+      ${teacherLine()}
       <p class="hint">Мұғалім берген тестті таңдаңыз. Әр тестті бір рет қана тапсыруға болады, нәтиже мұғалімге өзі жіберіледі.</p>
     </section>
     <section class="tests">${cards}</section>
@@ -728,15 +847,24 @@ function monitorView(){
   $('#app').innerHTML = '<main class="wrap wide">' + mast() + `
     <section class="sheet">
       <div class="mhead"><div><p class="eyebrow">Мұғалім беті</p><h1 class="title">Тест барысы</h1></div><span class="live" id="conn"><i></i><span>Қосылуда…</span></span></div>
+    
+    </section>
+    <section class="sheet">
+      <h2 class="h2">Сабақты басқару</h2>
+      <div class="ctlbox" id="ctlbox"></div>
+      <p class="hint">Оқушылар тестке кіріп, күту залында отырады. «Бастау» басылғанда тест барлығында бірден ашылады, ${Math.round(SYNC.grace / 60000)} минуттан кейін кіру жабылады. Уақыт біткенде немесе «Тоқтату» басылғанда барлық жұмыс өздігінен тапсырылады.</p>
+    </section>
+    <section class="sheet">
       <div class="chips" id="flt">
         <button data-f="all" aria-pressed="true">Барлық тест</button>${ORDER.map(id => '<button data-f="' + id + '" aria-pressed="false">' + esc(TESTS[id].short) + '</button>').join('')}
       </div>
       <div class="chips" id="day"><button data-d="today" aria-pressed="true">Бүгін</button><button data-d="all" aria-pressed="false">Барлығы</button></div>
       <div class="mstats">
+        <div class="stat" style="--c:var(--c5);--cs:var(--c5s)"><b data-o="m_wait">0</b><span>күту залында</span></div>
         <div class="stat" style="--c:var(--c1);--cs:var(--c1s)"><b data-o="m_in">0</b><span>қазір тестте</span></div>
         <div class="stat" style="--c:var(--c2);--cs:var(--c2s)"><b data-o="m_done">0</b><span>аяқтады</span></div>
         <div class="stat" style="--c:var(--c4);--cs:var(--c4s)"><b data-o="m_left">0</b><span>беттен шықты</span></div>
-        <div class="stat" style="--c:var(--c5);--cs:var(--c5s)"><b data-o="m_avg">—</b><span>орташа балл</span></div>
+        <div class="stat" style="--c:var(--c6);--cs:var(--c6s)"><b data-o="m_avg">—</b><span>орташа балл</span></div>
       </div>
     </section>
     <section class="sheet">
@@ -757,8 +885,18 @@ function monitorView(){
     if (!MON.clearArm){ MON.clearArm = true; b.textContent = 'Растау: тазалау'; setTimeout(() => { MON.clearArm = false; if (b.isConnected) b.textContent = 'Тарихты тазалау'; }, 4000); return; }
     MON.clearArm = false; MON.cleared = Date.now(); store.set('damu_mon_cleared', MON.cleared); MON.ev.clear(); saveMon(); renderMon(); b.textContent = 'Тарихты тазалау';
   };
-  loadMon(); connectLive(); renderMon();
-  clearInterval(MON.timer); MON.timer = setInterval(renderMon, 2000);
+  $('#ctlbox').onclick = e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const t = b.dataset.t, act = b.dataset.act;
+    if (act === 'start') publishCtl(t, 'start', Math.random().toString(36).slice(2, 10));
+    if (act === 'stop'){
+      if (b.dataset.arm !== '1'){ b.dataset.arm = '1'; b.textContent = 'Растау: тоқтату'; setTimeout(() => { if (b.isConnected){ b.dataset.arm = ''; b.textContent = 'Тоқтату'; } }, 4000); return; }
+      b.dataset.arm = ''; b.disabled = true; b.textContent = 'Тоқтатылуда…';
+      const st = ctlState(t); publishCtl(t, 'stop', st.sess || '');
+    }
+  };
+  loadMon(); connectLive(); ctlConnect(renderMon); renderMon();
+  clearInterval(MON.timer); MON.timer = setInterval(renderMon, 1000);
 }
 function loadMon(){
   MON.cleared = store.get('damu_mon_cleared', 0);
@@ -802,7 +940,7 @@ function connectLive(){
   }
   MON.poll = setInterval(() => { if (MON.conn !== 'on') pollOnce(); }, 15000);
 }
-function stopMon(){ clearInterval(MON.timer); clearInterval(MON.poll); if (MON.es){ try { MON.es.close(); } catch(e){} MON.es = null; } }
+function stopMon(){ ctlStop(); clearInterval(MON.timer); clearInterval(MON.poll); if (MON.es){ try { MON.es.close(); } catch(e){} MON.es = null; } }
 function monRows(){
   const now = Date.now(), d0 = new Date(); d0.setHours(0, 0, 0, 0);
   const map = new Map();
@@ -814,33 +952,66 @@ function monRows(){
     let s = map.get(key);
     if (!s){ s = { t: d.t, name: clean(d.name), num: d.num || '', vn: d.vn, total: d.total, min: d.min || 30, devs: new Set(), starts: 0, start: 0, fin: null }; map.set(key, s); }
     s.devs.add(d.dev);
-    if (d.ev === 'START'){ s.starts++; if (!s.start) s.start = d.t0 || t; s.vn = d.vn; s.total = d.total; }
+    if (d.ev === 'JOIN'){ s.join = t; s.vn = d.vn; s.total = d.total; }
+    else if (d.ev === 'START'){ s.starts++; if (!s.start) s.start = d.t0 || t; s.vn = d.vn; s.total = d.total; }
     else if (!s.fin){ s.fin = d; s.vn = d.vn; s.total = d.total; if (!s.start) s.start = d.t0 || t; }
   });
   return [...map.values()].map(s => {
     let st, cls, score = null, rank;
+    if (!s.fin && !s.start){
+      const cs = ctlState(s.t), lastT = cs.last ? cs.last.time * 1000 : 0;
+      const waiting = (cs.mode === 'idle' && s.join > lastT) || (cs.mode === 'run' && now - cs.start <= SYNC.grace);
+      return Object.assign(s, waiting ? { st: 'Күтуде', cls: 'wait', score: null, rank: 0, secs: 0, start: s.join }
+                                      : { st: 'Бастамады', cls: 'bad', score: 0, rank: 4, secs: 0, start: s.join });
+    }
     if (s.fin){
-      if (s.fin.ev === 'LEFT'){ st = 'Беттен шықты'; cls = 'bad'; score = 0; rank = 3; }
+      if (s.fin.ev === 'LATE'){ st = 'Кешікті'; cls = 'bad'; score = 0; rank = 3; }
+      else if (s.fin.ev === 'LEFT'){ st = 'Беттен шықты'; cls = 'bad'; score = 0; rank = 3; }
       else { st = s.fin.ev === 'TIME' ? 'Уақыт бітті' : 'Аяқтады'; cls = s.fin.ev === 'TIME' ? 'warn' : 'ok'; score = s.fin.score; rank = 2; }
     } else if (now - s.start < (s.min + 2) * 60000){ st = 'Тестте'; cls = 'run'; rank = 1; }
     else { st = 'Аяқтамады'; cls = 'bad'; score = 0; rank = 4; }
     return Object.assign(s, { st: st, cls: cls, score: score, rank: rank, secs: s.fin ? s.fin.secs : Math.round((now - s.start) / 1000), why: s.fin && s.fin.why });
   }).sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name, 'kk'));
 }
+function mmss(ms){ ms = Math.max(0, ms); const s = Math.ceil(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function publishCtl(t, cmd, sess){
+  const body = JSON.stringify({ v: 1, kind: 'ctl', t: t, cmd: cmd, sess: sess, at: Date.now() });
+  fetch(ctlUrl(), { method: 'POST', body: body }).then(r => { if (!r.ok) throw 0; toast(cmd === 'start' ? 'Тест басталды' : 'Тест тоқтатылды'); })
+    .catch(() => toast('Белгі жіберілмеді. Интернетті тексеріп, қайта басыңыз.'));
+}
+function renderCtl(rows){
+  const box = $('#ctlbox'); if (!box) return;
+  const html = ORDER.map(t => {
+    const cs = ctlState(t), w = rows.filter(r => r.t === t && r.cls === 'wait').length, inT = rows.filter(r => r.t === t && r.cls === 'run').length;
+    if (cs.mode === 'run'){
+      const left = cs.end - Date.now(), entry = cs.start + SYNC.grace - Date.now();
+      return '<div class="ctlrow run"><div class="cinfo"><span class="cname">' + esc(TESTS[t].short) + '</span>' +
+        '<span class="cst">Жүріп жатыр · қалды <b>' + mmss(left) + '</b> · тестте ' + inT + ' оқушы · ' + (entry > 0 ? 'кіру жабылады <b>' + mmss(entry) + '</b>' : 'кіру жабық') + '</span></div>' +
+        '<button class="btn danger sm" data-act="stop" data-t="' + t + '">Тоқтату</button></div>';
+    }
+    return '<div class="ctlrow"><div class="cinfo"><span class="cname">' + esc(TESTS[t].short) + '</span>' +
+      '<span class="cst">Күту залында <b>' + w + '</b> оқушы' + (cs.ended || (cs.last && cs.last.d.cmd === 'stop') ? ' · алдыңғы тест аяқталды' : '') + '</span></div>' +
+      '<button class="btn primary sm" data-act="start" data-t="' + t + '">Бастау</button></div>';
+  }).join('');
+  // keep a half-confirmed «Тоқтату» button intact while it waits for the second tap
+  if (!box.querySelector('[data-arm="1"]') && box.innerHTML !== html) box.innerHTML = html;
+}
 function hhmm(ms){ const d = new Date(ms), p = n => String(n).padStart(2, '0'); return p(d.getHours()) + ':' + p(d.getMinutes()); }
 function renderMon(){
   const list = $('#plist'); if (!list) return;
   const rows = monRows();
+  renderCtl(rows);
   const inT = rows.filter(r => r.cls === 'run').length, fin = rows.filter(r => r.rank === 2), left = rows.filter(r => r.rank >= 3).length;
+  out('m_wait', String(rows.filter(r => r.cls === 'wait').length));
   const avg = fin.length ? Math.round(fin.reduce((a, r) => a + (r.total ? r.score / r.total * 100 : 0), 0) / fin.length) + '%' : '—';
   out('m_in', String(inT)); out('m_done', String(fin.length)); out('m_left', String(left)); out('m_avg', avg);
-  if (!rows.length){ list.innerHTML = '<div class="empty">Әзірге ешкім тест бастаған жоқ. Оқушы тестті бастаған сәтте ол осы жерде пайда болады.</div>'; return; }
+  if (!rows.length){ list.innerHTML = '<div class="empty">Әзірге ешкім кірген жоқ. Оқушы күту залына кірген сәтте ол осы жерде пайда болады.</div>'; return; }
   list.innerHTML = rows.map(r => {
     const multi = r.devs.size > 1 || r.starts > 1;
-    const right = r.cls === 'run' ? '<span class="sc run">' + Math.floor(r.secs / 60) + ':' + String(r.secs % 60).padStart(2, '0') + '</span>'
+    const right = r.cls === 'wait' ? '<span class="sc"></span>' : r.cls === 'run' ? '<span class="sc run">' + Math.floor(r.secs / 60) + ':' + String(r.secs % 60).padStart(2, '0') + '</span>'
       : '<span class="sc">' + (r.score != null ? r.score + ' / ' + r.total : '') + '</span>';
     return '<div class="prow ' + r.cls + '"><div class="who2"><span class="nm">' + esc(r.name) + (r.num ? ' <span class="muted">№' + esc(r.num) + '</span>' : '') + '</span>' +
-      '<span class="sub">' + esc(TESTS[r.t].short) + ' · ' + r.vn + '-нұсқа · ' + hhmm(r.start) + (r.why && r.rank === 3 ? ' · ' + esc(WHY[r.why] || '') : '') + '</span>' +
+      '<span class="sub">' + esc(TESTS[r.t].short) + (r.cls === 'wait' ? '' : ' · ' + r.vn + '-нұсқа') + ' · ' + hhmm(r.start) + (r.why && r.rank === 3 ? ' · ' + esc(WHY[r.why] || '') : '') + '</span>' +
       (multi ? '<span class="flag">Бірнеше рет немесе басқа құрылғыдан ашқан</span>' : '') + '</div>' +
       '<div class="rt"><span class="state ' + (r.cls === 'run' ? 'run' : r.cls) + '">' + r.st + '</span>' + right + '</div></div>';
   }).join('');
@@ -855,7 +1026,7 @@ function monTSV(){
 function route(){
   if (G.on) return;                       // a running test is never navigated away from here
   const h = (location.hash || '').slice(1);
-  if (h !== 'mugalim') stopMon();
+  stopMon();
   if (TESTS[h]){ studentBoot(TESTS[h].p, h); window.scrollTo(0, 0); return; }
   if (h === 'mugalim') return monitorView();
   homeView();
