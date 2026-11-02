@@ -263,6 +263,14 @@ a{color:var(--brand)}
 .tinfo{display:flex;flex-direction:column;gap:2px;min-width:0}
 .tname{font-weight:700;overflow-wrap:anywhere}
 .trole{font-size:.85rem;color:var(--ink-2)}
+select{width:100%;min-width:0;font:500 1rem var(--f-sans);color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:12px 14px;min-height:48px}
+select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+textarea{width:100%;min-width:0;font:500 .95rem/1.5 var(--f-sans);color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;resize:vertical}
+.missing{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:var(--r-sm);background:var(--c4s);color:var(--c4)}
+.missing.ok{background:var(--ok-soft);color:var(--ok)}
+.mchips{display:flex;flex-wrap:wrap;gap:6px}
+.mchips span{font-size:.86rem;font-weight:600;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
+.empty.small{padding:12px;font-size:.88rem}
 </style>
 </head>
 <body>
@@ -395,7 +403,7 @@ function blockedView(){
 }
 function resumeFromRec(r, again){
   if (again) S.again = true;
-  S.rec = r; S.name = r.name || S.name; S.num = r.num || ''; S.vi = r.vi || 0;
+  S.rec = r; S.name = r.name || S.name; S.num = r.num || ''; S.vi = r.vi || 0; S.kl = r.kl || S.kl || '';
   if (r.st === 'started'){ r.st = 'left'; r.why = 'reload'; r.score = 0; r.total = r.total || S.cfg.vs[S.vi].length; setRec(r); leftView(r.why); return report('LEFT', r); }
   S.sendState = r.sent ? 'ok' : null;
   if (r.st === 'left') leftView(r.why); else resultView(r);
@@ -432,6 +440,7 @@ function gateView(){
   </section>
   <section class="sheet">
     <h2 class="h2">Тапсырушы</h2>
+    <div class="fields one">${classField()}</div>
     <div class="fields${common ? '' : ' one'}">
       <div class="field"><label class="lbl" for="g_name">Аты-жөні</label><input type="text" id="g_name" autocomplete="name" maxlength="60" value="${esc(c.name)}" ${c.name ? 'readonly' : ''}></div>
       ${common ? '<div class="field"><label class="lbl" for="g_num">Журнал №</label><input type="number" id="g_num" inputmode="numeric" min="1" max="99" placeholder="7"></div>' : ''}
@@ -447,6 +456,9 @@ function gateView(){
 function startTest(){
   const c = S.cfg, errBox = $('#g_err');
   if (!$('#g_ok').checked) return;
+  const kl = ($('#g_kl') || {}).value || '';
+  if (!kl){ errBox.innerHTML = '<div class="note bad">Сыныбыңызды таңдаңыз.</div>'; return; }
+  S.kl = kl; store.set('damu_kl', kl);
   const name = clean($('#g_name').value);
   if (name.length < 3){ errBox.innerHTML = '<div class="note bad">Аты-жөніңізді толық жазыңыз.</div>'; return; }
   let vi = 0, num = '';
@@ -579,7 +591,7 @@ function finish(status){
 function reportText(status, r){
   const c = S.cfg, total = r.total || (S.order && S.order.length) || 0, vn = (r.vi != null ? r.vi : S.vi) + 1;
   const head = { DONE: '✔ Аяқтады', TIME: '⏱ Уақыт бітті', LEFT: '✖ Беттен шықты — нәтиже 0' }[status];
-  const lines = [head + ' · ' + c.title, 'Оқушы: ' + clean(S.name) + (S.num ? ' (№' + S.num + ')' : ''), 'Нұсқа: ' + vn + '-нұсқа'];
+  const lines = [head + ' · ' + c.title, 'Оқушы: ' + clean(S.name) + (S.kl ? ', ' + S.kl + ' сынып' : '') + (S.num ? ' (№' + S.num + ')' : ''), 'Нұсқа: ' + vn + '-нұсқа'];
   if (status !== 'LEFT') lines.push('Балл: ' + r.score + ' / ' + total + ' (' + (total ? Math.round(r.score / total * 100) : 0) + '%)');
   else lines.push('Себебі: ' + (WHY[r.why] || r.why || '—'));
   if (r.secs) lines.push('Уақыты: ' + dur(r.secs));
@@ -602,6 +614,7 @@ function bindShare(status, r){ const cp = $('#r_cp'); if (cp) cp.onclick = () =>
 function protocol(rows){ return '<dl class="protocol">' + rows.map(x => '<div><dt>' + x[0] + '</dt><dd' + (x[2] ? ' class="m"' : '') + '>' + x[1] + '</dd></div>').join('') + '</dl>'; }
 function candidateRows(r){
   const rows = [['Тапсырушы', esc(S.name)]];
+  if (S.kl) rows.push(['Сынып', esc(S.kl)]);
   if (S.num) rows.push(['Журнал №', esc(S.num), 1]);
   rows.push(['Нұсқа', ((r.vi != null ? r.vi : S.vi) + 1) + '-нұсқа']);
   if (r.secs) rows.push(['Уақыты', dur(r.secs), 1]);
@@ -655,7 +668,7 @@ function evPayload(ev, r){
   const c = S.cfg;
   return { v: 1, t: S.tid, id: c.id, ev: ev, name: clean(S.name), num: S.num || '', vn: (r.vi != null ? r.vi : S.vi) + 1,
     score: /^(START|LEFT|JOIN|LATE)$/.test(ev) ? 0 : (r.score || 0), total: r.total || (S.order && S.order.length) || c.vs[0].length,
-    secs: r.secs || 0, why: r.why || '', min: c.min, t0: r.t0 || S.t0 || 0, sess: r.sess || S.sess || '', at: Date.now(), dev: DEV };
+    secs: r.secs || 0, why: r.why || '', min: c.min, t0: r.t0 || S.t0 || 0, sess: r.sess || S.sess || '', kl: S.kl || r.kl || '', at: Date.now(), dev: DEV };
 }
 /* POST one event to the live channel; a beacon survives the page going away */
 function live(ev, r, beacon){
@@ -730,7 +743,7 @@ function ctlState(t){
 }
 function waitView(){
   S.waiting = true; document.title = 'Күту залы · DAMU'; document.body.classList.remove('testing');
-  const rows = [['Тапсырушы', esc(S.name)]]; if (S.num) rows.push(['Журнал №', esc(S.num), 1]);
+  const rows = [['Тапсырушы', esc(S.name)]]; if (S.kl) rows.push(['Сынып', esc(S.kl)]); if (S.num) rows.push(['Журнал №', esc(S.num), 1]);
   $('#app').innerHTML = '<main class="wrap">' + mast() + `<section class="sheet waitc">
       <div class="wtop"><span class="pulse" aria-hidden="true"></span><p class="eyebrow">Күту залы</p></div>
       <h1 class="title">Мұғалімнің белгісін күтіңіз</h1>
@@ -762,7 +775,7 @@ function beginTest(endAt){
   S.waiting = false;
   S.order = c.vs[vi].map(e => ({ bi: e[0], perm: e.slice(1) }));
   S.ans = S.order.map(() => []); S.cur = 0; S.t0 = Date.now(); S.endAt = Math.min(endAt || Infinity, S.t0 + c.min * 60000);
-  setRec({ st: 'started', name: S.name, num: S.num, vi: vi, t0: S.t0, total: S.order.length, sess: S.sess || '' });
+  setRec({ st: 'started', name: S.name, num: S.num, kl: S.kl || '', vi: vi, t0: S.t0, total: S.order.length, sess: S.sess || '' });
   live('START', S.rec);
   document.title = splitTitle(c.title)[0] + ' · DAMU';
   document.body.classList.add('testing');
@@ -779,6 +792,23 @@ function lateView(){
       <div class="note bad">Тест басталғаннан кейін ${Math.round(SYNC.grace / 60000)} минуттан соң кіруге болмайды. Мұғаліміңізге хабарласыңыз.</div>
       <p class="foot"><a href="#">← Басты бет</a></p>
     </section></main>`;
+}
+
+/* ---------- classes ---------- */
+const CLASSES = ['7 Г', '7 Ж', '8 В', '8 Г', '8 Ж', '10 А', '10 Ә', '10 В', '10 Г'];
+function classField(){
+  const last = store.get('damu_kl', '');
+  return '<div class="field"><label class="lbl" for="g_kl">Сыныбыңыз</label><select id="g_kl"><option value="">Сыныпты таңдаңыз</option>' +
+    CLASSES.map(c => '<option' + (c === last ? ' selected' : '') + '>' + c + '</option>').join('') + '</select></div>';
+}
+/* class lists live only on the teacher's device (never in the public site) */
+function rosters(){ const r = store.get('damu_roster', {}); return r && typeof r === 'object' ? r : {}; }
+function normName(n){ return clean(n).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-яәғқңөұүһі\s-]/gi, '').split(/\s+/).filter(Boolean); }
+function sameStudent(rosterName, typed){
+  const a = normName(rosterName).slice(0, 2), b = normName(typed);
+  if (!a.length || !b.length) return false;
+  if (a.every(w => b.includes(w))) return true;
+  return b.length >= 2 && b.slice(0, 2).every(w => normName(rosterName).includes(w));
 }
 
 /* ---------- teacher ---------- */
@@ -816,7 +846,7 @@ function homeView(){
 }
 
 /* ---------- teacher monitor ---------- */
-const MON = { es: null, ev: new Map(), filter: 'all', day: 'today', conn: 'off', timer: 0, poll: 0, last: 0, clearArm: false };
+const MON = { es: null, ev: new Map(), filter: 'all', day: 'today', kl: 'all', conn: 'off', timer: 0, poll: 0, last: 0, clearArm: false };
 function sget(k){ try { return sessionStorage.getItem(k); } catch(e){ return null; } }
 function sset(k, v){ try { sessionStorage.setItem(k, v); } catch(e){} }
 function pinView(){
@@ -858,6 +888,7 @@ function monitorView(){
       <div class="chips" id="flt">
         <button data-f="all" aria-pressed="true">Барлық тест</button>${ORDER.map(id => '<button data-f="' + id + '" aria-pressed="false">' + esc(TESTS[id].short) + '</button>').join('')}
       </div>
+      <div class="chips" id="klf"><button data-k="all" aria-pressed="true">Барлық сынып</button>${CLASSES.map(c => '<button data-k="' + c + '" aria-pressed="false">' + c + '</button>').join('')}</div>
       <div class="chips" id="day"><button data-d="today" aria-pressed="true">Бүгін</button><button data-d="all" aria-pressed="false">Барлығы</button></div>
       <div class="mstats">
         <div class="stat" style="--c:var(--c5);--cs:var(--c5s)"><b data-o="m_wait">0</b><span>күту залында</span></div>
@@ -869,7 +900,15 @@ function monitorView(){
     </section>
     <section class="sheet">
       <div class="mhead"><h2 class="h2">Оқушылар</h2><div class="row tight"><button class="btn sm" id="m_copy">Excel-ге көшіру</button><button class="btn sm" id="m_clear">Тарихты тазалау</button></div></div>
+      <div id="missing"></div>
       <div class="plist" id="plist"></div>
+    </section>
+    <section class="sheet">
+      <h2 class="h2">Сынып тізімдері</h2>
+      <p class="hint">Тізім тек осы құрылғыда сақталады, сайтқа жарияланбайды. Әр жолға бір оқушының аты-жөнін жазыңыз, оны BilimClass-тан көшіріп қоюға болады. Сынып таңдалғанда мұғалім беті әлі кірмеген оқушыларды көрсетеді.</p>
+      <div class="field"><label class="lbl" for="r_kl">Сынып</label><select id="r_kl">${CLASSES.map(c => '<option>' + c + '</option>').join('')}</select></div>
+      <div class="field"><label class="lbl" for="r_txt">Оқушылар</label><textarea id="r_txt" rows="8" placeholder="Әлиев Асқар&#10;Бекова Айгерім&#10;…"></textarea></div>
+      <div class="row tight"><button class="btn primary sm" id="r_save">Тізімді сақтау</button><span class="hint" id="r_info"></span></div>
     </section>
     <section class="sheet">
       <h2 class="h2">Оқушыларға сілтеме</h2>
@@ -878,6 +917,14 @@ function monitorView(){
     </section></main>`;
   $$('#flt button').forEach(b => b.onclick = () => { MON.filter = b.dataset.f; $$('#flt button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); renderMon(); });
   $$('#day button').forEach(b => b.onclick = () => { MON.day = b.dataset.d; $$('#day button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); renderMon(); });
+  $$('#klf button').forEach(b => b.onclick = () => { MON.kl = b.dataset.k; $$('#klf button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); if (MON.kl !== 'all'){ $('#r_kl').value = MON.kl; showRoster(); } renderMon(); });
+  const showRoster = () => { const r = rosters()[$('#r_kl').value] || []; $('#r_txt').value = r.join('\n'); $('#r_info').textContent = r.length ? r.length + ' оқушы сақталған' : 'Тізім әлі жоқ'; };
+  $('#r_kl').onchange = showRoster; showRoster();
+  $('#r_save').onclick = () => {
+    const all = rosters(), k = $('#r_kl').value, names = $('#r_txt').value.split('\n').map(x => clean(x.replace(/^\s*\d+[.)]?\s*/, ''))).filter(x => x.length >= 3);
+    if (names.length) all[k] = names; else delete all[k];
+    store.set('damu_roster', all); showRoster(); toast(names.length ? k + ' сыныбының тізімі сақталды' : k + ' тізімі өшірілді'); renderMon();
+  };
   $$('[data-copy]').forEach(b => b.onclick = () => copyText(b.dataset.copy, 'Сілтеме көшірілді'));
   $('#m_copy').onclick = () => copyText(monTSV(), 'Кесте көшірілді. Excel-ге қойыңыз.');
   $('#m_clear').onclick = () => {
@@ -941,16 +988,18 @@ function connectLive(){
   MON.poll = setInterval(() => { if (MON.conn !== 'on') pollOnce(); }, 15000);
 }
 function stopMon(){ ctlStop(); clearInterval(MON.timer); clearInterval(MON.poll); if (MON.es){ try { MON.es.close(); } catch(e){} MON.es = null; } }
-function monRows(){
+function monRows(opt){
+  opt = opt || {};
   const now = Date.now(), d0 = new Date(); d0.setHours(0, 0, 0, 0);
   const map = new Map();
   [...MON.ev.values()].sort((a, b) => a.time - b.time).forEach(x => {
     const d = x.d, t = x.time * 1000;
-    if (MON.filter !== 'all' && d.t !== MON.filter) return;
+    if (!opt.all && MON.filter !== 'all' && d.t !== MON.filter) return;
+    if (!opt.all && MON.kl !== 'all' && (d.kl || '') !== MON.kl) return;
     if (MON.day === 'today' && t < d0.getTime()) return;
-    const key = d.t + '|' + clean(d.name).toLowerCase() + '|' + (d.num || '');
+    const key = d.t + '|' + (d.kl || '') + '|' + clean(d.name).toLowerCase() + '|' + (d.num || '');
     let s = map.get(key);
-    if (!s){ s = { t: d.t, name: clean(d.name), num: d.num || '', vn: d.vn, total: d.total, min: d.min || 30, devs: new Set(), starts: 0, start: 0, fin: null }; map.set(key, s); }
+    if (!s){ s = { t: d.t, kl: d.kl || '', name: clean(d.name), num: d.num || '', vn: d.vn, total: d.total, min: d.min || 30, devs: new Set(), starts: 0, start: 0, fin: null }; map.set(key, s); }
     s.devs.add(d.dev);
     if (d.ev === 'JOIN'){ s.join = t; s.vn = d.vn; s.total = d.total; }
     else if (d.ev === 'START'){ s.starts++; if (!s.start) s.start = d.t0 || t; s.vn = d.vn; s.total = d.total; }
@@ -1000,7 +1049,8 @@ function hhmm(ms){ const d = new Date(ms), p = n => String(n).padStart(2, '0'); 
 function renderMon(){
   const list = $('#plist'); if (!list) return;
   const rows = monRows();
-  renderCtl(rows);
+  renderCtl(monRows({ all: true }));
+  renderMissing(rows);
   const inT = rows.filter(r => r.cls === 'run').length, fin = rows.filter(r => r.rank === 2), left = rows.filter(r => r.rank >= 3).length;
   out('m_wait', String(rows.filter(r => r.cls === 'wait').length));
   const avg = fin.length ? Math.round(fin.reduce((a, r) => a + (r.total ? r.score / r.total * 100 : 0), 0) / fin.length) + '%' : '—';
@@ -1011,14 +1061,24 @@ function renderMon(){
     const right = r.cls === 'wait' ? '<span class="sc"></span>' : r.cls === 'run' ? '<span class="sc run">' + Math.floor(r.secs / 60) + ':' + String(r.secs % 60).padStart(2, '0') + '</span>'
       : '<span class="sc">' + (r.score != null ? r.score + ' / ' + r.total : '') + '</span>';
     return '<div class="prow ' + r.cls + '"><div class="who2"><span class="nm">' + esc(r.name) + (r.num ? ' <span class="muted">№' + esc(r.num) + '</span>' : '') + '</span>' +
-      '<span class="sub">' + esc(TESTS[r.t].short) + (r.cls === 'wait' ? '' : ' · ' + r.vn + '-нұсқа') + ' · ' + hhmm(r.start) + (r.why && r.rank === 3 ? ' · ' + esc(WHY[r.why] || '') : '') + '</span>' +
+      '<span class="sub">' + (r.kl ? esc(r.kl) + ' · ' : '') + esc(TESTS[r.t].short) + (r.cls === 'wait' ? '' : ' · ' + r.vn + '-нұсқа') + ' · ' + hhmm(r.start) + (r.why && r.rank === 3 ? ' · ' + esc(WHY[r.why] || '') : '') + '</span>' +
       (multi ? '<span class="flag">Бірнеше рет немесе басқа құрылғыдан ашқан</span>' : '') + '</div>' +
       '<div class="rt"><span class="state ' + (r.cls === 'run' ? 'run' : r.cls) + '">' + r.st + '</span>' + right + '</div></div>';
   }).join('');
 }
+function renderMissing(rows){
+  const box = $('#missing'); if (!box) return;
+  const list = MON.kl !== 'all' ? (rosters()[MON.kl] || []) : [];
+  if (MON.kl === 'all' || !list.length){ box.innerHTML = MON.kl !== 'all' ? '<div class="empty small">' + esc(MON.kl) + ' сыныбының тізімі енгізілмеген. Оны төмендегі «Сынып тізімдері» бөліміне қойыңыз.</div>' : ''; return; }
+  const missing = list.filter(n => !rows.some(r => sameStudent(n, r.name)));
+  const html = missing.length
+    ? '<div class="missing"><b>Әлі кірмегендер: ' + missing.length + ' / ' + list.length + '</b><div class="mchips">' + missing.map(n => '<span>' + esc(n) + '</span>').join('') + '</div></div>'
+    : '<div class="missing ok"><b>Тізімдегі ' + list.length + ' оқушының бәрі кірді</b></div>';
+  if (box.innerHTML !== html) box.innerHTML = html;
+}
 function monTSV(){
-  const head = ['Аты-жөні', 'Журнал №', 'Тест', 'Нұсқа', 'Балл', 'Барлығы', '%', 'Күйі', 'Басталды', 'Уақыты (мин)'];
-  const rows = monRows().map(r => [r.name, r.num, TESTS[r.t].short, r.vn, r.score == null ? '' : r.score, r.total, r.score == null || !r.total ? '' : Math.round(r.score / r.total * 100), r.st, hhmm(r.start), (r.secs / 60).toFixed(1).replace('.', ',')]);
+  const head = ['Аты-жөні', 'Сынып', 'Журнал №', 'Тест', 'Нұсқа', 'Балл', 'Барлығы', '%', 'Күйі', 'Басталды', 'Уақыты (мин)'];
+  const rows = monRows().map(r => [r.name, r.kl, r.num, TESTS[r.t].short, r.vn, r.score == null ? '' : r.score, r.total, r.score == null || !r.total ? '' : Math.round(r.score / r.total * 100), r.st, hhmm(r.start), (r.secs / 60).toFixed(1).replace('.', ',')]);
   return [head].concat(rows).map(r => r.join('\t')).join('\n');
 }
 
