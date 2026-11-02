@@ -803,6 +803,19 @@ function classField(){
 }
 /* class lists live only on the teacher's device (never in the public site) */
 function rosters(){ const r = store.get('damu_roster', {}); return r && typeof r === 'object' ? r : {}; }
+/* one class, or several at once: a line holding only a class name ("8 В", "# 8 В", "8В сыныбы") starts that class */
+function parseRoster(txt, fallback){
+  const out = {}; let cur = null, multi = false;
+  String(txt).split('\n').forEach(line => {
+    const l = clean(line); if (!l) return;
+    const h = l.replace(/^#+\s*/, '').replace(/\s*сыныб[ыі]?\s*$/i, '').replace(/\s+/g, '').toUpperCase();
+    const kl = CLASSES.find(c => c.replace(/\s+/g, '').toUpperCase() === h);
+    if (kl){ cur = kl; multi = true; out[kl] = out[kl] || []; return; }
+    const name = clean(l.replace(/^\s*\d+\s*[.)]?\s*/, ''));
+    if (name.length >= 3 && !/\d/.test(name)){ const k = cur || fallback; (out[k] = out[k] || []).push(name); }
+  });
+  return { out: out, multi: multi };
+}
 function normName(n){ return clean(n).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-яәғқңөұүһі\s-]/gi, '').split(/\s+/).filter(Boolean); }
 function sameStudent(rosterName, typed){
   const a = normName(rosterName).slice(0, 2), b = normName(typed);
@@ -905,7 +918,7 @@ function monitorView(){
     </section>
     <section class="sheet">
       <h2 class="h2">Сынып тізімдері</h2>
-      <p class="hint">Тізім тек осы құрылғыда сақталады, сайтқа жарияланбайды. Әр жолға бір оқушының аты-жөнін жазыңыз, оны BilimClass-тан көшіріп қоюға болады. Сынып таңдалғанда мұғалім беті әлі кірмеген оқушыларды көрсетеді.</p>
+      <p class="hint">Тізім тек осы құрылғыда сақталады, сайтқа жарияланбайды. Әр жолға бір оқушының аты-жөнін жазыңыз, оны BilimClass-тан көшіріп қоюға болады. Бірнеше сыныпты бірден енгізу үшін әр тізімнің алдына жеке жолға сынып атын жазыңыз, мысалы «8 В». Сынып таңдалғанда мұғалім беті әлі кірмеген оқушыларды көрсетеді.</p>
       <div class="field"><label class="lbl" for="r_kl">Сынып</label><select id="r_kl">${CLASSES.map(c => '<option>' + c + '</option>').join('')}</select></div>
       <div class="field"><label class="lbl" for="r_txt">Оқушылар</label><textarea id="r_txt" rows="8" placeholder="Әлиев Асқар&#10;Бекова Айгерім&#10;…"></textarea></div>
       <div class="row tight"><button class="btn primary sm" id="r_save">Тізімді сақтау</button><span class="hint" id="r_info"></span></div>
@@ -921,7 +934,12 @@ function monitorView(){
   const showRoster = () => { const r = rosters()[$('#r_kl').value] || []; $('#r_txt').value = r.join('\n'); $('#r_info').textContent = r.length ? r.length + ' оқушы сақталған' : 'Тізім әлі жоқ'; };
   $('#r_kl').onchange = showRoster; showRoster();
   $('#r_save').onclick = () => {
-    const all = rosters(), k = $('#r_kl').value, names = $('#r_txt').value.split('\n').map(x => clean(x.replace(/^\s*\d+[.)]?\s*/, ''))).filter(x => x.length >= 3);
+    const all = rosters(), k = $('#r_kl').value, p = parseRoster($('#r_txt').value, k);
+    if (p.multi){
+      const ks = Object.keys(p.out).filter(x => p.out[x].length); ks.forEach(x => { all[x] = p.out[x]; });
+      store.set('damu_roster', all); showRoster(); toast(ks.length + ' сыныптың тізімі сақталды'); renderMon(); return;
+    }
+    const names = p.out[k] || [];
     if (names.length) all[k] = names; else delete all[k];
     store.set('damu_roster', all); showRoster(); toast(names.length ? k + ' сыныбының тізімі сақталды' : k + ' тізімі өшірілді'); renderMon();
   };
