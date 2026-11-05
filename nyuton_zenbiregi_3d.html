@@ -367,14 +367,14 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
   </footer>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="vendor/three-r128.min.js"></script>
+<script src="vendor/OrbitControls-r128.js"></script>
 <script>
 (function(){
 'use strict';
 const $ = id => document.getElementById(id);
 
-/* ---------- Quiz (works even without WebGL) ---------- */
+/* ---------- Quiz (works without any graphics) ---------- */
 const QUIZ = [
   {q:'Шеңбер орбитадағы серікке (инерциялық жүйеде) қандай күш әсер етеді?', o:['Тек тартылыс күші','Тартылыс күші және алға тартатын күш','Ешқандай күш әсер етпейді','Тек центрден тепкіш күш'], a:0,
    e:'Тек тартылыс күші. Ол центрге тартқыш күштің рөлін атқарады: GMm/r² = mv²/r.'},
@@ -415,8 +415,6 @@ const QUIZ = [
   });
 })();
 
-if (typeof THREE === 'undefined' || !THREE.OrbitControls){ $('fallback').hidden = false; return; }
-
 /* ---------- Physics ---------- */
 const MU = 398600.4418, RE = 6371, LIM = 12*RE, BASE_WARP = 700;
 const TYPES = {
@@ -429,6 +427,7 @@ const TYPES = {
 };
 const TRAIL = [0xFFC65C,0x5CC8F0,0x9EE07A,0xFF7A66,0xC4A3FF,0x66E0C2,0xF2E6C8,0xFF9FD0];
 const hex = n => '#' + n.toString(16).padStart(6,'0');
+const lightHex = (n, t) => { const r=(n>>16)&255, g=(n>>8)&255, b=n&255; const f = c => Math.round(c + (255-c)*t); return 'rgb(' + f(r) + ',' + f(g) + ',' + f(b) + ')'; };
 const fmt = (x,d=2) => x.toFixed(d).replace('.', ',');
 const fmtInt = x => Math.round(x).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 function fmtTime(s){
@@ -494,214 +493,44 @@ function simulate(v0, h){
   return {c, n:X.length, X, Y, VX, VY, T, end, tEnd:t, maxR, range: RE*ang, v0, h};
 }
 
-/* ---------- Scene ---------- */
-const stage = $('stage');
-let renderer;
-try { renderer = new THREE.WebGLRenderer({antialias:true}); }
-catch(e){ $('fallback').hidden = false; return; }
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-renderer.setClearColor(0x04070d, 1);
-renderer.domElement.className = 'gl';
-stage.prepend(renderer.domElement);
-
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(40, 1, 0.004, 900);
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true; controls.dampingFactor = 0.08;
-controls.enablePan = false; controls.rotateSpeed = 0.7;
-controls.minDistance = 1.3; controls.maxDistance = 70;
-
-scene.add(new THREE.AmbientLight(0x8fa6c8, 0.34));
-const sun = new THREE.DirectionalLight(0xfff2dc, 1.05); sun.position.set(-4, 3, 5); scene.add(sun);
-
-// stars
-(function(){
-  const N = 2400, pos = new Float32Array(N*3), col = new Float32Array(N*3);
-  for (let i=0;i<N;i++){
-    let a=Math.random()*2-1, b=Math.random()*2-1, c=Math.random()*2-1; const l=Math.hypot(a,b,c)||1;
-    const R = 180 + Math.random()*120;
-    pos[3*i]=a/l*R; pos[3*i+1]=b/l*R; pos[3*i+2]=c/l*R;
-    const br = 0.3 + Math.pow(Math.random(),3)*0.7, warm = Math.random()*0.12;
-    col[3*i]=br; col[3*i+1]=br*(1-warm*0.3); col[3*i+2]=br*(1-warm);
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(pos,3));
-  g.setAttribute('color', new THREE.BufferAttribute(col,3));
-  scene.add(new THREE.Points(g, new THREE.PointsMaterial({size:1.4, sizeAttenuation:false, vertexColors:true})));
-})();
-
-// Earth
-const earthMat = new THREE.MeshPhongMaterial({color:0x2a5f9e, shininess:28, specular:0x0c131b});
-const earth = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), earthMat);
-earth.rotation.set(0.35, 0.6, 0.9);
-scene.add(earth);
-
-const halo = new THREE.Mesh(new THREE.SphereGeometry(1.06, 64, 48), new THREE.ShaderMaterial({
-  vertexShader:'varying vec3 vN; varying vec3 vP; void main(){ vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.0); vP=mv.xyz; gl_Position=projectionMatrix*mv; }',
-  fragmentShader:'varying vec3 vN; varying vec3 vP; void main(){ vec3 V=normalize(-vP); float d=abs(dot(normalize(vN),V)); float f=pow(clamp(d/0.36,0.0,1.0),2.0); gl_FragColor=vec4(0.36,0.64,1.0,f*0.85); }',
-  side:THREE.BackSide, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
-}));
-scene.add(halo);
-const rim = new THREE.Mesh(new THREE.SphereGeometry(1.006, 64, 48), new THREE.ShaderMaterial({
-  vertexShader:'varying vec3 vN; varying vec3 vP; void main(){ vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.0); vP=mv.xyz; gl_Position=projectionMatrix*mv; }',
-  fragmentShader:'varying vec3 vN; varying vec3 vP; void main(){ vec3 V=normalize(-vP); float f=pow(1.0-abs(dot(normalize(vN),V)),3.0); gl_FragColor=vec4(0.45,0.72,1.0,f*0.6); }',
-  transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
-}));
-scene.add(rim);
-
-// procedural Earth texture, built in chunks so the page stays responsive
-(function genEarth(){
-  const W = 1024, H2 = 512, cv = document.createElement('canvas'); cv.width = W; cv.height = H2;
-  const ctx = cv.getContext('2d'), img = ctx.createImageData(W, H2), d = img.data;
-  const hash = (i,j,k) => { let h = Math.imul(i,374761393) ^ Math.imul(j,668265263) ^ Math.imul(k,1440662683); h = Math.imul(h ^ (h>>>13), 1274126177); h ^= h>>>16; return (h>>>0)/4294967296; };
-  const vn = (x,y,z) => {
-    const xi=Math.floor(x), yi=Math.floor(y), zi=Math.floor(z), xf=x-xi, yf=y-yi, zf=z-zi;
-    const u=xf*xf*(3-2*xf), v=yf*yf*(3-2*yf), w=zf*zf*(3-2*zf);
-    const a=hash(xi,yi,zi), b=hash(xi+1,yi,zi), c=hash(xi,yi+1,zi), e=hash(xi+1,yi+1,zi);
-    const a2=hash(xi,yi,zi+1), b2=hash(xi+1,yi,zi+1), c2=hash(xi,yi+1,zi+1), e2=hash(xi+1,yi+1,zi+1);
-    const l1=(a+(b-a)*u)+((c+(e-c)*u)-(a+(b-a)*u))*v;
-    const l2=(a2+(b2-a2)*u)+((c2+(e2-c2)*u)-(a2+(b2-a2)*u))*v;
-    return l1+(l2-l1)*w;
-  };
-  const fbm = (x,y,z,o) => { let s=0, a=0.5, f=1, n=0; for (let i=0;i<o;i++){ s+=a*vn(x*f,y*f,z*f); n+=a; a*=0.5; f*=2.03; } return s/n; };
-  const mix = (p,q,t) => p+(q-p)*t;
-  let row = 0;
-  function step(){
-    const end = Math.min(H2, row+32);
-    for (; row < end; row++){
-      const lat = Math.PI/2 - (row+0.5)/H2*Math.PI, cl = Math.cos(lat), sl = Math.sin(lat), alat = Math.abs(lat);
-      for (let col = 0; col < W; col++){
-        const lon = (col+0.5)/W*2*Math.PI, px = cl*Math.cos(lon), py = sl, pz = cl*Math.sin(lon);
-        const n = fbm(px*2.1+11, py*2.1+3, pz*2.1+7, 5);
-        const m = fbm(px*2.6+40, py*2.6+9, pz*2.6+21, 2);
-        let r, g, b; const sea = 0.535;
-        if (n < sea){
-          const t = Math.min(1, (sea-n)/0.16);
-          r = mix(52,9,t); g = mix(132,44,t); b = mix(182,96,t);
-        } else {
-          const e = Math.min(1, (n-sea)/0.2);
-          const wet = Math.min(1, Math.max(0, (m-0.42)/0.18));
-          r = mix(166,62,wet); g = mix(142,112,wet); b = mix(90,54,wet);
-          r = mix(r,118,e*0.7); g = mix(g,102,e*0.7); b = mix(b,86,e*0.7);
-          if (e > 0.85){ const s=(e-0.85)/0.15; r=mix(r,232,s); g=mix(g,236,s); b=mix(b,240,s); }
-        }
-        const ice = Math.min(1, Math.max(0, (alat + (n-0.5)*0.35 - 1.16)/0.12));
-        if (ice > 0){ r=mix(r,236,ice); g=mix(g,242,ice); b=mix(b,247,ice); }
-        const k = (row*W+col)*4; d[k]=r; d[k+1]=g; d[k+2]=b; d[k+3]=255;
-      }
-    }
-    if (row < H2) requestAnimationFrame(step);
-    else {
-      ctx.putImageData(img, 0, 0);
-      const tex = new THREE.CanvasTexture(cv);
-      tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-      earthMat.map = tex; earthMat.color.set(0xffffff); earthMat.needsUpdate = true;
-    }
-  }
-  requestAnimationFrame(step);
-})();
-
-// mountain + cannon
-let H = 400, hU = H/RE, mountain = null;
-const rockMat = new THREE.MeshPhongMaterial({color:0x7c6a57, flatShading:true, shininess:6});
-const snowMat = new THREE.MeshPhongMaterial({color:0xf1f4f7, flatShading:true, shininess:20});
-function ruggedCone(rb, hc, seg, rings, amp){
-  const g = new THREE.ConeGeometry(rb, hc, seg, rings, true);
-  const p = g.attributes.position;
-  for (let i = 0; i < p.count; i++){
-    const yy = p.getY(i), tn = (yy + hc/2)/hc;
-    if (tn > 0.001 && tn < 0.999){
-      const th = Math.atan2(p.getZ(i), p.getX(i));
-      const s = 1 + amp*(0.55*Math.sin(3*th + 5*tn) + 0.3*Math.sin(7*th - 3*tn + 1.3) + 0.15*Math.sin(13*th + 11*tn));
-      p.setX(i, p.getX(i)*s); p.setZ(i, p.getZ(i)*s);
-      p.setY(i, yy + hc*0.03*Math.sin(5*th + 9*tn));
-    }
-  }
-  g.computeVertexNormals();
-  return g;
-}
-function buildMountain(){
-  if (mountain){ scene.remove(mountain); mountain.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
-  hU = H/RE;
-  const rb = Math.min(0.36, Math.max(0.035, hU*1.05));
-  const baseY = Math.sqrt(1 - rb*rb) - 0.002, top = 1 + hU, hc = top - baseY;
-  mountain = new THREE.Group();
-  const rock = new THREE.Mesh(ruggedCone(rb, hc, 20, 8, 0.16), rockMat);
-  rock.position.y = baseY + hc/2;
-  const sh = hc*0.24, snow = new THREE.Mesh(ruggedCone(rb*0.27, sh, 20, 2, 0.08), snowMat);
-  snow.position.y = top - sh/2 + 0.0004;
-  mountain.add(rock, snow);
-  scene.add(mountain);
-  cannon.position.set(0, top, 0);
-}
-const cannon = new THREE.Group();
-(function(){
-  const bronze = new THREE.MeshPhongMaterial({color:0xb48c46, shininess:70, specular:0x6b5a36});
-  const wood = new THREE.MeshPhongMaterial({color:0x5b3a20, shininess:6});
-  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.0040, 0.0058, 0.046, 20), bronze);
-  barrel.rotation.z = -Math.PI/2; barrel.position.set(0.012, 0.0085, 0);
-  const carriage = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.007, 0.013), wood);
-  carriage.position.set(0.004, 0.0035, 0);
-  cannon.add(barrel, carriage);
-  [-0.0078, 0.0078].forEach(z => {
-    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.0052, 0.0052, 0.0025, 20), wood);
-    w.rotation.x = Math.PI/2; w.position.set(0.006, 0.0045, z); cannon.add(w);
-  });
-  scene.add(cannon);
-})();
-const muzzle = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshBasicMaterial({color:0xffd27a, transparent:true, opacity:0, depthWrite:false}));
-scene.add(muzzle);
-let flashT = -1;
-
-// vectors
-const UP = new THREE.Vector3(0,1,0);
-function makeArrow(color){
-  const g = new THREE.Group(), mat = new THREE.MeshBasicMaterial({color, depthTest:false, transparent:true});
-  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,10), mat);
-  const head = new THREE.Mesh(new THREE.ConeGeometry(1,1,14), mat);
-  g.add(shaft, head); g.userData = {shaft, head}; g.renderOrder = 5; shaft.renderOrder = 5; head.renderOrder = 5;
-  g.visible = false; scene.add(g); return g;
-}
-function setArrow(a, origin, dir, len, w){
-  const {shaft, head} = a.userData;
-  const hl = Math.min(len*0.38, w*6), sl = Math.max(1e-5, len - hl);
-  a.position.copy(origin); a.quaternion.setFromUnitVectors(UP, dir);
-  shaft.scale.set(w, sl, w); shaft.position.y = sl/2;
-  head.scale.set(w*2.7, hl, w*2.7); head.position.y = sl + hl/2;
-}
-const arrowV = makeArrow(0x6fe3ff), arrowF = makeArrow(0xff8a5c);
-
-/* ---------- State ---------- */
-let V = 7.67, speedMult = 1, paused = false;
-let showVec = true, keepTrails = true, showPred = true;
+/* ---------- Shared state ---------- */
+const st = {H:400, hU:400/RE, V:7.67, speedMult:1, paused:false, showVec:true, keepTrails:true, showPred:true};
 const shots = []; let shotSeq = 0;
-const pulses = [];
-const ballGeo = new THREE.SphereGeometry(1, 20, 14);
-const ORIGIN = new THREE.Vector3();
-let autoCam = true, mountainMode = false, camAnim = null;
+const stage = $('stage'), lblV = $('lblV'), lblF = $('lblF');
+const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+let R = null;
+
+function currentNeed(){
+  let need = 1.25;
+  for (const s of shots) if (s.started) need = Math.max(need, s.revealedMax);
+  return Math.min(need, 12.5);
+}
+function setViewChip(name){ document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.view === name)); }
+function farShot(){
+  for (const s of shots){
+    if (!s.started || !s.cur || s.finished) continue;
+    const ang = Math.atan2(s.cur.x, s.cur.y), r = Math.hypot(s.cur.x, s.cur.y)/RE;
+    if (Math.abs(ang) > 0.45 || r > 1 + st.hU + 0.25) return true;
+  }
+  return false;
+}
+function mountainGeom(){
+  const hU = st.hU, rb = Math.min(0.36, Math.max(0.035, hU*1.05));
+  const baseY = Math.sqrt(1 - rb*rb) - 0.002, top = 1 + hU;
+  return {rb, baseY, top, hc: top - baseY};
+}
 
 /* ---------- Shots ---------- */
 function addShot(v0, delay){
-  const sim = simulate(v0, H);
+  const sim = simulate(v0, st.H);
   const color = TRAIL[shotSeq % TRAIL.length]; shotSeq++;
-  const pos = new Float32Array(sim.n*3);
-  for (let i = 0; i < sim.n; i++){ pos[3*i] = sim.X[i]/RE; pos[3*i+1] = sim.Y[i]/RE; pos[3*i+2] = 0; }
-  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setDrawRange(0, 0);
-  const line = new THREE.Line(geo, new THREE.LineBasicMaterial({color, transparent:true, opacity:0.95}));
-  const dots = new THREE.Points(geo, new THREE.PointsMaterial({color, size:2.3, sizeAttenuation:false, transparent:true, opacity:0.9}));
-  const ball = new THREE.Mesh(ballGeo, new THREE.MeshBasicMaterial({color: new THREE.Color(color).lerp(new THREE.Color(0xffffff), 0.45)}));
-  ball.visible = false; ball.position.set(0, 1+hU, 0);
-  scene.add(line, dots, ball);
-  const shot = {id:shotSeq, v0, sim, color, geo, line, dots, ball, t:-(delay||0), idx:0, started:false, lapDone:false, finished:false, revealedMax:0, marker:null, row:null, cur:null};
-  shots.push(shot);
-  addLogRow(shot);
+  const s = {id:shotSeq, v0, sim, color, t:-(delay||0), idx:0, started:false, lapDone:false, finished:false, drawN:0, revealedMax:0, cur:null, row:null};
+  R.addShot(s); shots.push(s); addLogRow(s);
   while (shots.length > 10) removeShot(shots[0]);
-  return shot;
+  return s;
 }
 function removeShot(s){
-  [s.line, s.dots, s.ball].forEach(o => scene.remove(o));
-  s.geo.dispose(); s.line.material.dispose(); s.dots.material.dispose(); s.ball.material.dispose();
-  if (s.marker){ scene.remove(s.marker); s.marker.geometry.dispose(); s.marker.material.dispose(); }
+  R.removeShot(s);
   if (s.row) s.row.remove();
   const i = shots.indexOf(s); if (i >= 0) shots.splice(i, 1);
   updateLogMeta();
@@ -710,7 +539,6 @@ function clearShots(){
   while (shots.length) removeShot(shots[0]);
   setBadge('Дайын', '#E8D7AD');
   ['roT','roH','roV','roG'].forEach(id => { $(id).textContent = '—'; });
-  arrowV.visible = arrowF.visible = false; lblV.style.opacity = lblF.style.opacity = 0;
 }
 function resultText(s){
   const c = s.sim.c, e = s.sim.end;
@@ -731,30 +559,22 @@ function updateLogMeta(){
   $('logCount').textContent = shots.length ? shots.length + ' ату' : '';
 }
 function finishShot(s){
-  s.finished = true; s.geo.setDrawRange(0, s.sim.n);
-  const e = s.sim.end;
-  if (e === 'impact'){
-    const p = new THREE.Vector3(s.sim.X[s.sim.n-1]/RE, s.sim.Y[s.sim.n-1]/RE, 0).multiplyScalar(1.0015);
-    const m = new THREE.Mesh(new THREE.RingGeometry(0.008, 0.014, 32), new THREE.MeshBasicMaterial({color:s.color, side:THREE.DoubleSide, transparent:true, opacity:0.95}));
-    m.position.copy(p); m.lookAt(ORIGIN); scene.add(m); s.marker = m;
-    const pm = new THREE.Mesh(new THREE.RingGeometry(0.010, 0.013, 32), new THREE.MeshBasicMaterial({color:0xfff0c8, side:THREE.DoubleSide, transparent:true, opacity:1, depthWrite:false}));
-    pm.position.copy(p); pm.lookAt(ORIGIN); scene.add(pm); pulses.push({m:pm, t:0});
-    s.ball.visible = false;
-  } else {
-    s.ball.visible = false;
-  }
+  const sim = s.sim, n = sim.n;
+  s.finished = true; s.drawN = n;
+  s.cur = {x:sim.X[n-1], y:sim.Y[n-1], vx:sim.VX[n-1], vy:sim.VY[n-1], t:sim.tEnd};
+  R.onFinish(s);
   if (s.row) s.row.querySelector('.res').textContent = resultText(s);
   if (s === focusShot()) refreshBadge();
 }
 function updateShot(s, dts){
+  if (s.finished) return;
   s.t += dts;
   if (s.t < 0) return;
-  if (!s.started){ s.started = true; s.ball.visible = true; flashT = 0; if (s === focusShot()) refreshBadge(); }
+  if (!s.started){ s.started = true; R.onStart(s); if (s === focusShot()) refreshBadge(); }
   const sim = s.sim; let tt = s.t;
   if (sim.end === 'closed'){
-    if (tt >= sim.tEnd){ if (!s.lapDone){ s.lapDone = true; s.geo.setDrawRange(0, sim.n); } tt = tt % sim.tEnd; }
-  } else if (tt >= sim.tEnd){ tt = sim.tEnd; if (!s.finished) finishShot(s); }
-  if (s.finished){ s.cur = {x:sim.X[sim.n-1], y:sim.Y[sim.n-1], vx:sim.VX[sim.n-1], vy:sim.VY[sim.n-1], t:sim.tEnd}; return; }
+    if (tt >= sim.tEnd){ s.lapDone = true; tt = tt % sim.tEnd; }
+  } else if (tt >= sim.tEnd){ finishShot(s); return; }
   const T = sim.T; let i = s.idx;
   if (T[i] > tt) i = 0;
   while (i < sim.n-2 && T[i+1] <= tt) i++;
@@ -763,8 +583,7 @@ function updateShot(s, dts){
   const x = sim.X[i] + (sim.X[j]-sim.X[i])*f, y = sim.Y[i] + (sim.Y[j]-sim.Y[i])*f;
   const vx = sim.VX[i] + (sim.VX[j]-sim.VX[i])*f, vy = sim.VY[i] + (sim.VY[j]-sim.VY[i])*f;
   s.cur = {x, y, vx, vy, t:s.t};
-  s.ball.position.set(x/RE, y/RE, 0);
-  if (!s.lapDone) s.geo.setDrawRange(0, i+2);
+  s.drawN = s.lapDone ? sim.n : Math.min(sim.n, i+2);
   const r = Math.hypot(x,y)/RE; if (r > s.revealedMax) s.revealedMax = r;
 }
 function focusShot(){
@@ -794,21 +613,20 @@ function updateReadouts(dt){
 }
 
 /* ---------- Prediction ---------- */
-let predLine = null, predPending = false;
+let predPending = false;
 function schedulePred(){ if (predPending) return; predPending = true; requestAnimationFrame(() => { predPending = false; updatePrediction(); }); }
 function updatePrediction(){
-  const sim = simulate(V, H), c = sim.c, t = TYPES[c.type];
+  const sim = simulate(st.V, st.H), c = sim.c, t = TYPES[c.type];
   const ptype = $('ptype'), pd = $('pdetail');
-  ptype.className = 'ptype ' + t.cls;
   let lines = [];
-  if (!showPred){
+  if (!st.showPred){
     ptype.className = 'ptype'; ptype.textContent = 'Жасырын';
     lines = ['Алдымен оқушылар болжасын, сосын «Ату» батырмасын басыңыз.'];
   } else {
-    ptype.textContent = t.name;
+    ptype.className = 'ptype ' + t.cls; ptype.textContent = t.name;
     switch (c.type){
       case 'fall': lines = ['Тау етегінен ≈ ' + fmtInt(sim.range) + ' км жерге түседі', 'Ұшу уақыты ≈ ' + fmtTime(sim.tEnd)]; break;
-      case 'circle': lines = ['Радиусы r = ' + fmtInt(RE+H) + ' км шеңбер', 'Айналу периоды T ≈ ' + fmtTime(c.T)]; break;
+      case 'circle': lines = ['Радиусы r = ' + fmtInt(RE+st.H) + ' км шеңбер', 'Айналу периоды T ≈ ' + fmtTime(c.T)]; break;
       case 'ellipseA': lines = ['Тау басы — ең алыс нүкте (апогей)', 'Перигей биіктігі ≈ ' + fmtInt(c.rp-RE) + ' км · T ≈ ' + fmtTime(c.T)]; break;
       case 'ellipse': lines = ['Тау басы — ең жақын нүкте (перигей)', 'Апогей биіктігі ≈ ' + fmtInt(c.ra-RE) + ' км · T ≈ ' + fmtTime(c.T)]; break;
       case 'parabola': lines = ['Толық энергия E ≈ 0: дене қайтып оралмайды', 'Алыстаған сайын жылдамдығы нөлге ұмтылады']; break;
@@ -816,211 +634,573 @@ function updatePrediction(){
     }
   }
   pd.innerHTML = lines.map(l => '<span>' + l + '</span>').join('');
-  if (predLine){ scene.remove(predLine); predLine.geometry.dispose(); predLine.material.dispose(); predLine = null; }
-  if (!showPred) return;
-  const pos = new Float32Array(sim.n*3);
-  for (let i = 0; i < sim.n; i++){ pos[3*i] = sim.X[i]/RE; pos[3*i+1] = sim.Y[i]/RE; pos[3*i+2] = 0; }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  predLine = new THREE.Line(g, new THREE.LineDashedMaterial({color:0xeadbb4, dashSize:0.022, gapSize:0.018, transparent:true, opacity:0.55}));
-  predLine.computeLineDistances(); scene.add(predLine);
+  R.setPred(st.showPred ? sim : null);
 }
 
-/* ---------- Camera ---------- */
-function fitDistFor(r){
-  const half = Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
-  return (r*1.12)/(half*Math.min(1, camera.aspect));
-}
-function currentNeed(){
-  let need = 1.25;
-  for (const s of shots) if (s.started) need = Math.max(need, s.revealedMax);
-  return Math.min(need, 12.5);
-}
-function viewPose(name){
-  if (name === 'mountain'){
-    const tgt = new THREE.Vector3(0.10 + hU*0.4, 1 + hU*0.6, 0);
-    const dir = new THREE.Vector3(-0.45, 0.22, 1).normalize();
-    return {target:tgt, pos:tgt.clone().add(dir.multiplyScalar(0.36 + hU*1.6))};
-  }
-  const dir = name === '3d' ? new THREE.Vector3(0.8, 0.55, 0.95).normalize() : new THREE.Vector3(0, 0.12, 1).normalize();
-  return {target:ORIGIN.clone(), pos:dir.multiplyScalar(fitDistFor(currentNeed()))};
-}
-const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-function setViewChip(name){ document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.view === name)); }
-function goView(name, instant){
-  mountainMode = name === 'mountain';
-  controls.minDistance = mountainMode ? 0.04 : 1.3;
-  setViewChip(name);
-  const p = viewPose(name);
-  if (instant){ camera.position.copy(p.pos); controls.target.copy(p.target); controls.update(); autoCam = !mountainMode; return; }
-  camAnim = {p0:camera.position.clone(), t0:controls.target.clone(), p1:p.pos, t1:p.target, u:0, dur: reduceMotion ? 0.01 : 1.1};
-  autoCam = false;
-}
-controls.addEventListener('start', () => { autoCam = false; camAnim = null; });
-function updateCamera(dt){
-  if (camAnim){
-    camAnim.u = Math.min(1, camAnim.u + dt/camAnim.dur);
-    const e = 1 - Math.pow(1 - camAnim.u, 3);
-    camera.position.lerpVectors(camAnim.p0, camAnim.p1, e);
-    controls.target.lerpVectors(camAnim.t0, camAnim.t1, e);
-    if (camAnim.u >= 1){ camAnim = null; autoCam = !mountainMode; }
-    return;
-  }
-  if (mountainMode){
-    // leave the close-up once a projectile flies far from the mountain
-    for (const s of shots){
-      if (!s.started || !s.cur || s.finished) continue;
-      const ang = Math.atan2(s.cur.x, s.cur.y), r = Math.hypot(s.cur.x, s.cur.y)/RE;
-      if (Math.abs(ang) > 0.45 || r > 1 + hU + 0.25){ goView('front'); return; }
+/* ---------- 3D renderer (three.js) ---------- */
+function make3D(){
+  const renderer = new THREE.WebGLRenderer({antialias:true});
+  if (!renderer.getContext()) throw new Error('no webgl');
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setClearColor(0x04070d, 1);
+  renderer.domElement.className = 'gl';
+  stage.prepend(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.004, 900);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.08;
+  controls.enablePan = false; controls.rotateSpeed = 0.7;
+  controls.minDistance = 1.3; controls.maxDistance = 70;
+
+  scene.add(new THREE.AmbientLight(0x8fa6c8, 0.34));
+  const sun = new THREE.DirectionalLight(0xfff2dc, 1.05); sun.position.set(-4, 3, 5); scene.add(sun);
+
+  (function(){
+    const N = 2400, pos = new Float32Array(N*3), col = new Float32Array(N*3);
+    for (let i=0;i<N;i++){
+      const a=Math.random()*2-1, b=Math.random()*2-1, c=Math.random()*2-1, l=Math.hypot(a,b,c)||1;
+      const Rr = 180 + Math.random()*120;
+      pos[3*i]=a/l*Rr; pos[3*i+1]=b/l*Rr; pos[3*i+2]=c/l*Rr;
+      const br = 0.3 + Math.pow(Math.random(),3)*0.7, warm = Math.random()*0.12;
+      col[3*i]=br; col[3*i+1]=br*(1-warm*0.3); col[3*i+2]=br*(1-warm);
     }
-    return;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    g.setAttribute('color', new THREE.BufferAttribute(col,3));
+    scene.add(new THREE.Points(g, new THREE.PointsMaterial({size:1.4, sizeAttenuation:false, vertexColors:true})));
+  })();
+
+  const earthMat = new THREE.MeshPhongMaterial({color:0x2a5f9e, shininess:28, specular:0x0c131b});
+  const earth = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), earthMat);
+  earth.rotation.set(0.35, 0.6, 0.9);
+  scene.add(earth);
+  const VS = 'varying vec3 vN; varying vec3 vP; void main(){ vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.0); vP=mv.xyz; gl_Position=projectionMatrix*mv; }';
+  scene.add(new THREE.Mesh(new THREE.SphereGeometry(1.06, 64, 48), new THREE.ShaderMaterial({
+    vertexShader:VS,
+    fragmentShader:'varying vec3 vN; varying vec3 vP; void main(){ vec3 V=normalize(-vP); float d=abs(dot(normalize(vN),V)); float f=pow(clamp(d/0.36,0.0,1.0),2.0); gl_FragColor=vec4(0.36,0.64,1.0,f*0.85); }',
+    side:THREE.BackSide, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
+  })));
+  scene.add(new THREE.Mesh(new THREE.SphereGeometry(1.006, 64, 48), new THREE.ShaderMaterial({
+    vertexShader:VS,
+    fragmentShader:'varying vec3 vN; varying vec3 vP; void main(){ vec3 V=normalize(-vP); float f=pow(1.0-abs(dot(normalize(vN),V)),3.0); gl_FragColor=vec4(0.45,0.72,1.0,f*0.6); }',
+    transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
+  })));
+
+  // procedural Earth texture, built in chunks so the page stays responsive
+  (function genEarth(){
+    const W = 1024, H2 = 512, cv = document.createElement('canvas'); cv.width = W; cv.height = H2;
+    const ctx = cv.getContext('2d'); if (!ctx) return;
+    const img = ctx.createImageData(W, H2), d = img.data;
+    const hash = (i,j,k) => { let h = Math.imul(i,374761393) ^ Math.imul(j,668265263) ^ Math.imul(k,1440662683); h = Math.imul(h ^ (h>>>13), 1274126177); h ^= h>>>16; return (h>>>0)/4294967296; };
+    const vn = (x,y,z) => {
+      const xi=Math.floor(x), yi=Math.floor(y), zi=Math.floor(z), xf=x-xi, yf=y-yi, zf=z-zi;
+      const u=xf*xf*(3-2*xf), v=yf*yf*(3-2*yf), w=zf*zf*(3-2*zf);
+      const a=hash(xi,yi,zi), b=hash(xi+1,yi,zi), c=hash(xi,yi+1,zi), e=hash(xi+1,yi+1,zi);
+      const a2=hash(xi,yi,zi+1), b2=hash(xi+1,yi,zi+1), c2=hash(xi,yi+1,zi+1), e2=hash(xi+1,yi+1,zi+1);
+      const l1=(a+(b-a)*u)+((c+(e-c)*u)-(a+(b-a)*u))*v;
+      const l2=(a2+(b2-a2)*u)+((c2+(e2-c2)*u)-(a2+(b2-a2)*u))*v;
+      return l1+(l2-l1)*w;
+    };
+    const fbm = (x,y,z,o) => { let s=0, a=0.5, f=1, n=0; for (let i=0;i<o;i++){ s+=a*vn(x*f,y*f,z*f); n+=a; a*=0.5; f*=2.03; } return s/n; };
+    const mix = (p,q,t) => p+(q-p)*t;
+    let row = 0;
+    function step(){
+      const end = Math.min(H2, row+32);
+      for (; row < end; row++){
+        const lat = Math.PI/2 - (row+0.5)/H2*Math.PI, cl = Math.cos(lat), sl = Math.sin(lat), alat = Math.abs(lat);
+        for (let col = 0; col < W; col++){
+          const lon = (col+0.5)/W*2*Math.PI, px = cl*Math.cos(lon), py = sl, pz = cl*Math.sin(lon);
+          const n = fbm(px*2.1+11, py*2.1+3, pz*2.1+7, 5);
+          const m = fbm(px*2.6+40, py*2.6+9, pz*2.6+21, 2);
+          let r, g, b; const sea = 0.535;
+          if (n < sea){
+            const t = Math.min(1, (sea-n)/0.16);
+            r = mix(52,9,t); g = mix(132,44,t); b = mix(182,96,t);
+          } else {
+            const e = Math.min(1, (n-sea)/0.2);
+            const wet = Math.min(1, Math.max(0, (m-0.42)/0.18));
+            r = mix(166,62,wet); g = mix(142,112,wet); b = mix(90,54,wet);
+            r = mix(r,118,e*0.7); g = mix(g,102,e*0.7); b = mix(b,86,e*0.7);
+            if (e > 0.85){ const s=(e-0.85)/0.15; r=mix(r,232,s); g=mix(g,236,s); b=mix(b,240,s); }
+          }
+          const ice = Math.min(1, Math.max(0, (alat + (n-0.5)*0.35 - 1.16)/0.12));
+          if (ice > 0){ r=mix(r,236,ice); g=mix(g,242,ice); b=mix(b,247,ice); }
+          const k = (row*W+col)*4; d[k]=r; d[k+1]=g; d[k+2]=b; d[k+3]=255;
+        }
+      }
+      if (row < H2) requestAnimationFrame(step);
+      else {
+        ctx.putImageData(img, 0, 0);
+        const tex = new THREE.CanvasTexture(cv);
+        tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+        earthMat.map = tex; earthMat.color.set(0xffffff); earthMat.needsUpdate = true;
+      }
+    }
+    requestAnimationFrame(step);
+  })();
+
+  // mountain + cannon
+  let mountain = null;
+  const rockMat = new THREE.MeshPhongMaterial({color:0x7c6a57, flatShading:true, shininess:6});
+  const snowMat = new THREE.MeshPhongMaterial({color:0xf1f4f7, flatShading:true, shininess:20});
+  function ruggedCone(rb, hc, seg, rings, amp){
+    const g = new THREE.ConeGeometry(rb, hc, seg, rings, true);
+    const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++){
+      const yy = p.getY(i), tn = (yy + hc/2)/hc;
+      if (tn > 0.001 && tn < 0.999){
+        const th = Math.atan2(p.getZ(i), p.getX(i));
+        const s = 1 + amp*(0.55*Math.sin(3*th + 5*tn) + 0.3*Math.sin(7*th - 3*tn + 1.3) + 0.15*Math.sin(13*th + 11*tn));
+        p.setX(i, p.getX(i)*s); p.setZ(i, p.getZ(i)*s);
+        p.setY(i, yy + hc*0.03*Math.sin(5*th + 9*tn));
+      }
+    }
+    g.computeVertexNormals();
+    return g;
   }
-  if (!autoCam) return;
-  const want = fitDistFor(currentNeed());
-  const off = camera.position.clone().sub(controls.target);
-  const d = off.length(), nd = d + (want - d)*Math.min(1, dt*2.2);
-  controls.target.lerp(ORIGIN, Math.min(1, dt*3));
-  camera.position.copy(controls.target).add(off.setLength(nd));
+  const cannon = new THREE.Group();
+  (function(){
+    const bronze = new THREE.MeshPhongMaterial({color:0xb48c46, shininess:70, specular:0x6b5a36});
+    const wood = new THREE.MeshPhongMaterial({color:0x5b3a20, shininess:6});
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.0040, 0.0058, 0.046, 20), bronze);
+    barrel.rotation.z = -Math.PI/2; barrel.position.set(0.012, 0.0085, 0);
+    const carriage = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.007, 0.013), wood);
+    carriage.position.set(0.004, 0.0035, 0);
+    cannon.add(barrel, carriage);
+    [-0.0078, 0.0078].forEach(z => {
+      const w = new THREE.Mesh(new THREE.CylinderGeometry(0.0052, 0.0052, 0.0025, 20), wood);
+      w.rotation.x = Math.PI/2; w.position.set(0.006, 0.0045, z); cannon.add(w);
+    });
+    scene.add(cannon);
+  })();
+  function setMountain(){
+    if (mountain){ scene.remove(mountain); mountain.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+    const m = mountainGeom();
+    mountain = new THREE.Group();
+    const rock = new THREE.Mesh(ruggedCone(m.rb, m.hc, 20, 8, 0.16), rockMat);
+    rock.position.y = m.baseY + m.hc/2;
+    const sh = m.hc*0.24, snow = new THREE.Mesh(ruggedCone(m.rb*0.27, sh, 20, 2, 0.08), snowMat);
+    snow.position.y = m.top - sh/2 + 0.0004;
+    mountain.add(rock, snow);
+    scene.add(mountain);
+    cannon.position.set(0, m.top, 0);
+  }
+  const muzzle = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshBasicMaterial({color:0xffd27a, transparent:true, opacity:0, depthWrite:false}));
+  scene.add(muzzle);
+
+  const UP = new THREE.Vector3(0,1,0);
+  function makeArrow(color){
+    const g = new THREE.Group(), mat = new THREE.MeshBasicMaterial({color, depthTest:false, transparent:true});
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,10), mat);
+    const head = new THREE.Mesh(new THREE.ConeGeometry(1,1,14), mat);
+    g.add(shaft, head); g.userData = {shaft, head}; shaft.renderOrder = 5; head.renderOrder = 5;
+    g.visible = false; scene.add(g); return g;
+  }
+  function setArrow(a, origin, dir, len, w){
+    const {shaft, head} = a.userData;
+    const hl = Math.min(len*0.38, w*6), sl = Math.max(1e-5, len - hl);
+    a.position.copy(origin); a.quaternion.setFromUnitVectors(UP, dir);
+    shaft.scale.set(w, sl, w); shaft.position.y = sl/2;
+    head.scale.set(w*2.7, hl, w*2.7); head.position.y = sl + hl/2;
+  }
+  const arrowV = makeArrow(0x6fe3ff), arrowF = makeArrow(0xff8a5c);
+
+  const ORIGIN = new THREE.Vector3();
+  let autoCam = true, mountainMode = false, camAnim = null, flashT = -1, predLine = null;
+  const pulses = [];
+  const ballGeo = new THREE.SphereGeometry(1, 20, 14);
+
+  function addShotObj(s){
+    const sim = s.sim, pos = new Float32Array(sim.n*3);
+    for (let i = 0; i < sim.n; i++){ pos[3*i] = sim.X[i]/RE; pos[3*i+1] = sim.Y[i]/RE; pos[3*i+2] = 0; }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setDrawRange(0, 0);
+    const line = new THREE.Line(geo, new THREE.LineBasicMaterial({color:s.color, transparent:true, opacity:0.95}));
+    const dots = new THREE.Points(geo, new THREE.PointsMaterial({color:s.color, size:2.3, sizeAttenuation:false, transparent:true, opacity:0.9}));
+    const ball = new THREE.Mesh(ballGeo, new THREE.MeshBasicMaterial({color: new THREE.Color(s.color).lerp(new THREE.Color(0xffffff), 0.45)}));
+    ball.visible = false; ball.position.set(0, 1+st.hU, 0);
+    scene.add(line, dots, ball);
+    s.g3 = {geo, line, dots, ball, marker:null};
+  }
+  function removeShotObj(s){
+    const g = s.g3; if (!g) return;
+    [g.line, g.dots, g.ball].forEach(o => scene.remove(o));
+    g.geo.dispose(); g.line.material.dispose(); g.dots.material.dispose(); g.ball.material.dispose();
+    if (g.marker){ scene.remove(g.marker); g.marker.geometry.dispose(); g.marker.material.dispose(); }
+    s.g3 = null;
+  }
+  function onFinish(s){
+    if (s.sim.end !== 'impact' || !s.g3) return;
+    const n = s.sim.n, p = new THREE.Vector3(s.sim.X[n-1]/RE, s.sim.Y[n-1]/RE, 0).multiplyScalar(1.0015);
+    const m = new THREE.Mesh(new THREE.RingGeometry(0.008, 0.014, 32), new THREE.MeshBasicMaterial({color:s.color, side:THREE.DoubleSide, transparent:true, opacity:0.95}));
+    m.position.copy(p); m.lookAt(ORIGIN); scene.add(m); s.g3.marker = m;
+    const pm = new THREE.Mesh(new THREE.RingGeometry(0.010, 0.013, 32), new THREE.MeshBasicMaterial({color:0xfff0c8, side:THREE.DoubleSide, transparent:true, opacity:1, depthWrite:false}));
+    pm.position.copy(p); pm.lookAt(ORIGIN); scene.add(pm); pulses.push({m:pm, t:0});
+  }
+  function setPred(sim){
+    if (predLine){ scene.remove(predLine); predLine.geometry.dispose(); predLine.material.dispose(); predLine = null; }
+    if (!sim) return;
+    const pos = new Float32Array(sim.n*3);
+    for (let i = 0; i < sim.n; i++){ pos[3*i] = sim.X[i]/RE; pos[3*i+1] = sim.Y[i]/RE; pos[3*i+2] = 0; }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    predLine = new THREE.Line(g, new THREE.LineDashedMaterial({color:0xeadbb4, dashSize:0.022, gapSize:0.018, transparent:true, opacity:0.55}));
+    predLine.computeLineDistances(); scene.add(predLine);
+  }
+
+  function fitDistFor(r){
+    const half = Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
+    return (r*1.12)/(half*Math.min(1, camera.aspect));
+  }
+  function viewPose(name){
+    if (name === 'mountain'){
+      const tgt = new THREE.Vector3(0.10 + st.hU*0.4, 1 + st.hU*0.6, 0);
+      const dir = new THREE.Vector3(-0.45, 0.22, 1).normalize();
+      return {target:tgt, pos:tgt.clone().add(dir.multiplyScalar(0.36 + st.hU*1.6))};
+    }
+    const dir = name === '3d' ? new THREE.Vector3(0.8, 0.55, 0.95).normalize() : new THREE.Vector3(0, 0.12, 1).normalize();
+    return {target:ORIGIN.clone(), pos:dir.multiplyScalar(fitDistFor(currentNeed()))};
+  }
+  function goView(name, instant){
+    mountainMode = name === 'mountain';
+    controls.minDistance = mountainMode ? 0.04 : 1.3;
+    setViewChip(name);
+    const p = viewPose(name);
+    if (instant){ camera.position.copy(p.pos); controls.target.copy(p.target); controls.update(); autoCam = !mountainMode; return; }
+    camAnim = {p0:camera.position.clone(), t0:controls.target.clone(), p1:p.pos, t1:p.target, u:0, dur: reduceMotion ? 0.01 : 1.1};
+    autoCam = false;
+  }
+  controls.addEventListener('start', () => { autoCam = false; camAnim = null; });
+  function updateCamera(dt){
+    if (camAnim){
+      camAnim.u = Math.min(1, camAnim.u + dt/camAnim.dur);
+      const e = 1 - Math.pow(1 - camAnim.u, 3);
+      camera.position.lerpVectors(camAnim.p0, camAnim.p1, e);
+      controls.target.lerpVectors(camAnim.t0, camAnim.t1, e);
+      if (camAnim.u >= 1){ camAnim = null; autoCam = !mountainMode; }
+      return;
+    }
+    if (mountainMode){ if (farShot()) goView('front'); return; }
+    if (!autoCam) return;
+    const want = fitDistFor(currentNeed());
+    const off = camera.position.clone().sub(controls.target);
+    const d = off.length(), nd = d + (want - d)*Math.min(1, dt*2.2);
+    controls.target.lerp(ORIGIN, Math.min(1, dt*3));
+    camera.position.copy(controls.target).add(off.setLength(nd));
+  }
+
+  const tmpV = new THREE.Vector3();
+  function placeLabel(el, p, w, h){
+    tmpV.copy(p).project(camera);
+    if (tmpV.z > 1 || tmpV.z < -1){ el.style.opacity = 0; return; }
+    el.style.opacity = 1;
+    el.style.transform = 'translate(' + ((tmpV.x*0.5+0.5)*w) + 'px,' + ((-tmpV.y*0.5+0.5)*h) + 'px) translate(-50%,-50%)';
+  }
+  function resize(){
+    const w = stage.clientWidth, h = stage.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w/h; camera.updateProjectionMatrix();
+  }
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(stage); else window.addEventListener('resize', resize);
+  resize();
+
+  const vDir = new THREE.Vector3(), fDir = new THREE.Vector3(), bPos = new THREE.Vector3(), tip = new THREE.Vector3();
+  function frame(dt){
+    for (const s of shots){
+      const g = s.g3; if (!g) continue;
+      g.geo.setDrawRange(0, s.drawN);
+      g.ball.visible = s.started && !s.finished;
+      if (g.ball.visible && s.cur) g.ball.position.set(s.cur.x/RE, s.cur.y/RE, 0);
+    }
+    if (flashT >= 0){
+      flashT += dt;
+      const u = flashT/0.35;
+      muzzle.position.set(0.036, 1 + st.hU + 0.0085, 0);
+      muzzle.scale.setScalar(0.004 + 0.016*u);
+      muzzle.material.opacity = Math.max(0, 1 - u);
+      if (u >= 1){ flashT = -1; muzzle.material.opacity = 0; }
+    }
+    for (let i = pulses.length-1; i >= 0; i--){
+      const p = pulses[i]; p.t += dt;
+      p.m.scale.setScalar(1 + p.t*4); p.m.material.opacity = Math.max(0, 1 - p.t/0.9);
+      if (p.t > 0.9){ scene.remove(p.m); p.m.geometry.dispose(); p.m.material.dispose(); pulses.splice(i,1); }
+    }
+    updateCamera(dt);
+    controls.update();
+
+    const camD = camera.position.distanceTo(controls.target);
+    const k = Math.max(0.12, camD/3.4);
+    for (const s of shots){
+      if (!s.g3 || !s.g3.ball.visible) continue;
+      const d = camera.position.distanceTo(s.g3.ball.position);
+      s.g3.ball.scale.setScalar(Math.max(0.0032, 0.0105*d/3.4));
+    }
+    if (predLine) predLine.material.scale = 3.4/Math.max(0.2, camD);
+
+    const fs = focusShot(), w = stage.clientWidth, h = stage.clientHeight;
+    if (st.showVec && fs && fs.cur && !fs.finished){
+      const {x, y, vx, vy} = fs.cur; const r = Math.hypot(x,y), v = Math.hypot(vx,vy);
+      bPos.set(x/RE, y/RE, 0);
+      const ww = 0.0042*k;
+      if (v > 0.05){
+        vDir.set(vx/v, vy/v, 0);
+        const lenV = 0.036*v*k;
+        setArrow(arrowV, bPos, vDir, lenV, ww); arrowV.visible = true;
+        tip.copy(bPos).addScaledVector(vDir, lenV + 0.03*k); placeLabel(lblV, tip, w, h);
+      } else { arrowV.visible = false; lblV.style.opacity = 0; }
+      fDir.set(-x/r, -y/r, 0);
+      const lenF = Math.max(0.02*k, 0.24*(RE*RE)/(r*r)*k);
+      setArrow(arrowF, bPos, fDir, lenF, ww); arrowF.visible = true;
+      tip.copy(bPos).addScaledVector(fDir, lenF + 0.03*k); placeLabel(lblF, tip, w, h);
+    } else {
+      arrowV.visible = arrowF.visible = false; lblV.style.opacity = 0; lblF.style.opacity = 0;
+    }
+    renderer.render(scene, camera);
+  }
+  return {kind:'3d', setMountain, addShot:addShotObj, removeShot:removeShotObj, onStart(){ flashT = 0; }, onFinish, onFire(){ if (!mountainMode) autoCam = true; }, setPred, goView, frame};
 }
 
-/* ---------- Labels ---------- */
-const lblV = $('lblV'), lblF = $('lblF');
-const tmpV = new THREE.Vector3();
-function placeLabel(el, p, w, h){
-  tmpV.copy(p).project(camera);
-  if (tmpV.z > 1 || tmpV.z < -1){ el.style.opacity = 0; return; }
-  el.style.opacity = 1;
-  el.style.transform = 'translate(' + ((tmpV.x*0.5+0.5)*w) + 'px,' + ((-tmpV.y*0.5+0.5)*h) + 'px) translate(-50%,-50%)';
+/* ---------- 2D renderer (fallback when 3D is unavailable) ---------- */
+function make2D(){
+  const cv = document.createElement('canvas');
+  const ctx = cv.getContext('2d'); if (!ctx) throw new Error('no 2d');
+  cv.className = 'gl'; cv.style.touchAction = 'none';
+  stage.prepend(cv);
+  lblV.hidden = true; lblF.hidden = true;
+  const b3 = document.querySelector('#views [data-view="3d"]'); if (b3) b3.hidden = true;
+  const hint = stage.querySelector('.hint'); if (hint) hint.textContent = '2D режим · сүйреп жылжытыңыз, екі саусақпен жақындатыңыз';
+
+  let W = 1, Hh = 1, dpr = 1;
+  const stars = []; for (let i = 0; i < 260; i++) stars.push([Math.random(), Math.random(), 0.25 + Math.pow(Math.random(),3)*0.75, Math.random() < 0.1 ? 1.6 : 1]);
+  let seed = 11; const rnd = () => { seed = (seed*1664525 + 1013904223) >>> 0; return seed/4294967296; };
+  const blobs = []; for (let i = 0; i < 16; i++){ const a = rnd()*Math.PI*2, d = Math.sqrt(rnd())*0.85; blobs.push({x:Math.cos(a)*d, y:Math.sin(a)*d, rx:0.1+rnd()*0.22, ry:0.07+rnd()*0.15, rot:rnd()*Math.PI, c: rnd() < 0.6 ? 'rgba(70,120,60,0.9)' : 'rgba(158,136,86,0.9)'}); }
+  const cam = {cx:0, cy:0, half:1.5}, tgt = {cx:0, cy:0, half:1.5};
+  let autoCam = true, mountainMode = false, flashT = -1, pred = null;
+  const pulses = [];
+
+  function resize(){
+    const r = stage.getBoundingClientRect();
+    W = Math.max(1, r.width); Hh = Math.max(1, r.height); dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(W*dpr); cv.height = Math.round(Hh*dpr);
+  }
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(stage); else window.addEventListener('resize', resize);
+  resize();
+  const clampHalf = h => Math.max(0.03, Math.min(40, h));
+  const fitHalf = need => need*1.12/Math.min(1, W/Hh);
+  const S = () => (Hh/2)/cam.half;
+  const X = x => W/2 + (x - cam.cx)*S();
+  const Y = y => Hh/2 - (y - cam.cy)*S();
+  function syncTgt(){ tgt.cx = cam.cx; tgt.cy = cam.cy; tgt.half = cam.half; }
+
+  const pts = new Map(); let pinch0 = 0, half0 = 1;
+  cv.addEventListener('pointerdown', e => {
+    try { cv.setPointerCapture(e.pointerId); } catch(_){}
+    pts.set(e.pointerId, {x:e.clientX, y:e.clientY}); autoCam = false; syncTgt();
+    if (pts.size === 2){ const [a,b] = [...pts.values()]; pinch0 = Math.hypot(a.x-b.x, a.y-b.y); half0 = cam.half; }
+  });
+  cv.addEventListener('pointermove', e => {
+    const p = pts.get(e.pointerId); if (!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+    if (pts.size === 1){ cam.cx -= dx/S(); cam.cy += dy/S(); }
+    else if (pts.size === 2 && pinch0 > 0){ const [a,b] = [...pts.values()]; const dd = Math.hypot(a.x-b.x, a.y-b.y); if (dd > 0) cam.half = clampHalf(half0*pinch0/dd); }
+    syncTgt();
+  });
+  const up = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch0 = 0; };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('wheel', e => { e.preventDefault(); autoCam = false; cam.half = clampHalf(cam.half*Math.exp(e.deltaY*0.0012)); syncTgt(); }, {passive:false});
+
+  function goView(name, instant){
+    mountainMode = name === 'mountain';
+    setViewChip(name === '3d' ? 'front' : name);
+    if (mountainMode){ tgt.cx = 0.1 + st.hU*0.4; tgt.cy = 1 + st.hU*0.6; tgt.half = 0.15 + st.hU*0.9; autoCam = false; }
+    else { tgt.cx = 0; tgt.cy = 0; tgt.half = fitHalf(currentNeed()); autoCam = true; }
+    if (instant){ cam.cx = tgt.cx; cam.cy = tgt.cy; cam.half = tgt.half; }
+  }
+
+  function polyline(XA, YA, n){
+    if (n < 2) return;
+    ctx.beginPath();
+    let lx = X(XA[0]/RE), ly = Y(YA[0]/RE); ctx.moveTo(lx, ly);
+    for (let i = 1; i < n; i++){
+      const px = X(XA[i]/RE), py = Y(YA[i]/RE);
+      if (i < n-1 && Math.abs(px-lx) + Math.abs(py-ly) < 0.8) continue;
+      ctx.lineTo(px, py); lx = px; ly = py;
+    }
+    ctx.stroke();
+  }
+  function arrow(x0, y0, x1, y1, color){
+    const a = Math.atan2(y1-y0, x1-x0), hl = 9;
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2.6;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - Math.cos(a)*hl*0.7, y1 - Math.sin(a)*hl*0.7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 - Math.cos(a-0.42)*hl, y1 - Math.sin(a-0.42)*hl);
+    ctx.lineTo(x1 - Math.cos(a+0.42)*hl, y1 - Math.sin(a+0.42)*hl);
+    ctx.closePath(); ctx.fill();
+  }
+  function label(text, x, y, color){
+    ctx.font = 'italic 700 17px Alegreya, Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillText(text, x+1, y+1);
+    ctx.fillStyle = color; ctx.fillText(text, x, y);
+  }
+
+  function frame(dt){
+    if (mountainMode && farShot()) goView('front');
+    if (autoCam && !mountainMode){ tgt.cx = 0; tgt.cy = 0; tgt.half = fitHalf(currentNeed()); }
+    const a = Math.min(1, dt*(reduceMotion ? 30 : 3));
+    cam.cx += (tgt.cx - cam.cx)*a; cam.cy += (tgt.cy - cam.cy)*a; cam.half += (tgt.half - cam.half)*a;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#04070d'; ctx.fillRect(0, 0, W, Hh);
+    for (const s of stars){ ctx.fillStyle = 'rgba(232,238,255,' + s[2] + ')'; ctx.fillRect(s[0]*W, s[1]*Hh, s[3], s[3]); }
+
+    const s = S(), ex = X(0), ey = Y(0), er = s;
+    let g = ctx.createRadialGradient(ex, ey, er*0.97, ex, ey, er*1.09);
+    g.addColorStop(0, 'rgba(100,170,255,0.5)'); g.addColorStop(1, 'rgba(100,170,255,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(ex, ey, er*1.09, 0, Math.PI*2); ctx.fill();
+    g = ctx.createRadialGradient(ex - er*0.4, ey - er*0.45, er*0.1, ex, ey, er*1.05);
+    g.addColorStop(0, '#4b97d8'); g.addColorStop(0.55, '#1b5693'); g.addColorStop(1, '#0a2647');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(ex, ey, er, 0, Math.PI*2); ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.arc(ex, ey, er, 0, Math.PI*2); ctx.clip();
+    for (const b of blobs){ ctx.fillStyle = b.c; ctx.beginPath(); ctx.ellipse(X(b.x), Y(b.y), b.rx*s, b.ry*s, b.rot, 0, Math.PI*2); ctx.fill(); }
+    g = ctx.createLinearGradient(ex - er*0.7, ey - er*0.7, ex + er, ey + er);
+    g.addColorStop(0.45, 'rgba(2,6,14,0)'); g.addColorStop(1, 'rgba(2,6,14,0.6)');
+    ctx.fillStyle = g; ctx.fillRect(ex - er, ey - er, er*2, er*2);
+    ctx.restore();
+
+    // mountain and cannon
+    const m = mountainGeom();
+    const L = [[-m.rb, m.baseY],[-m.rb*0.72, m.baseY+m.hc*0.27],[-m.rb*0.62, m.baseY+m.hc*0.36],[-m.rb*0.4, m.baseY+m.hc*0.58],[-m.rb*0.18, m.baseY+m.hc*0.8],[0, m.top],
+               [m.rb*0.2, m.baseY+m.hc*0.78],[m.rb*0.34, m.baseY+m.hc*0.66],[m.rb*0.52, m.baseY+m.hc*0.47],[m.rb*0.76, m.baseY+m.hc*0.24],[m.rb, m.baseY]];
+    ctx.fillStyle = '#7c6a57'; ctx.beginPath(); L.forEach((p,i) => i ? ctx.lineTo(X(p[0]), Y(p[1])) : ctx.moveTo(X(p[0]), Y(p[1]))); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.beginPath(); ctx.moveTo(X(0), Y(m.top)); L.slice(6).forEach(p => ctx.lineTo(X(p[0]), Y(p[1]))); ctx.closePath(); ctx.fill();
+    const sy = m.top - m.hc*0.22;
+    ctx.fillStyle = '#eef2f6'; ctx.beginPath(); ctx.moveTo(X(-m.rb*0.22*0.9), Y(sy)); ctx.lineTo(X(-m.rb*0.08), Y(sy + m.hc*0.05)); ctx.lineTo(X(0.0), Y(sy - m.hc*0.02));
+    ctx.lineTo(X(m.rb*0.1), Y(sy + m.hc*0.06)); ctx.lineTo(X(m.rb*0.22*0.95), Y(sy)); ctx.lineTo(X(0), Y(m.top)); ctx.closePath(); ctx.fill();
+    const cw = Math.max(7, 0.04*s), ch = Math.max(2.5, 0.009*s), cx0 = X(0) - cw*0.25, cy0 = Y(m.top) - ch - Math.max(1.5, 0.004*s);
+    ctx.fillStyle = '#5b3a20'; ctx.fillRect(cx0 - cw*0.1, cy0 + ch*0.55, cw*0.6, ch*0.9);
+    ctx.fillStyle = '#c49a52'; ctx.fillRect(cx0, cy0, cw, ch);
+
+    // prediction
+    if (pred){ ctx.setLineDash([6,5]); ctx.strokeStyle = 'rgba(234,219,180,0.6)'; ctx.lineWidth = 1.4; polyline(pred.X, pred.Y, pred.n); ctx.setLineDash([]); }
+    // trails, markers, balls
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    for (const sh of shots){
+      if (!sh.started) continue;
+      ctx.strokeStyle = hex(sh.color); ctx.lineWidth = 2.2; polyline(sh.sim.X, sh.sim.Y, sh.drawN);
+      if (sh.finished && sh.sim.end === 'impact'){
+        const n = sh.sim.n; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X(sh.sim.X[n-1]/RE), Y(sh.sim.Y[n-1]/RE), 5, 0, Math.PI*2); ctx.stroke();
+      }
+      if (!sh.finished && sh.cur){
+        const bx = X(sh.cur.x/RE), by = Y(sh.cur.y/RE);
+        ctx.fillStyle = 'rgba(255,240,200,0.25)'; ctx.beginPath(); ctx.arc(bx, by, 8, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = lightHex(sh.color, 0.45); ctx.beginPath(); ctx.arc(bx, by, 4.5, 0, Math.PI*2); ctx.fill();
+      }
+    }
+    // vectors
+    const fs = focusShot();
+    if (st.showVec && fs && fs.cur && !fs.finished){
+      const {x, y, vx, vy} = fs.cur, r = Math.hypot(x,y), v = Math.hypot(vx,vy);
+      const bx = X(x/RE), by = Y(y/RE);
+      if (v > 0.05){ const len = 9*v, ux = vx/v, uy = -vy/v; arrow(bx, by, bx+ux*len, by+uy*len, '#6fe3ff'); label('v', bx+ux*(len+13), by+uy*(len+13), '#7fe6ff'); }
+      const lf = 62*(RE*RE)/(r*r), fx = -x/r, fy = y/r;
+      arrow(bx, by, bx+fx*lf, by+fy*lf, '#ff8a5c'); label('F', bx+fx*(lf+13), by+fy*(lf+13), '#ff9a70');
+    }
+    // impact pulses
+    for (let i = pulses.length-1; i >= 0; i--){
+      const p = pulses[i]; p.t += dt;
+      ctx.strokeStyle = 'rgba(255,240,200,' + Math.max(0, 1 - p.t/0.9) + ')'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 5 + p.t*28, 0, Math.PI*2); ctx.stroke();
+      if (p.t > 0.9) pulses.splice(i, 1);
+    }
+    // muzzle flash
+    if (flashT >= 0){
+      flashT += dt; const u = flashT/0.35;
+      ctx.fillStyle = 'rgba(255,210,122,' + Math.max(0, 1-u) + ')';
+      ctx.beginPath(); ctx.arc(cx0 + cw, cy0 + ch/2, 3 + 12*u, 0, Math.PI*2); ctx.fill();
+      if (u >= 1) flashT = -1;
+    }
+  }
+  return {kind:'2d', setMountain(){}, addShot(){}, removeShot(){},
+    onStart(){ flashT = 0; },
+    onFinish(sh){ if (sh.sim.end === 'impact'){ const n = sh.sim.n; pulses.push({x:sh.sim.X[n-1]/RE, y:sh.sim.Y[n-1]/RE, t:0}); } },
+    onFire(){ if (!mountainMode) autoCam = true; },
+    setPred(sim){ pred = sim; }, goView, frame};
 }
 
-/* ---------- Loop ---------- */
-function resize(){
-  const w = stage.clientWidth, h = stage.clientHeight;
-  if (!w || !h) return;
-  renderer.setSize(w, h, false);
-  camera.aspect = w/h; camera.updateProjectionMatrix();
-}
-if (window.ResizeObserver) new ResizeObserver(resize).observe(stage); else window.addEventListener('resize', resize);
-resize();
-
-let last = performance.now();
-const vDir = new THREE.Vector3(), fDir = new THREE.Vector3(), bPos = new THREE.Vector3(), tip = new THREE.Vector3();
-function frame(now){
-  requestAnimationFrame(frame);
-  const dt = Math.min(0.05, (now - last)/1000); last = now;
-  const dts = paused ? 0 : dt*BASE_WARP*speedMult;
-  for (const s of shots.slice()) updateShot(s, dts);
-
-  // muzzle flash
-  if (flashT >= 0){
-    flashT += dt;
-    const u = flashT/0.35;
-    muzzle.position.set(0.036, 1 + hU + 0.0085, 0);
-    muzzle.scale.setScalar(0.004 + 0.016*u);
-    muzzle.material.opacity = Math.max(0, 1 - u);
-    if (u >= 1){ flashT = -1; muzzle.material.opacity = 0; }
-  }
-  // impact pulses
-  for (let i = pulses.length-1; i >= 0; i--){
-    const p = pulses[i]; p.t += dt;
-    p.m.scale.setScalar(1 + p.t*4); p.m.material.opacity = Math.max(0, 1 - p.t/0.9);
-    if (p.t > 0.9){ scene.remove(p.m); p.m.geometry.dispose(); p.m.material.dispose(); pulses.splice(i,1); }
-  }
-
-  updateCamera(dt);
-  controls.update();
-
-  const camD = camera.position.distanceTo(controls.target);
-  const k = Math.max(0.12, camD/3.4);
-  for (const s of shots){
-    if (!s.ball.visible) continue;
-    const d = camera.position.distanceTo(s.ball.position);
-    s.ball.scale.setScalar(Math.max(0.0032, 0.0105*d/3.4));
-  }
-  if (predLine) predLine.material.scale = 3.4/Math.max(0.2, camD);
-
-  // vectors on the latest projectile
-  const fs = focusShot();
-  const w = stage.clientWidth, h = stage.clientHeight;
-  if (showVec && fs && fs.cur && !fs.finished){
-    const {x, y, vx, vy} = fs.cur; const r = Math.hypot(x,y), v = Math.hypot(vx,vy);
-    bPos.set(x/RE, y/RE, 0);
-    const ww = 0.0042*k;
-    if (v > 0.05){
-      vDir.set(vx/v, vy/v, 0);
-      const lenV = 0.036*v*k;
-      setArrow(arrowV, bPos, vDir, lenV, ww); arrowV.visible = true;
-      tip.copy(bPos).addScaledVector(vDir, lenV + 0.03*k); placeLabel(lblV, tip, w, h);
-    } else { arrowV.visible = false; lblV.style.opacity = 0; }
-    fDir.set(-x/r, -y/r, 0);
-    const lenF = 0.24*(MU/(r*r))/(MU/(RE*RE))*k;
-    setArrow(arrowF, bPos, fDir, Math.max(0.02*k, lenF), ww); arrowF.visible = true;
-    tip.copy(bPos).addScaledVector(fDir, Math.max(0.02*k, lenF) + 0.03*k); placeLabel(lblF, tip, w, h);
-  } else {
-    arrowV.visible = arrowF.visible = false; lblV.style.opacity = 0; lblF.style.opacity = 0;
-  }
-
-  updateReadouts(dt);
-  renderer.render(scene, camera);
+/* ---------- Pick a renderer ---------- */
+try { if (typeof THREE !== 'undefined' && THREE.OrbitControls) R = make3D(); }
+catch(e){ R = null; stage.querySelectorAll('canvas').forEach(c => c.remove()); }
+if (!R){ try { R = make2D(); } catch(e){ R = null; } }
+if (!R){
+  $('fallback').hidden = false;
+  const noop = () => {};
+  R = {kind:'none', setMountain:noop, addShot:noop, removeShot:noop, onStart:noop, onFinish:noop, onFire:noop, setPred:noop, goView:noop, frame:noop};
 }
 
 /* ---------- UI ---------- */
 const v0In = $('v0'), hIn = $('h');
-function updateV(){
-  $('v0out').innerHTML = fmt(V, 2) + ' <small>км/с</small>';
-  schedulePred();
-}
+function updateV(){ $('v0out').innerHTML = fmt(st.V, 2) + ' <small>км/с</small>'; schedulePred(); }
 function updateH(){
-  $('hout').innerHTML = fmtInt(H) + ' <small>км</small>';
-  const vc = vCirc(H), ve = vEsc(H);
+  st.hU = st.H/RE;
+  $('hout').innerHTML = fmtInt(st.H) + ' <small>км</small>';
+  const vc = vCirc(st.H), ve = vEsc(st.H);
   $('hnote').innerHTML = 'Осы биіктікте: v₁ = <b>' + fmt(vc,2) + '</b> км/с, v₂ = <b>' + fmt(ve,2) + '</b> км/с. Жер бетінде: ' + fmt(vCirc(0),2) + ' және ' + fmt(vEsc(0),2) + ' км/с.';
-  const pos = (v) => 'calc(11px + (100% - 22px) * ' + (v/13).toFixed(4) + ')';
+  const pos = v => 'calc(11px + (100% - 22px) * ' + (v/13).toFixed(4) + ')';
   $('mk1').style.left = pos(vc); $('mk2').style.left = pos(ve);
-  buildMountain();
+  R.setMountain();
   schedulePred();
 }
-v0In.addEventListener('input', () => { V = +v0In.value; updateV(); });
-hIn.addEventListener('input', () => { H = +hIn.value; updateH(); });
+v0In.addEventListener('input', () => { st.V = +v0In.value; updateV(); });
+hIn.addEventListener('input', () => { st.H = +hIn.value; updateH(); });
 $('presets').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   const key = b.dataset.v;
-  V = key === 'vc' ? vCirc(H) : key === 've' ? vEsc(H) : +key;
-  v0In.value = V.toFixed(2); updateV();
+  st.V = key === 'vc' ? vCirc(st.H) : key === 've' ? vEsc(st.H) : +key;
+  v0In.value = st.V.toFixed(2); updateV();
 });
 $('fireBtn').addEventListener('click', () => {
-  if (!keepTrails) clearShots();
-  addShot(V, 0);
-  if (!mountainMode) autoCam = true;
+  if (!st.keepTrails) clearShots();
+  addShot(st.V, 0); R.onFire();
 });
 function newtonSalvo(){
   clearShots();
-  const vc = vCirc(H);
+  const vc = vCirc(st.H);
   [0.42, 0.66, 0.86, 1, 1.17].forEach((f, i) => addShot(vc*f, i*260));
-  if (!mountainMode) autoCam = true;
+  R.onFire();
 }
 $('salvoBtn').addEventListener('click', newtonSalvo);
-$('clearBtn').addEventListener('click', () => { clearShots(); if (!mountainMode) autoCam = true; });
-$('tVec').addEventListener('change', e => { showVec = e.target.checked; });
-$('tKeep').addEventListener('change', e => { keepTrails = e.target.checked; });
-$('tPred').addEventListener('change', e => { showPred = e.target.checked; updatePrediction(); });
-$('views').addEventListener('click', e => { const b = e.target.closest('button'); if (b) goView(b.dataset.view); });
+$('clearBtn').addEventListener('click', () => { clearShots(); R.onFire(); });
+$('tVec').addEventListener('change', e => { st.showVec = e.target.checked; });
+$('tKeep').addEventListener('change', e => { st.keepTrails = e.target.checked; });
+$('tPred').addEventListener('change', e => { st.showPred = e.target.checked; updatePrediction(); });
+$('views').addEventListener('click', e => { const b = e.target.closest('button'); if (b) R.goView(b.dataset.view); });
 $('speeds').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  speedMult = +b.dataset.s;
+  st.speedMult = +b.dataset.s;
   document.querySelectorAll('#speeds button').forEach(x => x.classList.toggle('on', x === b));
-  const min = BASE_WARP*speedMult/60;
+  const min = BASE_WARP*st.speedMult/60;
   $('scaleNote').textContent = '1 с ≈ ' + (min >= 10 ? Math.round(min) : fmt(min, 1)) + ' мин';
 });
 const playBtn = $('playBtn'), playIcon = $('playIcon');
 playBtn.addEventListener('click', () => {
-  paused = !paused;
-  playBtn.setAttribute('aria-label', paused ? 'Жалғастыру' : 'Кідірту');
-  playIcon.innerHTML = paused ? '<path d="M3 1.5 L12.5 7 L3 12.5 Z"/>' : '<rect x="2" y="1" width="3.5" height="12" rx="1"/><rect x="8.5" y="1" width="3.5" height="12" rx="1"/>';
+  st.paused = !st.paused;
+  playBtn.setAttribute('aria-label', st.paused ? 'Жалғастыру' : 'Кідірту');
+  playIcon.innerHTML = st.paused ? '<path d="M3 1.5 L12.5 7 L3 12.5 Z"/>' : '<rect x="2" y="1" width="3.5" height="12" rx="1"/><rect x="8.5" y="1" width="3.5" height="12" rx="1"/>';
 });
 
-/* ---------- Start ---------- */
-V = Math.round(vCirc(H)*100)/100; v0In.value = V.toFixed(2);
+/* ---------- Loop and start ---------- */
+let last = performance.now();
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, Math.max(0, (now - last)/1000)); last = now;
+  const dts = st.paused ? 0 : dt*BASE_WARP*st.speedMult;
+  for (const s of shots.slice()) updateShot(s, dts);
+  R.frame(dt);
+  updateReadouts(dt);
+}
+st.V = Math.round(vCirc(st.H)*100)/100; v0In.value = st.V.toFixed(2);
 updateH(); updateV();
-goView('front', true);
+R.goView('front', true);
 requestAnimationFrame(frame);
 setTimeout(newtonSalvo, 700);
 })();
