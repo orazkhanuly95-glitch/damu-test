@@ -530,6 +530,7 @@ function gateView(){
       <li><span>Экранды өшіруге, бетті жаңартуға не жабуға, экранды екіге бөлуге болмайды.</span></li>
       <li><span>Тест мұғалімнің белгісімен барлық оқушыда бірден басталады. Басталғаннан кейін 2 минуттан соң кіруге болмайды.</span></li>
       <li><span>Тест кезінде телефонның алдыңғы камерасы қосулы тұрады, бетіңіз көрініп тұруы керек. Жан-жағыңызға қарасаңыз, сөйлессеңіз немесе бетіңіз көрінбесе, дыбыс пен діріл арқылы ескерту беріледі. <b>3 ескертуден кейін нәтиже 0.</b> Видео жазылмайды, ешқайда жіберілмейді.</span></li>
+      <li><span>Хабарландыру тізімін ашсаңыз, мекенжай жолын не браузер мәзірін бассаңыз — ескерту беріледі (ол да 3 ескертудің біріне саналады). Тест бетіне 4 секунд ішінде қайтпасаңыз, нәтиже 0.</span></li>
       <li><span>Тестті бір рет қана тапсыруға болады. Ереже бұзылса, тест сол сәтте тоқтайды, нәтиже <b>0</b> болады және тестке қайта кіру мүмкін емес.</span></li>
       <li><span>Тест аяқталғанда нәтиже мұғалімге өзі жіберіледі. Интернет болмаса, «Қайта жіберу» немесе WhatsApp батырмасы шығады.</span></li>
     </ol>
@@ -582,10 +583,10 @@ function startTest(){
 function armGuard(){
   G.on = true; G.base = window.innerWidth * window.innerHeight;
   try { history.pushState({ damu: 1 }, '', location.href); } catch(e){}
-  try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(l => { G.wl = l; }).catch(() => {}); } catch(e){}
+  guardWake(); document.documentElement.style.overscrollBehaviorY = 'none'; document.body.style.overscrollBehaviorY = 'none';
 }
 function disarmGuard(){
-  G.on = false; clearInterval(G.tick);
+  G.on = false; clearInterval(G.tick); clearTimeout(G.blurT); G.blurT = 0; document.documentElement.style.overscrollBehaviorY = ''; document.body.style.overscrollBehaviorY = '';
   try { if (G.wl){ G.wl.release(); G.wl = null; } } catch(e){}
   document.body.classList.remove('testing');
   camStop();
@@ -605,8 +606,10 @@ window.addEventListener('pagehide', () => { if (G.on) violate('reload'); });
 window.addEventListener('beforeunload', () => {
   if (G.on && S && !S.cfg.pv){ const r = Object.assign({}, S.rec || {}, { st: 'left', why: 'reload', score: 0 }); store.set(recKey(), r); store.set(LOCK.key(), r); }
 });
-window.addEventListener('blur', () => { if (!G.on) return; setTimeout(() => { if (G.on && (document.hidden || !document.hasFocus())) violate('blur'); }, 350); });
-window.addEventListener('popstate', () => { if (G.on) violate('back'); });
+window.addEventListener('blur', () => guardBlur());
+window.addEventListener('focus', () => guardFocus());
+document.addEventListener('pointerdown', () => guardFocus(), true);
+window.addEventListener('popstate', () => { if (G.on) guardBack(); });
 window.addEventListener('resize', () => {
   if (!G.on) return; const a = window.innerWidth * window.innerHeight;
   if (a > G.base) G.base = a; else if (a < G.base * 0.72) violate('split');
@@ -990,7 +993,8 @@ function camJudge(res, t){
   camHint(sig);
   if (!CAM.armed || !camLive()) return;
   if (t < CAM.cool){ CAM.since = {}; return; }
-  const need = { away: CAMCFG.awayMs, two: CAMCFG.twoMs, turn: CAMCFG.turnMs, talk: 0 };
+  if (f) CAM.awayHold = false;
+  const need = { away: CAM.awayHold ? GUARD.awayAgain : CAMCFG.awayMs, two: CAMCFG.twoMs, turn: CAMCFG.turnMs, talk: 0 };
   for (const k of ['away', 'two', 'turn', 'talk']){
     if (k === 'away' && !CAM.seen) continue;   // the model has never found this face: no "not visible" warnings (the teacher sees a flag instead)
     if (sig[k]){ if (!CAM.since[k]) CAM.since[k] = t; if (t - CAM.since[k] >= need[k]) return camWarn(k); }
@@ -1010,14 +1014,14 @@ function camHint(sig){
 /* ---------- during the test ---------- */
 function camArm(){
   const t = Date.now();
-  CAM.armed = true; CAM.warns = []; CAM.since = {}; CAM.jaw = { open: false, cycles: [] };
+  CAM.armed = true; CAM.warns = []; CAM.since = {}; CAM.jaw = { open: false, cycles: [] }; CAM.awayHold = false;
   CAM.cool = t + CAMCFG.start;
   document.body.classList.add('cam-on'); camPaint();
 }
 function camWarn(kind){
   const t = Date.now(); if (!CAM.armed || !camLive() || t < CAM.cool) return;
   CAM.cool = t + CAMCFG.cool; CAM.since = {}; CAM.jaw.cycles = [];
-  CAM.warns.push(kind);
+  CAM.warns.push(kind); if (kind === 'away') CAM.awayHold = true;
   const d = CAM.diag; CAM.log.push({ t: t, kind: kind, dev: d.dev || 0, jaw: d.jaw || 0, faces: d.faces || 0 }); if (CAM.log.length > 12) CAM.log.shift();
   const n = CAM.warns.length, last = n >= CAMCFG.max;
   camBuzz(last);
@@ -1125,7 +1129,10 @@ function live(ev, r, beacon){
   if (!S || S.cfg.pv) return Promise.resolve(false);
   const body = JSON.stringify(evPayload(ev, r || S.rec || {})), url = LIVE.url + LIVE.topic;
   if (beacon && navigator.sendBeacon){ try { if (navigator.sendBeacon(url, new Blob([body], { type: 'text/plain' }))) return Promise.resolve(true); } catch(e){} }
-  const once = () => fetch(url, { method: 'POST', body: body, keepalive: true }).then(x => x.ok).catch(() => false);
+  const once = () => fetch(url, { method: 'POST', body: body, keepalive: true }).then(x => {
+      if (x.ok && !CTL.skewSse) x.clone().json().then(j => { if (j && j.time && !CTL.skewSse) CTL.skew = Date.now() - j.time * 1000; }).catch(() => {});
+      return x.ok;
+    }).catch(() => false);
   const wait = ms => new Promise(res => setTimeout(res, ms));
   return once().then(ok => ok || wait(1500).then(once)).then(ok => ok || wait(4000).then(once));
 }
@@ -1165,7 +1172,7 @@ function ctlIngest(m){
 function ctlFire(){ if (CTL.cb) CTL.cb(); }
 function ctlConnect(cb){
   ctlStop(); CTL.cb = cb;
-  const skewFrom = e => { try { const x = JSON.parse(e.data); if (x && x.time) CTL.skew = Date.now() - x.time * 1000; } catch(_){} };
+  const skewFrom = e => { try { const x = JSON.parse(e.data); if (x && x.time){ CTL.skew = Date.now() - x.time * 1000; CTL.skewSse = true; } } catch(_){} };
   const poll = () => fetch(ctlUrl() + '/json?poll=1&since=all').then(r => r.ok ? r.text() : Promise.reject()).then(t => {
       t.split('\n').forEach(l => { if (l.trim()) try { ctlIngest(JSON.parse(l)); } catch(e){} });
       if (CTL.conn !== 'on') CTL.conn = 'poll'; ctlFire();
@@ -1192,7 +1199,7 @@ function ctlState(t){
   return { mode: 'run', start: start, end: end, sess: last.d.sess, last: last };
 }
 function waitView(){
-  S.waiting = true; document.title = 'Күту залы · DAMU'; document.body.classList.remove('testing');
+  S.waiting = true; if (!S.joinAt) S.joinAt = Date.now(); document.title = 'Күту залы · DAMU'; document.body.classList.remove('testing');
   const rows = [['Тапсырушы', esc(S.name)]]; if (S.kl) rows.push(['Сынып', esc(S.kl)]); if (S.num) rows.push(['Журнал №', esc(S.num), 1]);
   $('#app').innerHTML = '<main class="wrap">' + mast() + `<section class="sheet waitc">
       <div class="wtop"><span class="pulse" aria-hidden="true"></span><p class="eyebrow">Күту залы</p></div>
@@ -1212,7 +1219,7 @@ function onCtl(){
   const st = ctlState(S.tid);
   if (S.waiting){
     if (st.mode === 'run'){
-      if (Date.now() - st.start <= SYNC.grace){
+      if (Date.now() - st.start <= SYNC.grace || (S.joinAt && S.joinAt - st.start <= SYNC.grace)){
         if (camReady()){ S.sess = st.sess; return beginTest(st.end); }
         const w0 = $('#wst'); if (w0) w0.innerHTML = '<div class="note bad"><b>Тест басталды, бірақ камера қосылмайынша сұрақтар ашылмайды.</b> Камераны ' + Math.round(SYNC.grace / 60000) + ' минут ішінде қосыңыз.</div>';
         return;
@@ -1801,6 +1808,77 @@ function stkPop(p, score, total){
   const close = () => { if (!el.isConnected || el.classList.contains('out')) return; el.classList.add('out'); setTimeout(() => el.remove(), 380); };
   el.addEventListener('click', close); setTimeout(close, 4200);
 }
+
+/* =====================================================================
+   FAIRER GUARD (2026-11-06)
+   What the live channel showed for one lesson: 8 of 20 tests were annulled — 4 for "focus left the
+   page" while the page stayed on screen, 3 after camera warnings (one student got 3 "face not
+   visible" warnings in 20 seconds), 1 for leaving the page.
+   Changes, keeping the anti-cheat intact:
+   • focus leaves the page but the page stays on screen (notification shade pulled down, the address
+     bar or the browser menu tapped, a battery pop-up): a warning in the same 3-warning count; only
+     if the student does not come back within 4 s is the test annulled. Leaving the page or the
+     screen going off is still an immediate 0.
+   • the system "back" gesture no longer annuls: the page simply stays on the test.
+   • pull-to-refresh is switched off during the test (a stray downward swipe used to reload = 0).
+   • the screen is kept awake again if the phone drops the wake lock.
+   • "face not visible" can repeat only after the face has been seen again, or after 20 more seconds.
+   • a student who was in the waiting room on time is let in even if the camera finished loading
+     more than 2 minutes after the start.
+   • the phone's clock error is measured from the channel's answer too, not only from the live stream.
+   ===================================================================== */
+const GUARD = { blurMs: 4000, blip: 500, blurCool: 3000, awayAgain: 20000 };
+function guardBlur(){
+  if (!G.on || G.blurT) return;
+  G.blurAt = Date.now();
+  G.blurT = setTimeout(() => { G.blurT = 0; if (G.on && !document.hasFocus()) violate('blur'); }, GUARD.blurMs);
+}
+function guardFocus(){
+  if (!G.blurT) return;
+  clearTimeout(G.blurT); G.blurT = 0;
+  if (!G.on || document.hidden) return;
+  const away = Date.now() - G.blurAt;
+  if (away >= GUARD.blip) guardWarn('blur');
+  guardWake();
+}
+function guardBack(){
+  try { history.pushState({ damu: 1 }, '', location.href); } catch(e){}
+  let b = $('#cambar');
+  if (!b){ b = document.createElement('div'); b.id = 'cambar'; b.setAttribute('role', 'alert'); document.body.appendChild(b); }
+  b.innerHTML = '<b>Тест жалғасып жатыр</b><span>Тест кезінде артқа өтуге болмайды.</span>';
+  b.className = 'show'; clearTimeout(b._t); b._t = setTimeout(() => { b.className = ''; }, 2500);
+}
+function guardWake(){
+  if (!G.on || G.wl || G.wlAsk || !navigator.wakeLock || document.hidden) return;
+  G.wlAsk = true;
+  try {
+    navigator.wakeLock.request('screen').then(l => {
+      G.wlAsk = false; if (!G.on){ try { l.release(); } catch(e){} return; }
+      G.wl = l; l.addEventListener('release', () => { if (G.wl === l) G.wl = null; });
+    }).catch(() => { G.wlAsk = false; });
+  } catch(e){ G.wlAsk = false; }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) guardWake(); });
+/* a warning that does not come from the camera (focus left the page) — same count, same banner */
+function guardWarn(kind){
+  const t = Date.now();
+  if (!G.on || (G.lastFocusWarn && t - G.lastFocusWarn < GUARD.blurCool)) return;
+  G.lastFocusWarn = t;
+  CAM.warns.push(kind);
+  const n = CAM.warns.length, last = n >= CAMCFG.max;
+  camBuzz(last);
+  if (S.rec) setRec(Object.assign({}, S.rec, { warns: CAM.warns.slice() }));
+  camBanner(n, kind, last);
+  if (last){ violate(kind === 'blur' ? 'blur3' : 'cam'); return; }
+  live('WARN', Object.assign({}, S.rec, { warn: n, wk: kind }));
+  camPaint();
+}
+CAMMSG.blur = 'Тест бетінен шықпаңыз (хабарландыру, мекенжай жолы, мәзір)';
+CAMMSG.away = 'Бетіңіз камерада көрінбейді — телефонды бетіңізге қаратып ұстаңыз';
+CAMKIND.blur = 'тест бетінен назары кетті';
+WHY.blur = 'тест бетінен назар 4 секундтан ұзақ кетті (хабарландыру, мәзір, басқа терезе)';
+WHY.blur3 = '3 ескерту алды (соңғысы: тест бетінен назар кетті)';
+WHY.cam = '3 ескерту алды (жан-жағына қарау, сөйлесу, бет көрінбеуі, қасындағы басқа адам немесе тест бетінен назар кетуі)';
 </script>
 </body>
 </html>
