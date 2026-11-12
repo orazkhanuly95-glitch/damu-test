@@ -76,8 +76,8 @@ body.wide .duo{grid-template-columns:1.05fr .95fr;gap:22px;align-items:start}
 .st-res span{font-size:13px;color:var(--mut)}
 .st-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.14);margin-top:8px;overflow:hidden}
 .st-bar i{display:block;height:100%;width:0;background:var(--mint)}
-.st-over{position:absolute;inset:0;display:grid;place-items:center;text-align:center;background:rgba(5,8,12,.6);font-size:22px;font-weight:800;padding:20px}
-.st-over.num{font-size:96px}
+.st-over{position:absolute;left:10px;right:10px;top:46px;text-align:center;background:rgba(5,8,12,.82);border-radius:14px;font-size:18px;line-height:1.25;font-weight:800;padding:10px 14px;white-space:pre-line}
+.st-over.num{inset:0;display:grid;place-items:center;border-radius:0;background:rgba(5,8,12,.55);font-size:96px}
 .st-idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px}
 .stage.live .st-idle{display:none}
 .st-idle svg.i{width:44px;height:44px;color:var(--mut)}
@@ -537,7 +537,7 @@ const Vision={hp:null,fp:null,
     h.setOptions({maxNumHands:2,modelComplexity:MOBILE?0:1,minDetectionConfidence:.6,minTrackingConfidence:.5});let last=null;h.onResults(r=>last=r);await h.initialize();
     return async img=>{await h.send({image:img});return last}})().catch(e=>{this.hp=null;throw e}))},
   face(){return this.fp||(this.fp=(async()=>{await loadScript(MPB.face+'face_mesh.js');const f=new window.FaceMesh({locateFile:x=>MPB.face+x});
-    f.setOptions({maxNumFaces:1,refineLandmarks:false,minDetectionConfidence:.5,minTrackingConfidence:.5});let last=null;f.onResults(r=>last=r);await f.initialize();
+    f.setOptions({maxNumFaces:1,refineLandmarks:false,minDetectionConfidence:.35,minTrackingConfidence:.35});let last=null;f.onResults(r=>last=r);await f.initialize();
     return async img=>{await f.send({image:img});return last}})().catch(e=>{this.fp=null;throw e}))}};
 
 class Stage{
@@ -597,6 +597,7 @@ function renderList(box,cnt,items,meta,onAdd,onDel,emptyTxt){box.innerHTML='';cn
   for(const it of items){const row=el('div','it'),d=el('div');d.append(el('b','',it.phrase),el('small','',meta(it)));
     const a=el('button');a.innerHTML=icon('plus');a.title='Үлгі қосу';a.setAttribute('aria-label','Үлгі қосу');a.onclick=()=>onAdd(it);
     const x=el('button');x.innerHTML=icon('del');x.setAttribute('aria-label','Өшіру');twoStep(x,()=>onDel(it));row.append(d,a,x);box.append(row)}}
+const focusStage=st=>{try{document.activeElement&&document.activeElement.blur();st.root.scrollIntoView({block:'start',behavior:'smooth'})}catch(e){}};
 async function countdown(st){for(const n of['3','2','1']){st.over(n,true);await sleep(650)}st.over(null)}
 
 /* ---------- hands ---------- */
@@ -652,7 +653,7 @@ const Sign={mode:'stat',train:null,seg:{fr:[],last:0,t0:0,ref:{}},stab:{cur:null
   async begin(id){const phrase=$('#sPhrase').value.trim();if(!phrase){toast('Алдымен ымның мағынасын жазыңыз');$('#sPhrase').focus();return}
     if(!this.st.on){await this.st.start();if(!this.st.on)return}
     const kind=this.mode;if(!id){const ex=DB[kind].find(x=>x.phrase.toLowerCase()===phrase.toLowerCase());if(ex)id=ex.id}
-    const T=this.train={kind,phrase,id,s:[],t:[],n:0,last:0,go:false};$('#sTrain').textContent='Тоқтату';this.seg.fr=[];
+    const T=this.train={kind,phrase,id,s:[],t:[],n:0,last:0,go:false};focusStage(this.st);$('#sTrain').textContent='Тоқтату';this.seg.fr=[];
     await countdown(this.st);if(this.train!==T)return;T.go=true;
     if(kind==='dyn')this.st.over('Ымды көрсетіңіз (1 / 3)');},
   cancel(){if(!this.train)return;this.train=null;$('#sTrain').textContent='Үйрету';this.st.over(null);this.seg.fr=[]},
@@ -695,9 +696,9 @@ function lipFeat(lm,ar){const P=i=>[lm[i].x*ar,lm[i].y],eL=P(33),eR=P(263),iod=M
   const dd=(a,b)=>{const A=P(a),B=P(b);return Math.hypot(A[0]-B[0],A[1]-B[1])/iod};return{f,o:dd(13,14),w:dd(61,291)}}
 function viseme(o,w,w0){const r=w0?w/w0:1;if(o<.02)return'М';if(o>=.15&&r>=.85)return'А';if(r<.88)return o>=.07?'О':'У';if(r>=1.05&&o<.12)return'И';if(o>=.07)return'Э';return'Ы'}
 const VN={'М':'М · Б · П — ерін жұмық','А':'А — ауыз кең ашық','О':'О · Ө — ерін дөңгелек','У':'У · Ұ · Ү — ерін сүйірленген','И':'И · Е · І — ерін керілген','Э':'Э · Ә — ауыз жартылай ашық','Ы':'Ы — бейтарап','–':'Бет көрінбей тұр'};
-function drawLips(g,c,lm){const W=c.width,H=c.height;g.lineWidth=Math.max(2,W/260);g.lineJoin='round';
+function drawLips(g,c,lm){const W=c.width,H=c.height;g.lineWidth=Math.max(3,W/150);g.lineJoin='round';
   const ring=(ids,fill)=>{g.beginPath();ids.forEach((i,k)=>{const x=lm[i].x*W,y=lm[i].y*H;k?g.lineTo(x,y):g.moveTo(x,y)});g.closePath();if(fill){g.fillStyle=fill;g.fill()}g.stroke()};
-  g.strokeStyle='#ffb224';ring(RO);g.strokeStyle='#fff';ring(RI,'rgba(255,178,36,.28)')}
+  g.strokeStyle='#ffb224';ring(RO);g.strokeStyle='#fff';ring(RI,'rgba(255,178,36,.35)')}
 
 const Lips={mode:'words',train:null,prev:null,rest:null,omin:1,noise:{d:.015,o:.008},cal:null,win:null,pre:[],act:0,seg:null,lastClip:null,dr:{target:'А',since:0,score:0,hit:0},
   init(){const st=this.st=new Stage($('#stL'),()=>Vision.face());st.onFrame=(r,now)=>this.frame(r,now);st.onEnd=()=>{const sg=this.seg;if(sg){this.seg=null;this.clip(this.trim(sg.fr,sg.a))}};st.onStop=()=>this.cancel();
@@ -709,33 +710,40 @@ const Lips={mode:'words',train:null,prev:null,rest:null,omin:1,noise:{d:.015,o:.
     it=>{DB.lips=DB.lips.filter(x=>x.id!==it.id);saveDB();this.render()},'Әзірге сөз үйретілмеген. Жиі қолданатын 5–10 сөзден бастаңыз: «иә», «жоқ», «су», «рақмет», «көмек».')},
   /* тыныш күйді өлшеу: ерін жұмық тұрғандағы пішін мен шу деңгейі */
   async calibrate(ms){const c=this.cal={fs:[],os:[],ws:[]};await sleep(ms);if(this.cal!==c)return false;this.cal=null;const n=c.fs.length;if(n<3)return false;
-    const f=new Array(c.fs[0].length).fill(0);for(const x of c.fs)for(let i=0;i<f.length;i++)f[i]+=x[i]/n;const o=c.os.reduce((a,b)=>a+b,0)/n,w=c.ws.reduce((a,b)=>a+b,0)/n;
-    this.rest={f,o,w};this.noise={d:c.fs.reduce((a,x)=>a+eu(x,f),0)/n,o:c.os.reduce((a,x)=>a+Math.abs(x-o),0)/n};this.omin=Math.min(this.omin,o);return true},
-  /* белгілі уақыт ішінде жазу: сөз толық сыйсын деп терезе ұзындау алынады */
-  record(dur){return new Promise(res=>{const w=this.win={fr:[],a:[],t0:0,dur,done:q=>{if(this.win===w)this.win=null;res(q)}};setTimeout(()=>{if(this.win===w)w.done(this.trim(w.fr,w.a))},dur+1200)})},
+    const idx=[...c.fs.keys()].sort((x,y)=>c.os[x]-c.os[y]).slice(0,Math.max(3,Math.round(n*.4))),m=idx.length;
+    const f=new Array(c.fs[0].length).fill(0);for(const j of idx)for(let i=0;i<f.length;i++)f[i]+=c.fs[j][i]/m;const o=idx.reduce((a,j)=>a+c.os[j],0)/m,w=idx.reduce((a,j)=>a+c.ws[j],0)/m;
+    this.rest={f,o,w};this.noise={d:Math.min(.03,idx.reduce((a,j)=>a+eu(c.fs[j],f),0)/m),o:Math.min(.0166,idx.reduce((a,j)=>a+Math.abs(c.os[j]-o),0)/m)};this.omin=Math.min(this.omin,o);return true},
+  /* белгілі уақыт ішінде жазу; нәтижесі: {q — дайын жазба немесе null, why — сәтсіздік себебі, info — өлшемдер} */
+  record(dur){return new Promise(res=>{const w=this.win={F:[],o:[],miss:0,t0:0,dur,done:r=>{if(this.win===w)this.win=null;res(r||{q:null,why:'stop',info:''})}};setTimeout(()=>{if(this.win===w)w.done(this.analyse(w))},dur+1200)})},
+  analyse(w){const n=w.F.length,info=`бет ${n}/${n+w.miss} кадр`;if(n<4||w.miss>n*.3)return{q:null,why:'face',info};
+    const k=1/S.sens,thrD=Math.max(.045,3*this.noise.d)*k,thrO=Math.max(.025,3*this.noise.o)*k,so=w.o.slice().sort((x,y)=>x-y),oLow=so[Math.floor(n*.1)],oHigh=so[Math.floor(n*.95)];
+    const act=R=>w.F.map((f,i)=>Math.max(eu(f,R.f)/thrD,(w.o[i]-R.o)/thrO));let R=this.rest,a=R?act(R):null;
+    if(!R||R.o>oLow+.02||a.filter(x=>x<1).length<n*.1){const idx=[...w.F.keys()].filter(i=>w.o[i]<=oLow+.008),m=idx.length,f=new Array(w.F[0].length).fill(0);
+      for(const j of idx)for(let i=0;i<f.length;i++)f[i]+=w.F[j][i]/m;R={f,o:idx.reduce((x,j)=>x+w.o[j],0)/m};a=act(R)}
+    const q=this.trim(w.F.map(f=>f.map((x,i)=>x-R.f[i])),a);return{q,why:q?'':'still',info:info+`, ашылу ${oLow.toFixed(2)}–${oHigh.toFixed(2)}`}},
   trim(fr,a){let s=-1,e=-1;for(let i=0;i<a.length;i++)if(a[i]>=1){if(s<0)s=i;e=i}if(s<0)return null;const out=fr.slice(Math.max(0,s-1),Math.min(fr.length,e+2));return out.length<3?null:resample(out,RN)},
   async begin(id){const phrase=$('#lPhrase').value.trim();if(!phrase){toast('Алдымен сөзді жазыңыз');$('#lPhrase').focus();return}
     if(!this.st.on){await this.st.start();if(!this.st.on)return}
     if(!id){const ex=DB.lips.find(x=>x.phrase.toLowerCase()===phrase.toLowerCase());if(ex)id=ex.id}
-    const T=this.train={phrase,id,t:[]},st=this.st,live=()=>this.train===T;$('#lTrain').textContent='Тоқтату';this.seg=null;
+    const T=this.train={phrase,id,t:[]},st=this.st,live=()=>this.train===T;focusStage(st);$('#lTrain').textContent='Тоқтату';this.seg=null;
     st.over('Ерніңізді жұмып, камераға тура қараңыз');const ok=await this.calibrate(1600);if(!live())return;
     if(!ok){this.cancel();toast('Бет көрінбеді. Камераға тура қарап, жарық жерде қайта бастаңыз.',5000);return}
     let fails=0;
     while(T.t.length<3){st.over(`Дайындалыңыз… (${T.t.length+1} / 3)`);await sleep(900);if(!live())return;
-      st.over(`Қазір айтыңыз: «${phrase}»`);const q=await this.record(2200);if(!live())return;
-      if(q){T.t.push(q);vib(50);st.over('Жазылды ✓ Ерніңізді жұмыңыз');await sleep(800)}
-      else{if(++fails>=4){this.cancel();toast('Ерін қимылы байқалмады. Жарықты күшейтіп, бетті жақындатып, ауызды анығырақ ашып айтыңыз.',7000);return}
-        st.over('Ерін қимылы байқалмады — ауызды анығырақ ашып айтыңыз');await sleep(1500)}
+      st.over(`Қазір айтыңыз: «${phrase}»`);const r=await this.record(2200);if(!live())return;
+      if(r.q){T.t.push(r.q);vib(50);st.over('Жазылды ✓ Ерніңізді жұмыңыз');await sleep(800)}
+      else{const msg=r.why==='face'?'Бет анық көрінбеді. Жарыққа қарап, телефонды қозғалтпай ұстаңыз.':'Ерін қимылы байқалмады. Ауызды анығырақ ашып айтыңыз.';
+        if(++fails>=4){this.cancel();toast(msg+' ('+r.info+')',9000);return}st.over(msg+'\n'+r.info);await sleep(2200)}
       if(!live())return}
     const ex=T.id&&DB.lips.find(x=>x.id===T.id);if(ex){ex.t=ex.t.concat(T.t).slice(-9);ex.r=intra(ex.t)}else DB.lips.push({id:uid(),phrase:T.phrase,t:T.t,r:intra(T.t)});
     this.train=null;$('#lTrain').textContent='Үйрету';st.over(null);$('#lPhrase').value='';saveDB();this.render();toast('«'+T.phrase+'» сөзі сақталды');vib([60,40,60])},
-  cancel(){if(this.win)this.win.done(null);this.cal=null;if(!this.train)return;this.train=null;$('#lTrain').textContent='Үйрету';this.st.over(null);this.seg=null},
+  cancel(){if(this.win)this.win.done();this.cal=null;if(!this.train)return;this.train=null;$('#lTrain').textContent='Үйрету';this.st.over(null);this.seg=null},
   async manual(){if(this.train||this.win)return;if(!DB.lips.length){toast('Алдымен бір-екі сөз үйретіңіз');return}
     if(!this.st.on){await this.st.start();if(!this.st.on)return;await sleep(600)}
-    this.seg=null;const b=$('#lRec');b.disabled=true;const q=await this.record(2200);b.disabled=false;this.clip(q)},
+    this.seg=null;focusStage(this.st);const b=$('#lRec');b.disabled=true;const r=await this.record(2200);b.disabled=false;if(r.why==='face')this.st.res('','Бет анық көрінбеді ('+r.info+')',0),this.shown=performance.now();else if(r.why!=='stop')this.clip(r.q)},
   nextDrill(){const all=['А','О','У','И','Э','М'],d=this.dr;let t;do{t=all[Math.floor(Math.random()*all.length)]}while(t===d.target);d.target=t;d.since=0;d.hit=0;$('#drTarget').textContent=t;$('#drTarget').classList.remove('hit');$('#drText').textContent=VN[t];$('#drProg').style.width='0%'},
   frame(res,now){const st=this.st,lm=res&&res.multiFaceLandmarks&&res.multiFaceLandmarks[0];
-    if(!lm){$('#visBig').textContent='–';$('#visName').textContent=VN['–'];$('#visOpen').style.width='0%';$('#visHint').textContent='Бетіңізді камераға тура ұстаңыз';if(!this.win)st.res('','Бет көрінбей тұр',0);
+    if(!lm){$('#visBig').textContent='–';$('#visName').textContent=VN['–'];$('#visOpen').style.width='0%';$('#visHint').textContent='Бетіңізді камераға тура ұстаңыз';if(this.win)this.win.miss++;else st.res('','Бет көрінбей тұр',0);
       const sg=this.seg;if(sg&&now-sg.lastAct>450){this.seg=null;this.clip(this.trim(sg.fr,sg.a))}this.prev=null;return}
     const L=lipFeat(lm,st.c.width/st.c.height);drawLips(st.g,st.c,lm);
     if(this.prev)for(let i=0;i<L.f.length;i++)L.f[i]=L.f[i]*.65+this.prev.f[i]*.35;
@@ -745,9 +753,9 @@ const Lips={mode:'words',train:null,prev:null,rest:null,omin:1,noise:{d:.015,o:.
     const oo=Math.max(0,L.o-this.omin),v=viseme(oo,L.w,R.w);$('#visBig').textContent=v;$('#visName').textContent=VN[v];$('#visOpen').style.width=clamp(oo/.28,0,1)*100+'%';
     $('#visHint').textContent=a>=1?'Ерін қимылы байқалды':'Ерін тыныш күйде';$('#visOpen').style.background=a>=1?'var(--amb)':'';
     if(this.mode==='drill'){this.drill(v,now);return}
-    const sub=L.f.map((x,i)=>x-R.f[i]),settle=()=>{if(a<1){const u=.1;for(let i=0;i<R.f.length;i++)R.f[i]+=(L.f[i]-R.f[i])*u;R.o+=(L.o-R.o)*u;R.w+=(L.w-R.w)*u}};
-    if(this.cal)return;
-    const w=this.win;if(w){if(!w.t0)w.t0=now;w.fr.push(sub);w.a.push(a);st.res('●','Жазылып жатыр…',(now-w.t0)/w.dur);if(now-w.t0>=w.dur)w.done(this.trim(w.fr,w.a));return}
+    const sub=L.f.map((x,i)=>x-R.f[i]),dt=Math.min(200,now-(this.lt||now)),settle=()=>{if(a<.7){const u=1-Math.exp(-dt/350);for(let i=0;i<R.f.length;i++)R.f[i]+=(L.f[i]-R.f[i])*u;R.o+=(L.o-R.o)*u;R.w+=(L.w-R.w)*u}};
+    this.lt=now;if(this.cal)return;
+    const w=this.win;if(w){if(!w.t0)w.t0=now;w.F.push(L.f.slice());w.o.push(L.o);st.res('●','Жазылып жатыр…',(now-w.t0)/w.dur);if(now-w.t0>=w.dur)w.done(this.analyse(w));return}
     if(this.train){settle();return}
     if(!this.seg){settle();this.pre.push({f:sub,a});if(this.pre.length>3)this.pre.shift();this.act=a>=1?this.act+1:0;
       if(this.act>=2||a>=2){this.seg={fr:this.pre.map(p=>p.f),a:this.pre.map(p=>p.a),t0:now,lastAct:now};this.pre=[];this.act=0}
