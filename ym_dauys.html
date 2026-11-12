@@ -293,10 +293,11 @@ ul.plain b{color:var(--tx)}
           <div class="comp-text empty">Танылған сөздер осында жиналады</div>
           <div class="row"><button data-c="back" aria-label="Соңғысын өшіру"><svg class="i" data-i="back"></svg></button><button data-c="clear">Тазалау</button><label class="chk"><input type="checkbox" data-c="auto">Бірден айту</label><button class="pri" data-c="say"><svg class="i" data-i="spk"></svg>Айту</button></div>
         </div>
+        <button class="pri amb" id="lRec" style="width:100%;margin-top:12px"><svg class="i" data-i="lips"></svg>Сөзді жазып тану (2 секунд)</button>
         <div id="lCandBox" hidden><p class="hint" style="margin:12px 0 0">Дұрыс танылмады ма? Дұрысын басыңыз — қосымша осы жазбадан үйренеді:</p><div class="chips" id="lCands"></div></div>
         <div class="card">
           <h3>Жаңа сөз үйрету</h3>
-          <p class="hint">Сөзді жазып, «Үйрету» батырмасын басыңыз да, оны ерінмен 3 рет айтыңыз. Әр айтқан сайын ерніңізді бір сәт жұмыңыз.</p>
+          <p class="hint">Сөзді жазып, «Үйрету» батырмасын басыңыз. Экранда «Қазір айтыңыз» деп шыққанда сөзді ерінмен анық айтыңыз — осылай 3 рет жазылады. Арасында ерніңізді жұмып тұрыңыз.</p>
           <div class="inrow"><input type="text" id="lPhrase" placeholder="Сөз немесе қысқа сөйлем" autocomplete="off"><button class="pri" id="lTrain">Үйрету</button></div>
         </div>
         <div class="card"><h3>Менің сөздерім <span class="cnt" id="lCnt"></span></h3><div class="list" id="lList"></div></div>
@@ -415,9 +416,11 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const raf=()=>new Promise(r=>requestAnimationFrame(r));
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const MOBILE=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
-let Z=1;function fit(){const sw=Math.min(screen.width||9999,screen.height||9999);Z=(MOBILE&&sw<700&&innerWidth>sw*1.4)?innerWidth/Math.min(screen.width,innerWidth):1;
-  document.documentElement.style.zoom=Z===1?'':Z;document.body.classList.toggle('wide',innerWidth/Z>=900)}
+const TOUCH=navigator.maxTouchPoints>0&&matchMedia('(pointer:coarse)').matches;
+const MOBILE=TOUCH||/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+let Z=1;function fit(){const iw=innerWidth,dw=Math.min(...[screen.width,window.outerWidth].filter(v=>v>200),9999);Z=1;
+  if(MOBILE){if(dw<700&&iw>dw*1.4)Z=iw/dw;else if(dw>=700&&iw>=900&&innerHeight>iw*1.25&&!/iPad|Macintosh/.test(navigator.userAgent))Z=iw/412}
+  document.documentElement.style.zoom=Z===1?'':Z;document.body.classList.toggle('wide',iw/Z>=900)}
 fit();addEventListener('resize',fit);
 const LOCALF=!window.isSecureContext||(MOBILE&&/^(content|file):$/.test(location.protocol));
 const NOHTTPS='Бұл бет телефон жадындағы файлдан ашылған, ал браузер мұндай бетке камера мен микрофонды бермейді. Қосымшаны https сілтемесі арқылы ашу керек.';
@@ -563,12 +566,13 @@ class Stage{
     if(my!==this.gen)return;
     this.on=true;this.root.classList.add('live');if(this.camLbl)this.camLbl.textContent='Өшіру';this.status(this.isFile?'Бейне талдануда':'Камера қосулы','ok');wake();
     if(this.v.videoWidth)this.root.style.aspectRatio=this.v.videoWidth+'/'+this.v.videoHeight;
-    this.onStart&&this.onStart();this.loop(my,detect)}
+    this.ft=0;this.fps=0;this.onStart&&this.onStart();this.loop(my,detect)}
   async loop(my,detect){const v=this.v;while(my===this.gen){if(v.readyState>=2&&v.videoWidth&&!v.paused&&!v.ended){
       if(this.c.width!==v.videoWidth||this.c.height!==v.videoHeight){this.c.width=v.videoWidth;this.c.height=v.videoHeight;this.root.style.aspectRatio=v.videoWidth+'/'+v.videoHeight}
       let r=null;try{r=await detect(v)}catch(e){}
       if(my!==this.gen)break;this.g.clearRect(0,0,this.c.width,this.c.height);
-      try{this.onFrame(r,performance.now(),this)}catch(e){console.error(e)}}
+      const t=performance.now();this.fps=this.ft?this.fps*.8+(1000/Math.max(1,t-this.ft))*.2:0;this.ft=t;if(!this.isFile&&t-(this.fs||0)>1000&&this.fps){this.fs=t;this.status('Камера қосулы · '+Math.round(this.fps)+' кадр/с','ok')}
+      try{this.onFrame(r,t,this)}catch(e){console.error(e)}}
     await raf()}}
   stop(silent){this.gen++;if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null}
     try{this.v.pause()}catch(e){}if(this.v.src){try{URL.revokeObjectURL(this.v.src)}catch(e){}this.v.removeAttribute('src');this.v.load()}this.v.srcObject=null;
@@ -672,7 +676,7 @@ const Sign={mode:'stat',train:null,seg:{fr:[],last:0,t0:0,ref:{}},stab:{cur:null
     if(hs.length){if(!sg.fr.length){sg.t0=now;sg.ref={}}sg.fr.push(dynFeat(hs,sg.ref));sg.last=now;this.st.res('●','Қимыл жазылып жатыр — біткен соң қолды түсіріңіз',clamp((now-sg.t0)/5000,0,1));if(now-sg.t0>5000)this.endSeg()}
     else if(sg.fr.length){if(now-sg.last>350)this.endSeg()}
     else if(!this.train&&now-(this.shown||0)>2500)this.st.res('','Қолды кадрға кіргізіп, ымды көрсетіңіз',0)},
-  endSeg(){const fr=this.seg.fr;this.seg.fr=[];if(fr.length<8)return;const q=resample(fr,RN),T=this.train;
+  endSeg(){const fr=this.seg.fr,dur=this.seg.last-this.seg.t0;this.seg.fr=[];if(fr.length<4||dur<300)return;const q=resample(fr,RN),T=this.train;
     if(T&&T.kind==='dyn'){T.t.push(q);vib(50);if(T.t.length<3){this.st.over(`Тағы да көрсетіңіз (${T.t.length+1} / 3)`);return}
       const ex=T.id&&DB.dyn.find(x=>x.id===T.id);if(ex){ex.t=ex.t.concat(T.t).slice(-9);ex.r=intra(ex.t)}else DB.dyn.push({id:uid(),phrase:T.phrase,t:T.t,r:intra(T.t)});
       this.done('«'+T.phrase+'» қозғалыс ымы сақталды');return}
@@ -695,44 +699,64 @@ function drawLips(g,c,lm){const W=c.width,H=c.height;g.lineWidth=Math.max(2,W/26
   const ring=(ids,fill)=>{g.beginPath();ids.forEach((i,k)=>{const x=lm[i].x*W,y=lm[i].y*H;k?g.lineTo(x,y):g.moveTo(x,y)});g.closePath();if(fill){g.fillStyle=fill;g.fill()}g.stroke()};
   g.strokeStyle='#ffb224';ring(RO);g.strokeStyle='#fff';ring(RI,'rgba(255,178,36,.28)')}
 
-const Lips={mode:'words',train:null,prev:null,rest:null,pre:[],act:0,seg:null,lastClip:null,dr:{target:'А',since:0,score:0,hit:0},
-  init(){const st=this.st=new Stage($('#stL'),()=>Vision.face());st.onFrame=(r,now)=>this.frame(r,now);st.onEnd=()=>{if(this.seg)this.endSeg()};st.onStop=()=>this.cancel();st.onStart=()=>{this.rest=null;this.prev=null;this.seg=null;this.pre=[]};
+const Lips={mode:'words',train:null,prev:null,rest:null,omin:1,noise:{d:.015,o:.008},cal:null,win:null,pre:[],act:0,seg:null,lastClip:null,dr:{target:'А',since:0,score:0,hit:0},
+  init(){const st=this.st=new Stage($('#stL'),()=>Vision.face());st.onFrame=(r,now)=>this.frame(r,now);st.onEnd=()=>{const sg=this.seg;if(sg){this.seg=null;this.clip(this.trim(sg.fr,sg.a))}};st.onStop=()=>this.cancel();
+    st.onStart=()=>{this.rest=null;this.prev=null;this.seg=null;this.win=null;this.cal=null;this.pre=[];this.omin=1};
     this.cmp=Composer($('#cmpL'),'ерін');
     $$('#lMode button').forEach(b=>b.onclick=()=>{this.mode=b.dataset.m;$$('#lMode button').forEach(x=>x.classList.toggle('on',x===b));$('#lWords').hidden=this.mode!=='words';$('#lDrill').hidden=this.mode!=='drill';this.cancel();if(this.mode==='drill')this.nextDrill()});
-    $('#lTrain').onclick=()=>this.train?this.cancel():this.begin();$('#drNext').onclick=()=>this.nextDrill();this.render()},
+    $('#lTrain').onclick=()=>this.train?this.cancel():this.begin();$('#lRec').onclick=()=>this.manual();$('#drNext').onclick=()=>this.nextDrill();this.render()},
   render(){renderList($('#lList'),$('#lCnt'),DB.lips,it=>`${it.t.length} жазба`,it=>{$('#lPhrase').value=it.phrase;this.begin(it.id)},
     it=>{DB.lips=DB.lips.filter(x=>x.id!==it.id);saveDB();this.render()},'Әзірге сөз үйретілмеген. Жиі қолданатын 5–10 сөзден бастаңыз: «иә», «жоқ», «су», «рақмет», «көмек».')},
+  /* тыныш күйді өлшеу: ерін жұмық тұрғандағы пішін мен шу деңгейі */
+  async calibrate(ms){const c=this.cal={fs:[],os:[],ws:[]};await sleep(ms);if(this.cal!==c)return false;this.cal=null;const n=c.fs.length;if(n<3)return false;
+    const f=new Array(c.fs[0].length).fill(0);for(const x of c.fs)for(let i=0;i<f.length;i++)f[i]+=x[i]/n;const o=c.os.reduce((a,b)=>a+b,0)/n,w=c.ws.reduce((a,b)=>a+b,0)/n;
+    this.rest={f,o,w};this.noise={d:c.fs.reduce((a,x)=>a+eu(x,f),0)/n,o:c.os.reduce((a,x)=>a+Math.abs(x-o),0)/n};this.omin=Math.min(this.omin,o);return true},
+  /* белгілі уақыт ішінде жазу: сөз толық сыйсын деп терезе ұзындау алынады */
+  record(dur){return new Promise(res=>{const w=this.win={fr:[],a:[],t0:0,dur,done:q=>{if(this.win===w)this.win=null;res(q)}};setTimeout(()=>{if(this.win===w)w.done(this.trim(w.fr,w.a))},dur+1200)})},
+  trim(fr,a){let s=-1,e=-1;for(let i=0;i<a.length;i++)if(a[i]>=1){if(s<0)s=i;e=i}if(s<0)return null;const out=fr.slice(Math.max(0,s-1),Math.min(fr.length,e+2));return out.length<3?null:resample(out,RN)},
   async begin(id){const phrase=$('#lPhrase').value.trim();if(!phrase){toast('Алдымен сөзді жазыңыз');$('#lPhrase').focus();return}
     if(!this.st.on){await this.st.start();if(!this.st.on)return}
     if(!id){const ex=DB.lips.find(x=>x.phrase.toLowerCase()===phrase.toLowerCase());if(ex)id=ex.id}
-    const T=this.train={phrase,id,t:[],go:false};$('#lTrain').textContent='Тоқтату';this.st.over('Ерніңізді жұмып, камераға қараңыз');await sleep(1300);if(this.train!==T)return;
-    this.seg=null;T.go=true;this.st.over(`«${phrase}» деп айтыңыз (1 / 3)`)},
-  cancel(){if(!this.train)return;this.train=null;$('#lTrain').textContent='Үйрету';this.st.over(null);this.seg=null},
+    const T=this.train={phrase,id,t:[]},st=this.st,live=()=>this.train===T;$('#lTrain').textContent='Тоқтату';this.seg=null;
+    st.over('Ерніңізді жұмып, камераға тура қараңыз');const ok=await this.calibrate(1600);if(!live())return;
+    if(!ok){this.cancel();toast('Бет көрінбеді. Камераға тура қарап, жарық жерде қайта бастаңыз.',5000);return}
+    let fails=0;
+    while(T.t.length<3){st.over(`Дайындалыңыз… (${T.t.length+1} / 3)`);await sleep(900);if(!live())return;
+      st.over(`Қазір айтыңыз: «${phrase}»`);const q=await this.record(2200);if(!live())return;
+      if(q){T.t.push(q);vib(50);st.over('Жазылды ✓ Ерніңізді жұмыңыз');await sleep(800)}
+      else{if(++fails>=4){this.cancel();toast('Ерін қимылы байқалмады. Жарықты күшейтіп, бетті жақындатып, ауызды анығырақ ашып айтыңыз.',7000);return}
+        st.over('Ерін қимылы байқалмады — ауызды анығырақ ашып айтыңыз');await sleep(1500)}
+      if(!live())return}
+    const ex=T.id&&DB.lips.find(x=>x.id===T.id);if(ex){ex.t=ex.t.concat(T.t).slice(-9);ex.r=intra(ex.t)}else DB.lips.push({id:uid(),phrase:T.phrase,t:T.t,r:intra(T.t)});
+    this.train=null;$('#lTrain').textContent='Үйрету';st.over(null);$('#lPhrase').value='';saveDB();this.render();toast('«'+T.phrase+'» сөзі сақталды');vib([60,40,60])},
+  cancel(){if(this.win)this.win.done(null);this.cal=null;if(!this.train)return;this.train=null;$('#lTrain').textContent='Үйрету';this.st.over(null);this.seg=null},
+  async manual(){if(this.train||this.win)return;if(!DB.lips.length){toast('Алдымен бір-екі сөз үйретіңіз');return}
+    if(!this.st.on){await this.st.start();if(!this.st.on)return;await sleep(600)}
+    this.seg=null;const b=$('#lRec');b.disabled=true;const q=await this.record(2200);b.disabled=false;this.clip(q)},
   nextDrill(){const all=['А','О','У','И','Э','М'],d=this.dr;let t;do{t=all[Math.floor(Math.random()*all.length)]}while(t===d.target);d.target=t;d.since=0;d.hit=0;$('#drTarget').textContent=t;$('#drTarget').classList.remove('hit');$('#drText').textContent=VN[t];$('#drProg').style.width='0%'},
   frame(res,now){const st=this.st,lm=res&&res.multiFaceLandmarks&&res.multiFaceLandmarks[0];
-    if(!lm){$('#visBig').textContent='–';$('#visName').textContent=VN['–'];$('#visOpen').style.width='0%';st.res('','Бетіңізді камераға тура ұстаңыз',0);if(this.seg&&now-this.seg.lastAct>450)this.endSeg();this.prev=null;return}
+    if(!lm){$('#visBig').textContent='–';$('#visName').textContent=VN['–'];$('#visOpen').style.width='0%';$('#visHint').textContent='Бетіңізді камераға тура ұстаңыз';if(!this.win)st.res('','Бет көрінбей тұр',0);
+      const sg=this.seg;if(sg&&now-sg.lastAct>450){this.seg=null;this.clip(this.trim(sg.fr,sg.a))}this.prev=null;return}
     const L=lipFeat(lm,st.c.width/st.c.height);drawLips(st.g,st.c,lm);
     if(this.prev)for(let i=0;i<L.f.length;i++)L.f[i]=L.f[i]*.65+this.prev.f[i]*.35;
-    const m=this.prev?eu(L.f,this.prev.f):0;this.prev=L;
-    if(!this.rest)this.rest={f:L.f.slice(),o:L.o,w:L.w};const R=this.rest,k=1/S.sens;
-    const quiet=m<.045*k&&L.o<R.o+.02;
-    const v=viseme(L.o-Math.min(R.o,.015),L.w,R.w);$('#visBig').textContent=v;$('#visName').textContent=VN[v];$('#visOpen').style.width=clamp(L.o/.3,0,1)*100+'%';
+    this.prev=L;if(this.cal){const c=this.cal;c.fs.push(L.f.slice());c.os.push(L.o);c.ws.push(L.w)}
+    if(!this.rest)this.rest={f:L.f.slice(),o:L.o,w:L.w};const R=this.rest,k=1/S.sens;this.omin=Math.min(this.omin+.0002,L.o);
+    const thrD=Math.max(.045,3*this.noise.d)*k,thrO=Math.max(.025,3*this.noise.o)*k,a=Math.max(eu(L.f,R.f)/thrD,(L.o-R.o)/thrO);
+    const oo=Math.max(0,L.o-this.omin),v=viseme(oo,L.w,R.w);$('#visBig').textContent=v;$('#visName').textContent=VN[v];$('#visOpen').style.width=clamp(oo/.28,0,1)*100+'%';
+    $('#visHint').textContent=a>=1?'Ерін қимылы байқалды':'Ерін тыныш күйде';$('#visOpen').style.background=a>=1?'var(--amb)':'';
     if(this.mode==='drill'){this.drill(v,now);return}
-    const T=this.train;if(T&&!T.go)return;
-    if(!this.seg){if(quiet){const a=.12;for(let i=0;i<R.f.length;i++)R.f[i]+=(L.f[i]-R.f[i])*a;R.o+=(L.o-R.o)*a;R.w+=(L.w-R.w)*a}
-      this.pre.push(L.f.slice());if(this.pre.length>3)this.pre.shift();
-      this.act=(L.o>R.o+.035||m>.07*k)?this.act+1:0;
-      if(this.act>=2){const r0=R.f.slice();this.seg={r0,fr:this.pre.map(f=>f.map((x,i)=>x-r0[i])),t0:now,lastAct:now,lastIdx:this.pre.length-1};this.pre=[];this.act=0}
-      else if(!T&&now-(this.shown||0)>2500)st.res('',DB.lips.length?'Сөзді ерінмен айтыңыз':'Алдымен бір-екі сөз үйретіңіз',0);return}
-    const sg=this.seg;sg.fr.push(L.f.map((x,i)=>x-sg.r0[i]));if(!quiet){sg.lastAct=now;sg.lastIdx=sg.fr.length-1}
-    st.res('●','Ерін қимылы жазылып жатыр…',clamp((now-sg.t0)/5000,0,1));
-    if(now-sg.lastAct>450||now-sg.t0>5000)this.endSeg()},
-  endSeg(){const sg=this.seg;this.seg=null;if(!sg)return;const fr=sg.fr.slice(0,sg.lastIdx+3);if(fr.length<6)return;const q=resample(fr,RN),T=this.train;
-    if(T){T.t.push(q);vib(50);if(T.t.length<3){this.st.over(`Тағы бір рет айтыңыз (${T.t.length+1} / 3)`);return}
-      const ex=T.id&&DB.lips.find(x=>x.id===T.id);if(ex){ex.t=ex.t.concat(T.t).slice(-9);ex.r=intra(ex.t)}else DB.lips.push({id:uid(),phrase:T.phrase,t:T.t,r:intra(T.t)});
-      this.train=null;$('#lTrain').textContent='Үйрету';this.st.over(null);$('#lPhrase').value='';saveDB();this.render();toast('«'+T.phrase+'» сөзі сақталды');vib([60,40,60]);return}
-    if(!DB.lips.length)return;
-    const r=seqClassify(DB.lips,q,.12);this.shown=performance.now();this.lastClip={q,said:r.ok?r.best.w.id:null};
+    const sub=L.f.map((x,i)=>x-R.f[i]),settle=()=>{if(a<1){const u=.1;for(let i=0;i<R.f.length;i++)R.f[i]+=(L.f[i]-R.f[i])*u;R.o+=(L.o-R.o)*u;R.w+=(L.w-R.w)*u}};
+    if(this.cal)return;
+    const w=this.win;if(w){if(!w.t0)w.t0=now;w.fr.push(sub);w.a.push(a);st.res('●','Жазылып жатыр…',(now-w.t0)/w.dur);if(now-w.t0>=w.dur)w.done(this.trim(w.fr,w.a));return}
+    if(this.train){settle();return}
+    if(!this.seg){settle();this.pre.push({f:sub,a});if(this.pre.length>3)this.pre.shift();this.act=a>=1?this.act+1:0;
+      if(this.act>=2||a>=2){this.seg={fr:this.pre.map(p=>p.f),a:this.pre.map(p=>p.a),t0:now,lastAct:now};this.pre=[];this.act=0}
+      else if(now-(this.shown||0)>2500)st.res('',DB.lips.length?'Сөзді ерінмен айтыңыз':'Алдымен бір-екі сөз үйретіңіз',0);return}
+    const sg=this.seg;sg.fr.push(sub);sg.a.push(a);if(a>=1)sg.lastAct=now;st.res('●','Ерін қимылы жазылып жатыр…',clamp((now-sg.t0)/5000,0,1));
+    if(now-sg.lastAct>450){this.seg=null;this.clip(this.trim(sg.fr,sg.a))}
+    else if(now-sg.t0>5000){this.seg=null;this.rest=null;this.shown=now;st.res('','Тыныш күй қайта өлшенді — ерніңізді бір сәт жұмыңыз',0)}},
+  clip(q){this.shown=performance.now();if(!q){this.st.res('','Ерін қимылы байқалмады',0);return}if(!DB.lips.length)return;
+    const r=seqClassify(DB.lips,q,.12);this.lastClip={q,said:r.ok?r.best.w.id:null};
     if(r.ok){this.st.res(r.best.w.phrase,'Сенімділік '+Math.round(r.best.conf*100)+'%',1);this.cmp.add(r.best.w.phrase)}
     else this.st.res('?','Сенімді танылмады — төменнен дұрысын таңдаңыз',0);
     const box=$('#lCands');box.innerHTML='';$('#lCandBox').hidden=!r.cands.length;
