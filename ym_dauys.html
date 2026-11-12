@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ым-Дауыс — сурдоаудармашы көмекші</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1016;--pan:#141b25;--pan2:#1c2533;--line:#27344a;--tx:#eef2f7;--mut:#93a1b5;--amb:#ffb224;--mint:#3ddbb0;--red:#ff5a4f;--r:16px;
+--f:'Golos Text',system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans',sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--tx);font:16px/1.45 var(--f);display:flex;flex-direction:column;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+h2{font-size:22px;line-height:1.2;margin:0 0 4px;font-weight:800;letter-spacing:-.01em;text-wrap:balance}
+h3{font-size:15px;margin:0 0 10px;font-weight:700;letter-spacing:.01em}
+p{margin:0 0 10px}
+.hint{color:var(--mut);font-size:14px}
+.hdr{flex:none;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--line);background:rgba(11,16,22,.9)}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--mint) 0 50%,var(--amb) 50% 100%);display:grid;place-items:center;color:#0b1016}
+.logo svg{width:22px;height:22px}
+.brand b{display:block;font-size:17px;font-weight:800;line-height:1.1}
+.brand span{font-size:12px;color:var(--mut)}
+.sos{background:var(--red);color:#fff;font-weight:800;padding:9px 16px;border-radius:999px;letter-spacing:.06em;font-size:14px}
+#spoken{flex:none;display:flex;gap:10px;align-items:center;padding:8px 16px;background:var(--amb);color:#1a1200;font-weight:600;font-size:15px}
+#spoken span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.view{display:none;max-width:1080px;margin:0 auto;padding:16px 16px 28px}
+.view.on{display:block}
+.lead{margin-bottom:14px}
+nav.tabs{flex:none;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--pan);padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 8px;font-size:11.5px;font-weight:600;color:var(--mut);position:relative}
+nav.tabs button.on{color:var(--tx)}
+nav.tabs button.on::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--mint)}
+.btn,.ctl button,.row button,.pri{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 14px;border-radius:12px;background:var(--pan2);border:1px solid var(--line);font-weight:600;font-size:14.5px;white-space:nowrap}
+.pri,.row .pri,.ctl .pri{background:var(--mint);border-color:var(--mint);color:#06231b}
+.pri.amb,.row .pri.amb{background:var(--amb);border-color:var(--amb);color:#231700}
+.warn{background:var(--red)!important;border-color:var(--red)!important;color:#fff!important}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.btn:focus-within{outline:2px solid var(--amb);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.inrow{display:flex;gap:8px}
+.inrow input{flex:1;min-width:0}
+input[type=text],input[type=tel],select,textarea{min-height:44px;padding:0 12px;border-radius:12px;background:var(--bg);border:1px solid var(--line);width:100%}
+textarea{padding:10px 12px;min-height:70px;resize:vertical}
+input[type=range]{width:100%;accent-color:var(--mint)}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;min-height:44px;cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:var(--mint)}
+.card{background:var(--pan);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-top:12px}
+details.card>summary{font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;min-height:28px}
+details.card>summary::after{content:"+";color:var(--mut);font-size:22px;line-height:1}
+details.card[open]>summary::after{content:"–"}
+details.card[open]>summary{margin-bottom:12px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--pan);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+.seg button{min-height:38px;border-radius:9px;font-weight:600;font-size:14px;color:var(--mut)}
+.seg button.on{background:var(--tx);color:var(--bg)}
+.duo{display:grid;gap:14px}
+.duo>*{min-width:0}
+body.wide .duo{grid-template-columns:1.05fr .95fr;gap:22px;align-items:start}
+/* stage */
+.stage{position:relative;aspect-ratio:4/3;max-height:62vh;margin:0 auto;background:#05080c;border-radius:20px;overflow:hidden;border:1px solid var(--line)}
+.stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.stage.mirror video,.stage.mirror canvas{transform:scaleX(-1)}
+.st-status{position:absolute;top:10px;left:10px;font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:rgba(5,8,12,.72);display:flex;gap:6px;align-items:center}
+.st-status::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mut)}
+.st-status.ok::before{background:var(--mint)}.st-status.busy::before{background:var(--amb)}.st-status.err::before{background:var(--red)}
+.st-res{position:absolute;left:0;right:0;bottom:0;padding:26px 14px 12px;background:linear-gradient(transparent,rgba(5,8,12,.88) 45%);display:none}
+.stage.live .st-res{display:block}
+.st-res b{display:block;font-size:26px;font-weight:800;line-height:1.15;min-height:30px;text-wrap:balance}
+.st-res span{font-size:13px;color:var(--mut)}
+.st-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.14);margin-top:8px;overflow:hidden}
+.st-bar i{display:block;height:100%;width:0;background:var(--mint)}
+.st-over{position:absolute;inset:0;display:grid;place-items:center;text-align:center;background:rgba(5,8,12,.6);font-size:22px;font-weight:800;padding:20px}
+.st-over.num{font-size:96px}
+.st-idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px}
+.stage.live .st-idle{display:none}
+.st-idle svg.i{width:44px;height:44px;color:var(--mut)}
+.st-idle p{max-width:34ch;color:var(--mut);font-size:14px;margin:0}
+.ctl{display:flex;gap:8px;margin-top:10px}
+.ctl>*{flex:1;min-width:0;padding:0 10px}
+.ctl>[data-act=flip]{flex:none;width:48px;padding:0}
+/* composer */
+.comp{background:var(--pan);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-top:12px}
+.comp-text{min-height:58px;font-size:22px;font-weight:700;line-height:1.25;padding:4px 2px 12px;overflow-wrap:anywhere}
+.comp-text.empty{color:var(--mut);font-weight:500;font-size:15px}
+.comp .row .pri{margin-left:auto}
+.comp .row .chk{order:5;flex-basis:100%;min-height:34px}
+.list{display:grid;gap:8px}
+.it{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 12px;border-radius:12px;background:var(--bg);border:1px solid var(--line)}
+.it div{flex:1;min-width:0}
+.it b{display:block;overflow-wrap:anywhere}
+.it small{color:var(--mut);font-size:12.5px}
+.it button{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:var(--mut);flex:none}
+.it button:hover{background:var(--pan2);color:var(--tx)}
+.it button.sure{background:var(--red);color:#fff;width:auto;padding:0 10px;font-size:13px;font-weight:700}
+.it .em{font-size:24px;width:34px;text-align:center;flex:none}
+.it input{min-height:38px}
+.empty-note{color:var(--mut);font-size:14px;padding:6px 2px}
+.cnt{color:var(--mut);font-weight:500}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chip{min-height:40px;padding:0 14px;border-radius:999px;background:var(--pan2);border:1px solid var(--line);font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px}
+.chip small{color:var(--mut);font-weight:500}
+.chip.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+/* talk */
+#v-talk.on{display:flex;flex-direction:column;min-height:100%;padding-bottom:0}
+.log{flex:1;display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
+.bub{max-width:86%;padding:10px 14px;border-radius:18px;font-size:var(--cap,22px);line-height:1.3;font-weight:600;overflow-wrap:anywhere;text-align:left}
+.bub small{display:block;font-size:12px;font-weight:600;opacity:.7;margin-bottom:2px}
+.bub.other{align-self:flex-start;background:var(--pan2);border:1px solid var(--line);border-bottom-left-radius:6px}
+.bub.other small{color:var(--amb);opacity:1}
+.bub.me{align-self:flex-end;background:#0f3b32;border:1px solid #1c5a4c;border-bottom-right-radius:6px}
+.bub.me small{color:var(--mint);opacity:1}
+.bub.live{border-style:dashed;opacity:.85}
+.welcome{margin:auto 0;padding:12px 0}
+.welcome ol{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+.welcome li{display:flex;gap:12px;align-items:flex-start;background:var(--pan);border:1px solid var(--line);border-radius:14px;padding:12px}
+.welcome li svg{color:var(--mint);margin-top:1px}
+.welcome li:nth-child(1) svg{color:var(--amb)}
+.welcome li b{display:block}
+.welcome li span{color:var(--mut);font-size:14px}
+.talkbar{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 18px);padding:18px 0 12px;display:grid;gap:8px}
+.mic{flex:1;min-height:56px;border-radius:16px;background:var(--amb);color:#231700;font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center;gap:10px}
+.mic.on{background:var(--red);color:#fff}
+.mic.on svg{animation:pulse 1.1s infinite}
+@keyframes pulse{50%{transform:scale(1.25)}}
+#srSeg{flex:none;grid-auto-flow:row;width:64px;padding:3px;gap:2px}
+#srSeg button{min-height:24px;font-size:12px;border-radius:8px}
+.tools{display:grid;grid-template-columns:repeat(3,1fr)}
+.tools button{min-height:40px;font-size:13.5px;padding:0 8px}
+/* phrases */
+.cats{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cats .chip{flex:none}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.ph{text-align:left;padding:12px 14px;border-radius:14px;background:var(--pan);border:1px solid var(--line);min-height:68px;position:relative}
+.ph b{display:block;font-size:16.5px;line-height:1.25}
+.ph small{color:var(--mut);font-size:13px}
+.ph.urgent{border-color:#7a2b26;background:#2a1513}
+.ph .rm{position:absolute;top:6px;right:6px;width:32px;height:32px;border-radius:8px;color:var(--mut);display:grid;place-items:center}
+/* overlays */
+.ovl{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;flex-direction:column}
+#big .txt{flex:1;display:grid;place-items:center;text-align:center;padding:20px;font-weight:800;line-height:1.15;overflow-wrap:anywhere;overflow:auto}
+#big.rot .txt{transform:rotate(180deg)}
+.ovl .bar{display:flex;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--pan)}
+.ovl .bar>*{flex:1}
+#f2f .half{flex:1;min-height:0;display:flex;flex-direction:column;padding:14px 16px;overflow:hidden}
+#f2f .top{transform:rotate(180deg);background:#0f3b32;border-top:1px solid #1c5a4c}
+#f2f .half small{font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.8}
+#f2f .top small{color:var(--mint)}#f2f .bot small{color:var(--amb)}
+#f2f .t{flex:1;display:flex;align-items:center;font-size:30px;font-weight:800;line-height:1.2;overflow:auto;overflow-wrap:anywhere}
+#f2f .t.ph0{color:var(--mut);font-weight:500;font-size:17px}
+#sos{background:#b3261e;color:#fff;overflow:auto}
+#sos .in{flex:1;padding:22px 20px;display:flex;flex-direction:column;gap:12px;max-width:640px;margin:0 auto;width:100%}
+#sos h1{font-size:44px;line-height:1.02;margin:0;font-weight:800;letter-spacing:-.01em}
+#sos .sub{font-size:20px;font-weight:600}
+#sos .box{background:rgba(0,0,0,.22);border-radius:14px;padding:12px 14px;font-size:16px}
+#sos .box b{font-size:13px;letter-spacing:.05em;text-transform:uppercase;opacity:.8;display:block}
+#sos .nums{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+#sos .nums a{background:#fff;color:#b3261e;border-radius:12px;padding:8px 2px;text-decoration:none;font-weight:800;font-size:22px;line-height:1.1}
+#sos .nums a span{display:block;font-size:11px;font-weight:600}
+#sos .bar{background:#8e1d17;border-color:#8e1d17}
+#sos .bar button{background:#fff;color:#8e1d17;border-color:#fff}
+#sos.fl{animation:fl .5s steps(2) infinite}
+@keyframes fl{50%{background:#fff;color:#b3261e}}
+#flash{position:fixed;inset:0;z-index:40;display:grid;place-items:center;text-align:center;padding:24px;background:var(--amb);color:#1a1200;font-size:28px;font-weight:800;animation:fa .45s steps(2) 6}
+#flash small{display:block;font-size:16px;font-weight:600;margin-top:8px}
+@keyframes fa{50%{background:#fff}}
+#toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);z-index:50;background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:14.5px;max-width:min(92vw,520px);text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+/* misc */
+.meter{height:14px;border-radius:7px;background:var(--bg);border:1px solid var(--line);position:relative;overflow:hidden;margin:8px 0}
+.meter i{position:absolute;inset:0 auto 0 0;width:0;background:var(--mint)}
+.meter u{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--red)}
+.vis{display:flex;align-items:center;gap:14px;margin-top:12px}
+.vis .big{width:74px;height:74px;border-radius:18px;background:var(--pan);border:1px solid var(--line);display:grid;place-items:center;font-size:34px;font-weight:800;color:var(--amb);flex:none}
+.vis .big.hit{background:var(--mint);color:#06231b;border-color:var(--mint)}
+.vis div{flex:1;min-width:0}
+.field{display:grid;gap:6px;margin-bottom:12px}
+.field>span{font-size:13.5px;color:var(--mut);font-weight:600;display:flex;justify-content:space-between}
+.note{border-left:3px solid var(--amb);padding:2px 0 2px 12px;color:var(--mut);font-size:14px;margin:10px 0}
+ul.plain{margin:0;padding-left:18px;color:var(--mut);font-size:14.5px}
+ul.plain li{margin-bottom:6px}
+ul.plain b{color:var(--tx)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="brand">
+    <div class="logo"><svg class="i" viewBox="0 0 24 24"><path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V11m0-5.5v-1a1.5 1.5 0 0 1 3 0V11m0-4.5a1.5 1.5 0 0 1 3 0V14a6 6 0 0 1-6 6 6 6 0 0 1-5-2.6L4.6 15a1.6 1.6 0 0 1 2.6-1.8l.8 1"/></svg></div>
+    <div><b>Ым-Дауыс</b><span>сурдоаудармашы көмекші</span></div>
+  </div>
+  <button class="sos" id="sosBtn" aria-label="Шұғыл карта">SOS</button>
+</header>
+<div id="spoken" hidden><svg class="i" data-i="spk"></svg><span></span></div>
+
+<main id="main">
+<!-- ============ СӨЙЛЕСУ ============ -->
+<section class="view on" id="v-talk">
+  <div class="log" id="log">
+    <div class="welcome" id="welcome">
+      <h2>Естімейтін және еститін адам арасындағы көпір</h2>
+      <p class="hint">Әңгімелесушінің сөзі мәтінге айналады, ал сіздің ымыңыз, ерін қимылыңыз немесе жазғаныңыз дауыстап айтылады.</p>
+      <ol>
+        <li><svg class="i" data-i="mic"></svg><div><b>Тыңдау</b><span>Төмендегі сары батырманы басыңыз — айтылған сөз экранға ірі әріппен шығады.</span></div></li>
+        <li><svg class="i" data-i="hand"></svg><div><b>Ым → дауыс</b><span>«Ым» бөлімінде камера қол қимылын танып, дауыстап айтады.</span></div></li>
+        <li><svg class="i" data-i="lips"></svg><div><b>Ерін оқу</b><span>«Ерін» бөлімінде үнсіз айтылған сөз ерін қимылынан танылады.</span></div></li>
+      </ol>
+    </div>
+  </div>
+  <div class="talkbar">
+    <div class="inrow"><button class="mic" id="micBtn"><svg class="i" data-i="mic"></svg><span>Тыңдау</span></button>
+      <div class="seg" id="srSeg" role="group" aria-label="Тыңдау тілі"><button data-l="kk-KZ">ҚАЗ</button><button data-l="ru-RU">РУС</button></div></div>
+    <div class="inrow"><input type="text" id="say" placeholder="Жазыңыз — дауыстап айтамын" autocomplete="off"><button class="pri" id="sayBtn"><svg class="i" data-i="spk"></svg>Айту</button></div>
+    <div class="row tools">
+      <button id="f2fBtn"><svg class="i" data-i="f2f"></svg>Бетпе-бет</button>
+      <button id="copyLog">Көшіру</button>
+      <button id="clearLog">Тазалау</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ЫМ ============ -->
+<section class="view" id="v-sign">
+  <div class="lead"><h2>Ым → дауыс</h2><p class="hint">Камера қол қимылын танып, сөзге айналдырады. Өз ымдарыңызды үйретсеңіз, қосымша оларды есте сақтайды.</p></div>
+  <div class="duo">
+    <div>
+      <div class="stage" id="stS">
+        <video playsinline muted></video><canvas></canvas>
+        <div class="st-idle"><svg class="i" data-i="cam"></svg><p class="st-msg">Камераны қосып, қолыңызды кадрға көрсетіңіз.</p><button class="pri" data-act="cam">Камераны қосу</button></div>
+        <div class="st-status">Камера өшірулі</div>
+        <div class="st-res"><b></b><span></span><div class="st-bar"><i></i></div></div>
+        <div class="st-over" hidden></div>
+      </div>
+      <div class="ctl">
+        <button data-act="cam"><svg class="i" data-i="cam"></svg><span>Қосу</span></button>
+        <button data-act="flip" aria-label="Камераны айналдыру" title="Камераны айналдыру"><svg class="i" data-i="flip"></svg></button>
+        <label class="btn"><input type="file" accept="video/*" capture="user" hidden><svg class="i" data-i="up"></svg>Бейнеден</label>
+      </div>
+      <div class="comp" id="cmpS">
+        <div class="comp-text empty">Танылған сөздер осында жиналады</div>
+        <div class="row"><button data-c="back" aria-label="Соңғысын өшіру"><svg class="i" data-i="back"></svg></button><button data-c="clear">Тазалау</button><label class="chk"><input type="checkbox" data-c="auto">Бірден айту</label><button class="pri" data-c="say"><svg class="i" data-i="spk"></svg>Айту</button></div>
+      </div>
+    </div>
+    <div>
+      <div class="seg" id="sMode"><button data-m="stat" class="on">Тұрақты ым</button><button data-m="dyn">Қозғалыс ымы</button></div>
+      <div class="card">
+        <h3>Жаңа ым үйрету</h3>
+        <p class="hint" id="sHint"></p>
+        <div class="inrow"><input type="text" id="sPhrase" placeholder="Бұл ым нені білдіреді?" autocomplete="off"><button class="pri" id="sTrain">Үйрету</button></div>
+      </div>
+      <div class="card"><h3>Менің ымдарым <span class="cnt" id="sCnt"></span></h3><div class="list" id="sList"></div></div>
+      <details class="card"><summary>Дайын қимылдар (10)</summary>
+        <p class="hint">Бұлар — жалпыға түсінікті шартты қимылдар, қазақ ым тілінің сөздері емес. Мағынасын өзгертуге болады; бос қалдырсаңыз, қимыл өшеді.</p>
+        <label class="chk"><input type="checkbox" id="biOn">Дайын қимылдарды тану</label>
+        <div class="list" id="biList" style="margin-top:8px"></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ЕРІН ============ -->
+<section class="view" id="v-lips">
+  <div class="lead"><h2>Ерін қимылын оқу</h2><p class="hint">Сөзді дауыссыз, тек ерінмен айтыңыз — қосымша үйретілген сөздердің ішінен танып, дауыстап айтады.</p></div>
+  <div class="duo">
+    <div>
+      <div class="stage" id="stL">
+        <video playsinline muted></video><canvas></canvas>
+        <div class="st-idle"><svg class="i" data-i="cam"></svg><p class="st-msg">Камераны қосып, бетіңізді тура ұстаңыз. Жарық беттен түсіп тұрсын.</p><button class="pri" data-act="cam">Камераны қосу</button></div>
+        <div class="st-status">Камера өшірулі</div>
+        <div class="st-res"><b></b><span></span><div class="st-bar"><i></i></div></div>
+        <div class="st-over" hidden></div>
+      </div>
+      <div class="ctl">
+        <button data-act="cam"><svg class="i" data-i="cam"></svg><span>Қосу</span></button>
+        <button data-act="flip" aria-label="Камераны айналдыру" title="Камераны айналдыру"><svg class="i" data-i="flip"></svg></button>
+        <label class="btn"><input type="file" accept="video/*" capture="user" hidden><svg class="i" data-i="up"></svg>Бейнеден</label>
+      </div>
+      <div class="vis">
+        <div class="big" id="visBig">–</div>
+        <div><b id="visName">Ерін пішіні</b><div class="meter"><i id="visOpen"></i></div><span class="hint" id="visHint">Ауыздың ашылуы</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="seg" id="lMode"><button data-m="words" class="on">Сөз тану</button><button data-m="drill">Ерін жаттығуы</button></div>
+      <div id="lWords">
+        <div class="comp" id="cmpL">
+          <div class="comp-text empty">Танылған сөздер осында жиналады</div>
+          <div class="row"><button data-c="back" aria-label="Соңғысын өшіру"><svg class="i" data-i="back"></svg></button><button data-c="clear">Тазалау</button><label class="chk"><input type="checkbox" data-c="auto">Бірден айту</label><button class="pri" data-c="say"><svg class="i" data-i="spk"></svg>Айту</button></div>
+        </div>
+        <div id="lCandBox" hidden><p class="hint" style="margin:12px 0 0">Дұрыс танылмады ма? Дұрысын басыңыз — қосымша осы жазбадан үйренеді:</p><div class="chips" id="lCands"></div></div>
+        <div class="card">
+          <h3>Жаңа сөз үйрету</h3>
+          <p class="hint">Сөзді жазып, «Үйрету» батырмасын басыңыз да, оны ерінмен 3 рет айтыңыз. Әр айтқан сайын ерніңізді бір сәт жұмыңыз.</p>
+          <div class="inrow"><input type="text" id="lPhrase" placeholder="Сөз немесе қысқа сөйлем" autocomplete="off"><button class="pri" id="lTrain">Үйрету</button></div>
+        </div>
+        <div class="card"><h3>Менің сөздерім <span class="cnt" id="lCnt"></span></h3><div class="list" id="lList"></div></div>
+      </div>
+      <div id="lDrill" hidden>
+        <div class="card">
+          <h3>Дыбысты ерінмен көрсетіңіз</h3>
+          <p class="hint">Қосымша дауысты дыбыстың ерін пішінін тексереді. Тапсырмадағы дыбысты айтып, ерніңізді 1 секунд ұстап тұрыңыз.</p>
+          <div class="vis"><div class="big" id="drTarget">А</div><div><b id="drText">Камераны қосыңыз</b><div class="meter"><i id="drProg"></i></div><span class="hint" id="drScore">Дұрыс: 0</span></div></div>
+          <div class="row" style="margin-top:12px"><button id="drNext">Келесі дыбыс</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ФРАЗАЛАР ============ -->
+<section class="view" id="v-phr">
+  <div class="lead"><h2>Дайын фразалар</h2><p class="hint">Басыңыз — фраза дауыстап айтылады әрі экранға ірі әріппен шығады.</p></div>
+  <div class="cats" id="cats"></div>
+  <div class="pgrid" id="pgrid"></div>
+  <div class="card" id="phAdd"><h3>Өз фразаңызды қосу</h3><div class="inrow"><input type="text" id="phNew" placeholder="Мысалы: Мен 10 «А» сыныбында оқимын" autocomplete="off"><button class="pri" id="phAddBtn"><svg class="i" data-i="plus"></svg>Қосу</button></div></div>
+</section>
+
+<!-- ============ КӨБІРЕК ============ -->
+<section class="view" id="v-more">
+  <div class="lead"><h2>Қосымша құралдар</h2></div>
+
+  <details class="card" open><summary>Дыбыс дабылы</summary>
+    <p class="hint">Қатты дыбыс (есік қоңырауы, дабыл, айқай) шықса, экран жарқылдап, телефон дірілдейді.</p>
+    <div class="row"><button class="pri amb" id="sndBtn"><svg class="i" data-i="bell"></svg><span>Аңдуды бастау</span></button></div>
+    <div class="meter"><i id="sndLvl"></i><u id="sndMark"></u></div>
+    <label class="field"><span>Шек деңгейі <b id="sndThrV"></b></span><input type="range" id="sndThr" min="20" max="95" step="1"></label>
+    <label class="chk"><input type="checkbox" id="kwOn">Мына сөздер естілсе де хабарла</label>
+    <input type="text" id="kwList" placeholder="атыңыз, өрт, көмек (үтір арқылы)" autocomplete="off">
+    <div class="list" id="sndLog" style="margin-top:10px"></div>
+  </details>
+
+  <details class="card"><summary>Шұғыл карта (SOS)</summary>
+    <p class="hint">Жоғарғы оң жақтағы SOS батырмасы осы деректерді айналадағыларға ірі етіп көрсетеді. Деректер тек осы құрылғыда сақталады.</p>
+    <label class="field"><span>Аты-жөніңіз</span><input type="text" id="sosName" autocomplete="off"></label>
+    <label class="field"><span>Жақын адамның телефоны</span><input type="tel" id="sosPhone" autocomplete="off" placeholder="+7 ..."></label>
+    <label class="field"><span>Мекенжайыңыз</span><input type="text" id="sosAddr" autocomplete="off"></label>
+    <label class="field"><span>Қосымша мәлімет</span><textarea id="sosNote" placeholder="Айналадағылар білуі керек нәрсе"></textarea></label>
+  </details>
+
+  <details class="card"><summary>Баптаулар</summary>
+    <label class="field"><span>Айту тілі</span><select id="ttsLang"><option value="kk">Қазақша</option><option value="ru">Орысша</option></select></label>
+    <label class="field"><span>Дауыс</span><select id="voiceSel"></select></label>
+    <p class="note" id="voiceNote" hidden></p>
+    <label class="field"><span>Сөйлеу жылдамдығы <b id="rateV"></b></span><input type="range" id="rate" min="0.6" max="1.4" step="0.1"></label>
+    <label class="field"><span>Мәтін өлшемі <b id="capV"></b></span><input type="range" id="cap" min="18" max="44" step="2"></label>
+    <label class="field"><span>Ымды ұстап тұру уақыты <b id="holdV"></b></span><input type="range" id="hold" min="400" max="1600" step="100"></label>
+    <label class="field"><span>Тану сезімталдығы <b id="sensV"></b></span><input type="range" id="sens" min="0.6" max="1.8" step="0.1"></label>
+    <p class="hint">Сезімталдық жоғары болса, қосымша ымды оңайырақ қабылдайды, бірақ жиірек қателеседі.</p>
+  </details>
+
+  <details class="card"><summary>Деректер: сақтау және көшіру</summary>
+    <p class="hint">Үйретілген ымдар мен сөздер осы браузерде сақталады. Басқа құрылғыға көшіру үшін файлға шығарып, сол жақта жүктеңіз.</p>
+    <div class="row"><button id="expBtn">Файлға шығару</button><label class="btn"><input type="file" id="impFile" accept=".json,application/json" hidden>Файлдан жүктеу</label><button id="wipeBtn">Бәрін өшіру</button></div>
+  </details>
+
+  <details class="card"><summary>Нұсқаулық және шектеулер</summary>
+    <ul class="plain">
+      <li><b>Ым тілі.</b> Қосымшада қазақ ым тілінің дайын сөздігі жоқ: ол сіз үйреткен ымдарды және 10 шартты қимылды таниды. «Тұрақты ым» — қозғалмайтын қол пішіні (дактиль әріптері, сандар). «Қозғалыс ымы» — қолды кадрға кіргізуден түсіргенге дейінгі қимыл.</li>
+      <li><b>Ерін оқу.</b> Еркін сөйлеуді еріннен оқу мүмкін емес — тек сіз үйреткен сөздер танылады. Ең жақсы нәтиже: бір адам, 10–30 сөз, бет тура қарап тұр, жарық жақсы.</li>
+      <li><b>Сөйлеуді мәтінге айналдыру</b> Chrome және Edge браузерінде, интернет бар кезде жұмыс істейді.</li>
+      <li><b>Камера мен микрофон</b> бет https сілтемесі арқылы немесе компьютердегі Chrome-да ашылғанда ғана тікелей қосылады. Ашылмаса, «Бейнеден» батырмасымен бейне түсіріп жүктеңіз.</li>
+      <li><b>Қазақша дауыс</b> әр құрылғыда бола бермейді. Табылмаса, мәтін орысша дауыспен жуықтап оқылады. Edge браузерінде қазақша дауыстар бар.</li>
+      <li><b>Бетпе-бет режимі.</b> Телефонды үстелге қойыңыз: жоғарғы жарты әңгімелесушіге қарай аударылып тұрады.</li>
+    </ul>
+  </details>
+</section>
+</main>
+
+<nav class="tabs" id="tabs">
+  <button data-v="talk" class="on"><svg class="i" data-i="talk"></svg>Сөйлесу</button>
+  <button data-v="sign"><svg class="i" data-i="hand"></svg>Ым</button>
+  <button data-v="lips"><svg class="i" data-i="lips"></svg>Ерін</button>
+  <button data-v="phr"><svg class="i" data-i="grid"></svg>Фразалар</button>
+  <button data-v="more"><svg class="i" data-i="more"></svg>Көбірек</button>
+</nav>
+
+<div class="ovl" id="big" hidden>
+  <div class="txt"></div>
+  <div class="bar"><button class="btn" id="bigRot"><svg class="i" data-i="rot"></svg>Аудару</button><button class="pri" id="bigSay"><svg class="i" data-i="spk"></svg>Айту</button><button class="btn" id="bigX">Жабу</button></div>
+</div>
+
+<div class="ovl" id="f2f" hidden>
+  <div class="half top"><small>Сізге жазылған</small><div class="t ph0" id="f2fMine">Мұнда әңгімелесушіңіздің жауабы шығады</div></div>
+  <div class="half bot"><small>Әңгімелесуші айтты</small><div class="t ph0" id="f2fTheirs">«Тыңдау» батырмасын басыңыз</div>
+    <div class="inrow" style="margin-bottom:8px"><input type="text" id="f2fSay" placeholder="Жауабыңызды жазыңыз" autocomplete="off"><button class="pri" id="f2fSend">Айту</button></div>
+    <div class="row"><button class="pri amb" id="f2fMic" style="flex:1"><svg class="i" data-i="mic"></svg><span>Тыңдау</span></button><button id="f2fX">Жабу</button></div>
+  </div>
+</div>
+
+<div class="ovl" id="sos" hidden>
+  <div class="in">
+    <h1>МЕН ЕСТІМЕЙМІН</h1>
+    <div class="sub">Я не слышу · I am deaf</div>
+    <div class="sub">Маған көмек керек. Жазып немесе ыммен түсіндіріңізші.</div>
+    <div class="box" id="sosInfo"></div>
+    <div class="box"><b>Маған қоңырау шалып беріңізші</b><div class="nums" style="margin-top:8px"><a href="tel:112">112<span>құтқару</span></a><a href="tel:103">103<span>жедел жәрдем</span></a><a href="tel:102">102<span>полиция</span></a><a href="tel:101">101<span>өрт</span></a></div></div>
+    <a class="btn" id="sosSms" style="background:#fff;color:#8e1d17;border-color:#fff;text-decoration:none" hidden>Жақыныма SMS жазу</a>
+  </div>
+  <div class="bar"><button class="btn" id="sosSay"><svg class="i" data-i="spk"></svg>Дауыстау</button><button class="btn" id="sosFl">Жарқылдату</button><button class="btn" id="sosX">Жабу</button></div>
+</div>
+<div id="toast" hidden role="status"></div>
+
+<script>
+(()=>{'use strict';
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const raf=()=>new Promise(r=>requestAnimationFrame(r));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const MOBILE=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+let Z=1;function fit(){const sw=Math.min(screen.width||9999,screen.height||9999);Z=(MOBILE&&sw<700&&innerWidth>sw*1.4)?innerWidth/Math.min(screen.width,innerWidth):1;
+  document.documentElement.style.zoom=Z===1?'':Z;document.body.classList.toggle('wide',innerWidth/Z>=900)}
+fit();addEventListener('resize',fit);
+const LOCALF=!window.isSecureContext||(MOBILE&&/^(content|file):$/.test(location.protocol));
+const NOHTTPS='Бұл бет телефон жадындағы файлдан ашылған, ал браузер мұндай бетке камера мен микрофонды бермейді. Қосымшаны https сілтемесі арқылы ашу керек.';
+const store={get(k,d){try{const v=localStorage.getItem('ymd:'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('ymd:'+k,JSON.stringify(v));return true}catch(e){return false}}};
+const S=Object.assign({srLang:'kk-KZ',ttsLang:'kk',voice:'',rate:1,cap:24,hold:800,sens:1,auto:true,facing:'user',kwOn:false,sndThr:60},store.get('set',{}));
+const saveS=()=>store.set('set',S);
+const DB=Object.assign({stat:[],dyn:[],lips:[],bi:{},biOn:true,phr:[],sos:{name:'',phone:'',addr:'',note:''},kw:['өрт','көмек','абайла','пожар','помогите']},store.get('db',{}));
+const saveDB=()=>{if(!store.set('db',DB))toast('Сақталмады: браузер жады толы немесе жабық')};
+
+const I={talk:'<path d="M4 5h16v11H9l-5 4z"/>',
+hand:'<path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V11m0-5.5v-1a1.5 1.5 0 0 1 3 0V11m0-4.5a1.5 1.5 0 0 1 3 0V14a6 6 0 0 1-6 6 6 6 0 0 1-5-2.6L4.6 15a1.6 1.6 0 0 1 2.6-1.8l.8 1"/>',
+lips:'<path d="M2 12c3-4 5.5-5 7.5-4 1 .5 1.5 1 2.5 1s1.5-.5 2.5-1c2-1 4.5 0 7.5 4-3 4-6 6-10 6s-7-2-10-6z"/><path d="M2 12h20"/>',
+grid:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+more:'<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+spk:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.500 8.500 0 0 1 0 12"/>',
+cam:'<path d="M3 7h12v10H3zM15 10l6-3v10l-6-3"/>',
+flip:'<path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2M20 4v4h-4M4 20v-4h4"/>',
+up:'<path d="M12 16V4m0 0L7 9m5-5 5 5M4 20h16"/>',
+del:'<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6 6 18"/>',
+back:'<path d="M9 5h11v14H9l-6-7zM13 9.500l4 5m0-5-4 5"/>',
+rot:'<path d="M12 4a8 8 0 1 1-7.500 5.200M4 4v5h5"/>',
+bell:'<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0"/>',
+f2f:'<path d="M4 4h16v7H4zM4 13h16v7H4z"/><path d="M8 7.500h8M8 16.500h8"/>'};
+const icon=n=>`<svg class="i" viewBox="0 0 24 24">${I[n]}</svg>`;
+$$('svg[data-i]').forEach(s=>{s.setAttribute('viewBox','0 0 24 24');s.innerHTML=I[s.dataset.i]});
+
+let toastT;function toast(m,ms=3200){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,ms)}
+const vib=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+let wl=null;const wake=async()=>{try{if(!wl&&navigator.wakeLock){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>wl=null)}}catch(e){}};
+function twoStep(btn,fn){let armed=false,t;btn.addEventListener('click',()=>{if(armed){clearTimeout(t);fn()}else{armed=true;const old=btn.innerHTML;btn.classList.add('sure');btn.textContent='Өшіру?';t=setTimeout(()=>{armed=false;btn.classList.remove('sure');btn.innerHTML=old},2600)}})}
+
+/* ---------- speech out ---------- */
+const KZ2RU={'ә':'э','ғ':'г','қ':'к','ң':'н','ө':'о','ұ':'у','ү':'у','һ':'х','і':'и'};
+const approxRu=t=>t.replace(/[әғқңөұүһі]/gi,c=>{const l=c.toLowerCase(),r=KZ2RU[l];return c===l?r:r.toUpperCase()});
+const TTS={voices:[],ok:'speechSynthesis' in window,
+  init(){if(!this.ok)return;const load=()=>{this.voices=speechSynthesis.getVoices();fillVoices()};load();speechSynthesis.onvoiceschanged=load},
+  pick(lang){if(S.voice){const v=this.voices.find(v=>v.voiceURI===S.voice);if(v)return v}
+    for(const p of(lang==='kk'?['kk','ru']:['ru'])){const v=this.voices.find(v=>v.lang.toLowerCase().replace('_','-').startsWith(p));if(v)return v}return null},
+  speak(text,lang){text=(text||'').trim();if(!text)return;lang=lang||S.ttsLang;const sp=$('#spoken');$('span',sp).textContent=text;sp.hidden=false;
+    clearTimeout(this.t);const done=()=>{this.t=setTimeout(()=>sp.hidden=true,1200)};
+    if(!this.ok){done();return}
+    try{speechSynthesis.cancel();const v=this.pick(lang);const isKk=v&&v.lang.toLowerCase().startsWith('kk');
+      const u=new SpeechSynthesisUtterance(v&&!isKk?approxRu(text):text);if(v){u.voice=v;u.lang=v.lang}else u.lang=lang==='kk'?'kk-KZ':'ru-RU';
+      u.rate=S.rate;u.onend=u.onerror=done;speechSynthesis.speak(u);this.t=setTimeout(()=>sp.hidden=true,Math.max(4000,text.length*130))}catch(e){done()}}};
+function fillVoices(){const sel=$('#voiceSel');if(!sel)return;sel.innerHTML='';sel.append(new Option('Автоматты таңдау',''));
+  const vs=TTS.voices.filter(v=>/^(kk|ru)/i.test(v.lang));vs.forEach(v=>sel.append(new Option(`${v.name} (${v.lang})`,v.voiceURI)));sel.value=vs.some(v=>v.voiceURI===S.voice)?S.voice:'';
+  const hasKk=TTS.voices.some(v=>/^kk/i.test(v.lang)),n=$('#voiceNote');
+  if(!TTS.ok){n.hidden=false;n.textContent='Бұл браузерде дауыстап оқу жоқ — мәтін тек экранға шығады.'}
+  else if(!hasKk){n.hidden=false;n.textContent=TTS.voices.length?'Бұл құрылғыда қазақша дауыс табылмады. Қазақша мәтін орысша дауыспен жуықтап оқылады.':'Дауыстар тізімі әлі жүктелмеді немесе бұл құрылғыда дауыс жоқ.'}
+  else n.hidden=true}
+
+/* ---------- speech in ---------- */
+const SRC=window.SpeechRecognition||window.webkitSpeechRecognition;
+const STT={ok:!!SRC,on:false,rec:null,sink:null,
+  start(sink){if(!this.ok){toast('Бұл браузер сөйлеуді танымайды. Chrome немесе Edge қолданыңыз.');return false}
+    this.sink=sink;if(this.on)return true;const r=this.rec=new SRC();r.lang=S.srLang;r.continuous=true;r.interimResults=true;
+    r.onresult=e=>{let it='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript.trim();if(!t)continue;if(e.results[i].isFinal)this.emit(t,true);else it+=(it?' ':'')+t}if(it)this.emit(it,false)};
+    r.onerror=e=>{const m={'not-allowed':'Микрофонға рұқсат берілмеді.','service-not-allowed':'Бұл ортада сөйлеуді тану қолжетімсіз (https сілтеме қажет).','audio-capture':'Микрофон табылмады.','language-not-supported':'Бұл тіл танылмайды — тілді ауыстырып көріңіз.','network':'Интернет байланысы жоқ — сөйлеуді тану тоқтады.'}[e.error];
+      if(m){this.on=false;toast(LOCALF&&/not-allowed/.test(e.error)?NOHTTPS:m,6000);sttUI()}};
+    r.onend=()=>{if(this.on){try{r.start()}catch(e){}}else sttUI()};
+    try{r.start();this.on=true;wake()}catch(e){this.on=false;toast('Тыңдау басталмады.')}sttUI();return this.on},
+  stop(){this.on=false;try{this.rec&&this.rec.stop()}catch(e){}sttUI()},
+  restart(){if(this.on){const s=this.sink;this.stop();setTimeout(()=>this.start(s),350)}},
+  emit(t,fin){Alerts.keywords(t);this.sink&&this.sink(t,fin)}};
+function sttUI(){const talkOn=STT.on&&STT.sink===Talk.sink;
+  for(const b of[$('#micBtn'),$('#f2fMic')]){b.classList.toggle('on',talkOn);b.classList.toggle('warn',talkOn&&b.id==='f2fMic');$('span',b).textContent=talkOn?'Тоқтату':'Тыңдау'}
+  if(!talkOn)Talk.live('')}
+
+/* ---------- conversation ---------- */
+const Talk={items:[],liveEl:null,
+  sink:(t,fin)=>{if(fin){Talk.live('');Talk.add('other',t)}else Talk.live(t)},
+  add(who,text,src){text=(text||'').trim();if(!text)return;const w=$('#welcome');if(w)w.remove();
+    this.items.push({who,text,t:new Date()});const b=el('button','bub '+who);b.append(el('small','',who==='me'?'Мен'+(src?' · '+src:''):'Әңгімелесуші'),document.createTextNode(text));
+    b.onclick=()=>Big.open(text);const log=$('#log');log.insertBefore(b,this.liveEl&&this.liveEl.parentNode?this.liveEl:null);this.scroll();
+    const f=$(who==='me'?'#f2fMine':'#f2fTheirs');f.textContent=text;f.classList.remove('ph0')},
+  live(t){if(!t){if(this.liveEl){this.liveEl.remove();this.liveEl=null}return}
+    if(!this.liveEl){const w=$('#welcome');if(w)w.remove();this.liveEl=el('div','bub other live');$('#log').append(this.liveEl)}
+    this.liveEl.textContent=t;this.scroll();const f=$('#f2fTheirs');f.textContent=t;f.classList.remove('ph0')},
+  scroll(){const m=$('#main');if($('#v-talk').classList.contains('on'))m.scrollTop=m.scrollHeight},
+  say(text,src){text=(text||'').trim();if(!text)return;TTS.speak(text);this.add('me',text,src)},
+  text(){return this.items.map(i=>`[${i.t.toLocaleTimeString('kk-KZ',{hour:'2-digit',minute:'2-digit'})}] ${i.who==='me'?'Мен':'Әңгімелесуші'}: ${i.text}`).join('\n')}};
+const toggleListen=()=>{if(STT.on&&STT.sink===Talk.sink)STT.stop();else STT.start(Talk.sink)};
+$('#micBtn').onclick=toggleListen;$('#f2fMic').onclick=toggleListen;
+const sendSay=inp=>{const v=inp.value;if(!v.trim())return;Talk.say(v,'мәтін');inp.value=''};
+$('#sayBtn').onclick=()=>sendSay($('#say'));$('#say').onkeydown=e=>{if(e.key==='Enter')sendSay($('#say'))};
+$('#f2fSend').onclick=()=>sendSay($('#f2fSay'));$('#f2fSay').onkeydown=e=>{if(e.key==='Enter')sendSay($('#f2fSay'))};
+$('#f2fBtn').onclick=()=>{$('#f2f').hidden=false;wake()};$('#f2fX').onclick=()=>$('#f2f').hidden=true;
+$('#clearLog').onclick=()=>{Talk.items=[];$$('#log .bub').forEach(b=>b.remove());Talk.liveEl=null;toast('Әңгіме тазаланды')};
+$('#copyLog').onclick=async()=>{const t=Talk.text();if(!t){toast('Әңгіме әлі бос');return}try{await navigator.clipboard.writeText(t);toast('Әңгіме мәтіні көшірілді')}catch(e){Big.open(t)}};
+$$('#srSeg button').forEach(b=>{b.classList.toggle('on',b.dataset.l===S.srLang);b.onclick=()=>{S.srLang=b.dataset.l;saveS();$$('#srSeg button').forEach(x=>x.classList.toggle('on',x===b));STT.restart();toast(b.dataset.l==='kk-KZ'?'Қазақша сөйлеу тыңдалады':'Орысша сөйлеу тыңдалады')}});
+
+/* ---------- big text ---------- */
+const Big={cur:'',open(t){this.cur=t;const b=$('#big'),x=$('.txt',b);x.textContent=t;const W=innerWidth/Z,H=innerHeight/Z-80;x.style.fontSize=clamp(Math.sqrt(W*H/(t.length*1.25))*.8,26,150)+'px';b.classList.remove('rot');b.hidden=false}};
+$('#bigX').onclick=()=>$('#big').hidden=true;$('#bigRot').onclick=()=>$('#big').classList.toggle('rot');$('#bigSay').onclick=()=>TTS.speak(Big.cur);
+
+/* ---------- math ---------- */
+const eu=(a,b)=>{let s=0;for(let i=0;i<a.length;i++){const d=a[i]-b[i];s+=d*d}return Math.sqrt(s)};
+const r3=x=>Math.round(x*1000)/1000;const RN=24;
+function resample(seq,N){const L=seq.length,out=[];for(let i=0;i<N;i++){const t=L>1?i*(L-1)/(N-1):0,a=Math.floor(t),b=Math.min(L-1,a+1),u=t-a,fa=seq[a],fb=seq[b],f=new Array(fa.length);for(let k=0;k<f.length;k++)f[k]=r3(fa[k]*(1-u)+fb[k]*u);out.push(f)}return out}
+function dtw(a,b,band=5){const N=a.length,M=b.length,INF=1e9;let prev=new Array(M+1).fill(INF),cur=new Array(M+1).fill(INF);prev[0]=0;
+  for(let i=1;i<=N;i++){cur.fill(INF);for(let j=Math.max(1,i-band);j<=Math.min(M,i+band);j++)cur[j]=eu(a[i-1],b[j-1])+Math.min(prev[j],prev[j-1],cur[j-1]);[prev,cur]=[cur,prev]}return prev[M]*2/(N+M)}
+function intra(ts){if(ts.length<2)return 0;let s=0,n=0;for(let i=0;i<ts.length;i++)for(let j=i+1;j<ts.length;j++){s+=dtw(ts[i],ts[j]);n++}return r3(s/n)}
+function seqClassify(list,q,floor){const sc=list.filter(w=>w.t&&w.t.length).map(w=>{const d=Math.min(...w.t.map(t=>dtw(q,t))),thr=Math.max(floor,1.7*(w.r||0))*S.sens;return{w,d,thr,k:d/thr,conf:clamp(1-d/(2*thr),0,1)}}).sort((a,b)=>a.k-b.k);
+  const b=sc[0];return{ok:!!b&&b.k<1&&(sc.length<2||sc[1].k>b.k*1.08),best:b,cands:sc.slice(0,3)}}
+
+/* ---------- vision engines ---------- */
+const MPB=window.__MP_BASE__||{hands:'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/',face:'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/'};
+const loadScript=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.crossOrigin='anonymous';s.onload=res;s.onerror=()=>rej(new Error('load'));document.head.append(s)});
+const Vision={hp:null,fp:null,
+  hands(){return this.hp||(this.hp=(async()=>{await loadScript(MPB.hands+'hands.js');const h=new window.Hands({locateFile:f=>MPB.hands+f});
+    h.setOptions({maxNumHands:2,modelComplexity:MOBILE?0:1,minDetectionConfidence:.6,minTrackingConfidence:.5});let last=null;h.onResults(r=>last=r);await h.initialize();
+    return async img=>{await h.send({image:img});return last}})().catch(e=>{this.hp=null;throw e}))},
+  face(){return this.fp||(this.fp=(async()=>{await loadScript(MPB.face+'face_mesh.js');const f=new window.FaceMesh({locateFile:x=>MPB.face+x});
+    f.setOptions({maxNumFaces:1,refineLandmarks:false,minDetectionConfidence:.5,minTrackingConfidence:.5});let last=null;f.onResults(r=>last=r);await f.initialize();
+    return async img=>{await f.send({image:img});return last}})().catch(e=>{this.fp=null;throw e}))}};
+
+class Stage{
+  constructor(root,engine){this.root=root;this.v=$('video',root);this.c=$('canvas',root);this.g=this.c.getContext('2d');this.engine=engine;this.gen=0;this.on=false;this.stream=null;this.isFile=false;
+    const scope=root.parentNode;
+    $$('[data-act=cam]',scope).forEach(b=>b.onclick=()=>this.on?this.stop():this.start());
+    $('[data-act=flip]',scope).onclick=()=>{S.facing=S.facing==='user'?'environment':'user';saveS();if(this.on&&!this.isFile)this.start()};
+    $('input[type=file]',scope).onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)this.start(f)};
+    this.v.onended=()=>{if(this.isFile&&this.on){this.onEnd&&this.onEnd();this.status('Бейне аяқталды','ok')}};
+    this.camLbl=$('.ctl [data-act=cam] span',scope)}
+  status(t,k){const s=$('.st-status',this.root);s.textContent=t;s.className='st-status '+(k||'')}
+  over(t,num){const o=$('.st-over',this.root);if(t==null){o.hidden=true;return}o.hidden=false;o.textContent=t;o.classList.toggle('num',!!num)}
+  res(b,meta,pr){const r=$('.st-res',this.root);$('b',r).textContent=b||'';$('span',r).textContent=meta||'';$('.st-bar i',r).style.width=(clamp(pr||0,0,1)*100)+'%'}
+  async start(file){this.stop(true);const my=++this.gen;this.status('Модель жүктелуде…','busy');$('.st-msg',this.root).textContent='Тану моделі жүктелуде. Алғашқы рет 10–20 секунд кетуі мүмкін.';
+    let detect;try{detect=await this.engine()}catch(e){if(my!==this.gen)return;this.status('Модель жүктелмеді','err');$('.st-msg',this.root).textContent='Тану моделі жүктелмеді. Интернет байланысын тексеріп, қайта көріңіз.';return}
+    if(my!==this.gen)return;
+    try{if(file){this.isFile=true;this.v.srcObject=null;this.v.src=URL.createObjectURL(file);this.v.loop=false;this.root.classList.remove('mirror')}
+      else{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('nocam');
+        const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:S.facing,width:{ideal:640},height:{ideal:480}},audio:false});
+        if(my!==this.gen){st.getTracks().forEach(t=>t.stop());return}
+        this.stream=st;this.isFile=false;this.v.srcObject=st;this.root.classList.toggle('mirror',S.facing==='user')}
+      await this.v.play()}
+    catch(e){if(my!==this.gen)return;this.stop(true);this.status('Камера ашылмады','err');
+      $('.st-msg',this.root).textContent=!file&&LOCALF?NOHTTPS+' Әзірге «Бейнеден» батырмасымен бейне түсіріп талдатуға болады.':e&&(e.name==='NotFoundError'||e.name==='OverconstrainedError')?'Бұл құрылғыдан камера табылмады. «Бейнеден» батырмасымен дайын бейнені жүктеуге болады.':e&&e.name==='NotAllowedError'?'Камераға рұқсат берілмеді. Браузер баптауынан рұқсат беріңіз немесе «Бейнеден» батырмасымен бейне түсіріп жүктеңіз.':
+        file?'Бұл бейнефайл ашылмады. Басқа форматта түсіріп көріңіз.':'Бұл ортада тікелей камера ашылмайды: бет https сілтемесімен немесе компьютердегі Chrome-да ашылуы керек. Оның орнына «Бейнеден» батырмасымен бейне түсіріп жүктеуге болады.';return}
+    if(my!==this.gen)return;
+    this.on=true;this.root.classList.add('live');if(this.camLbl)this.camLbl.textContent='Өшіру';this.status(this.isFile?'Бейне талдануда':'Камера қосулы','ok');wake();
+    if(this.v.videoWidth)this.root.style.aspectRatio=this.v.videoWidth+'/'+this.v.videoHeight;
+    this.onStart&&this.onStart();this.loop(my,detect)}
+  async loop(my,detect){const v=this.v;while(my===this.gen){if(v.readyState>=2&&v.videoWidth&&!v.paused&&!v.ended){
+      if(this.c.width!==v.videoWidth||this.c.height!==v.videoHeight){this.c.width=v.videoWidth;this.c.height=v.videoHeight;this.root.style.aspectRatio=v.videoWidth+'/'+v.videoHeight}
+      let r=null;try{r=await detect(v)}catch(e){}
+      if(my!==this.gen)break;this.g.clearRect(0,0,this.c.width,this.c.height);
+      try{this.onFrame(r,performance.now(),this)}catch(e){console.error(e)}}
+    await raf()}}
+  stop(silent){this.gen++;if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null}
+    try{this.v.pause()}catch(e){}if(this.v.src){try{URL.revokeObjectURL(this.v.src)}catch(e){}this.v.removeAttribute('src');this.v.load()}this.v.srcObject=null;
+    const was=this.on;this.on=false;this.root.classList.remove('live');this.g.clearRect(0,0,this.c.width,this.c.height);this.over(null);if(this.camLbl)this.camLbl.textContent='Қосу';
+    if(!silent){this.status('Камера өшірулі');$('.st-msg',this.root).textContent='Камераны қосып, қайта бастаңыз.'}
+    if(was)this.onStop&&this.onStop()}
+}
+
+/* ---------- composer ---------- */
+function Composer(root,src){const out=$('.comp-text',root),ph=out.textContent;let parts=[];
+  const text=()=>{let s='';parts.forEach((p,i)=>{if(i&&!(p.length===1&&parts[i-1].length===1))s+=' ';s+=p});return s};
+  const render=()=>{const t=text();out.textContent=t||ph;out.classList.toggle('empty',!t)};
+  const auto=$('[data-c=auto]',root);auto.checked=S.auto;auto.onchange=()=>{S.auto=auto.checked;saveS();$$('[data-c=auto]').forEach(a=>a.checked=S.auto)};
+  $('[data-c=back]',root).onclick=()=>{parts.pop();render()};
+  $('[data-c=clear]',root).onclick=()=>{parts=[];render()};
+  $('[data-c=say]',root).onclick=()=>{const t=text();if(!t){toast('Әзірге сөз жоқ');return}Talk.say(t,src);parts=[];render()};
+  return{add(p){parts.push(p);render();vib(40);if(S.auto)TTS.speak(p)},text}}
+
+/* ---------- list renderer ---------- */
+function renderList(box,cnt,items,meta,onAdd,onDel,emptyTxt){box.innerHTML='';cnt.textContent=items.length?'· '+items.length:'';
+  if(!items.length){box.append(el('div','empty-note',emptyTxt));return}
+  for(const it of items){const row=el('div','it'),d=el('div');d.append(el('b','',it.phrase),el('small','',meta(it)));
+    const a=el('button');a.innerHTML=icon('plus');a.title='Үлгі қосу';a.setAttribute('aria-label','Үлгі қосу');a.onclick=()=>onAdd(it);
+    const x=el('button');x.innerHTML=icon('del');x.setAttribute('aria-label','Өшіру');twoStep(x,()=>onDel(it));row.append(d,a,x);box.append(row)}}
+async function countdown(st){for(const n of['3','2','1']){st.over(n,true);await sleep(650)}st.over(null)}
+
+/* ---------- hands ---------- */
+const HC=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[0,17],[17,18],[18,19],[19,20]];
+const d3=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],(a[2]-b[2])*.5);
+function handsOf(res,ar){const L=res&&res.multiHandLandmarks;if(!L||!L.length)return[];
+  const hs=L.slice(0,2).map((lm,i)=>{const p=lm.map(q=>[q.x*ar,q.y,q.z*ar]),h=res.multiHandedness&&res.multiHandedness[i];return{p,label:h?h.label:'Right',palm:d3(p[0],p[9])||1e-6}});
+  if(hs.length===2){if(hs[0].label===hs[1].label)hs.sort((a,b)=>a.p[0][0]-b.p[0][0]);else hs.sort((a,b)=>a.label==='Right'?-1:1)}return hs}
+function shape(h,flip){const p=h.p,w=p[0],s=h.palm,f=[];for(let i=0;i<21;i++)f.push(r3((p[i][0]-w[0])/s*flip),r3((p[i][1]-w[1])/s),r3((p[i][2]-w[2])/s*.5));return f}
+function statFeat(hs,n){if(n===1)return shape(hs[0],hs[0].label==='Left'?-1:1);const A=hs[0],B=hs[1];
+  return shape(A,1).concat(shape(B,1),[r3((B.p[0][0]-A.p[0][0])/A.palm),r3((B.p[0][1]-A.p[0][1])/A.palm),r3((B.p[0][2]-A.p[0][2])/A.palm*.5)])}
+function builtin(p){const d=(a,b)=>d3(p[a],p[b]),palm=d(0,9)||1e-6;
+  const T=d(4,17)>d(3,17)*1.05&&d(4,5)>palm*.5,F=[8,12,16,20].map((t,i)=>d(t,0)>d(t-2,0)*1.12),[I_,M,R,P]=F;
+  if(d(4,8)<palm*.32&&M&&R&&P)return'ok';
+  if(I_&&M&&R&&P)return'open';
+  if(!I_&&!M&&!R&&!P){if(!T)return'fist';const dy=(p[4][1]-p[2][1])/palm;return dy<-.35?'up':dy>.35?'down':null}
+  if(I_&&!M&&!R&&!P)return T?null:'one';
+  if(I_&&M&&!R&&!P)return'two';
+  if(I_&&M&&R&&!P&&!T)return'three';
+  if(T&&!I_&&!M&&!R&&P)return'call';
+  if(T&&I_&&!M&&!R&&P)return'ily';
+  return null}
+const BI=[['open','✋','Ашық алақан','Сәлеметсіз бе!'],['up','👍','Бас бармақ жоғары','Иә, жақсы'],['down','👎','Бас бармақ төмен','Жоқ'],['one','☝️','Сұқ саусақ','Бір минут күтіңізші'],['two','✌️','Екі саусақ','Рақмет'],['three','3','Үш саусақ','Сұрағым бар'],['ok','👌','Сақина','Түсіндім, жарайды'],['call','🤙','Бас бармақ пен шынашақ','Маған хабарласыңыз'],['ily','🤟','Бас бармақ, сұқ саусақ, шынашақ','Мен сізді жақсы көремін'],['fist','✊','Жұдырық','Тоқтаңыз']];
+const biPhrase=id=>DB.bi[id]!=null?DB.bi[id]:BI.find(b=>b[0]===id)[3];
+function classifyStatic(hs){if(!hs.length)return null;const n=Math.min(hs.length,2),ft=statFeat(hs,n);let best=null;
+  for(const s of DB.stat){if(s.n!==n)continue;let dm=1e9;for(const x of s.s){const d=eu(ft,x);if(d<dm)dm=d}
+    const thr=Math.max(.75,3*(s.r||0))*(n===2?1.4:1)*S.sens,k=dm/thr;if(k<1&&(!best||k<best.k))best={k,id:'s'+s.id,phrase:s.phrase}}
+  if(best)return best;
+  if(DB.biOn&&hs.length===1){const b=builtin(hs[0].p);if(b){const ph=biPhrase(b);if(ph)return{id:'b'+b,phrase:ph,k:.5}}}
+  return null}
+function dynFeat(hs,ref){const slot=(h,key,flip)=>{if(!h)return new Array(65).fill(0);if(!ref[key])ref[key]={x:h.p[0][0],y:h.p[0][1],s:h.palm};const r=ref[key];
+    return shape(h,flip).concat([r3((h.p[0][0]-r.x)/r.s*flip*.6),r3((h.p[0][1]-r.y)/r.s*.6)])};
+  if(hs.length===1)return slot(hs[0],'A',hs[0].label==='Left'?-1:1).concat(slot(null));
+  return slot(hs[0],'A2',1).concat(slot(hs[1],'B2',1))}
+function drawHands(g,c,res){const L=res&&res.multiHandLandmarks;if(!L)return;const W=c.width,H=c.height;g.lineWidth=Math.max(2,W/220);g.lineCap='round';
+  for(const lm of L){g.strokeStyle='#3ddbb0';g.beginPath();for(const[a,b]of HC){g.moveTo(lm[a].x*W,lm[a].y*H);g.lineTo(lm[b].x*W,lm[b].y*H)}g.stroke();
+    g.fillStyle='#fff';for(const q of lm){g.beginPath();g.arc(q.x*W,q.y*H,Math.max(2.500,W/190),0,7);g.fill()}}}
+
+const Sign={mode:'stat',train:null,seg:{fr:[],last:0,t0:0,ref:{}},stab:{cur:null,since:0,fired:false,seen:0},
+  init(){const st=this.st=new Stage($('#stS'),()=>Vision.hands());st.onFrame=(r,now)=>this.frame(r,now);st.onEnd=()=>this.endSeg();st.onStop=()=>this.cancel();
+    this.cmp=Composer($('#cmpS'),'ым');
+    $$('#sMode button').forEach(b=>b.onclick=()=>{this.mode=b.dataset.m;$$('#sMode button').forEach(x=>x.classList.toggle('on',x===b));this.cancel();this.hint();this.seg.fr=[]});
+    $('#sTrain').onclick=()=>this.train?this.cancel():this.begin();
+    $('#biOn').checked=DB.biOn;$('#biOn').onchange=e=>{DB.biOn=e.target.checked;saveDB()};
+    const bl=$('#biList');for(const[id,em,name]of BI){const row=el('div','it');row.append(el('span','em',em));const d=el('div');d.append(el('small','',name));
+      const inp=el('input');inp.type='text';inp.value=biPhrase(id);inp.setAttribute('aria-label',name+' мағынасы');inp.onchange=()=>{DB.bi[id]=inp.value.trim();saveDB()};d.append(inp);row.append(d);bl.append(row)}
+    this.hint();this.render()},
+  hint(){$('#sHint').textContent=this.mode==='stat'?'Мағынасын жазып, «Үйрету» батырмасын басыңыз да, ымды 3 секунд ұстап тұрыңыз. Қолды сәл бұрып, жақындатып-алыстатыңыз — 30 үлгі жазылады.':'Мағынасын жазып, «Үйрету» батырмасын басыңыз. Сосын қолды кадрға кіргізіп, ымды жасап, қолды түсіріңіз. Осылай 3 рет қайталаңыз.'},
+  render(){const items=[...DB.stat.map(s=>({...s,kind:'stat'})),...DB.dyn.map(s=>({...s,kind:'dyn'}))];
+    renderList($('#sList'),$('#sCnt'),items,it=>it.kind==='stat'?`тұрақты · ${it.n} қол · ${it.s.length} үлгі`:`қозғалыс · ${it.t.length} жазба`,
+      it=>{this.mode=it.kind;$$('#sMode button').forEach(x=>x.classList.toggle('on',x.dataset.m===it.kind));this.hint();$('#sPhrase').value=it.phrase;this.begin(it.id)},
+      it=>{const k=it.kind;DB[k]=DB[k].filter(x=>x.id!==it.id);saveDB();this.render()},'Әзірге ым үйретілмеген. Жоғарыдағы өрісті толтырып, алғашқы ымыңызды үйретіңіз.')},
+  async begin(id){const phrase=$('#sPhrase').value.trim();if(!phrase){toast('Алдымен ымның мағынасын жазыңыз');$('#sPhrase').focus();return}
+    if(!this.st.on){await this.st.start();if(!this.st.on)return}
+    const kind=this.mode;if(!id){const ex=DB[kind].find(x=>x.phrase.toLowerCase()===phrase.toLowerCase());if(ex)id=ex.id}
+    const T=this.train={kind,phrase,id,s:[],t:[],n:0,last:0,go:false};$('#sTrain').textContent='Тоқтату';this.seg.fr=[];
+    await countdown(this.st);if(this.train!==T)return;T.go=true;
+    if(kind==='dyn')this.st.over('Ымды көрсетіңіз (1 / 3)');},
+  cancel(){if(!this.train)return;this.train=null;$('#sTrain').textContent='Үйрету';this.st.over(null);this.seg.fr=[]},
+  done(msg){this.train=null;$('#sTrain').textContent='Үйрету';this.st.over(null);$('#sPhrase').value='';saveDB();this.render();toast(msg);vib([60,40,60]);this.stab.cur=null},
+  finishStat(){const T=this.train,s=T.s;let r=0;for(let i=0;i<s.length;i++){let m=1e9;for(let j=0;j<s.length;j++)if(i!==j){const d=eu(s[i],s[j]);if(d<m)m=d}r+=m}r=r3(r/s.length);
+    const ex=T.id&&DB.stat.find(x=>x.id===T.id);
+    if(ex){if(ex.n!==T.n){this.cancel();toast('Бұл ым '+ex.n+' қолмен үйретілген — сол қалпында көрсетіңіз');return}ex.s=ex.s.concat(s).slice(-90);ex.r=Math.max(ex.r||0,r)}
+    else DB.stat.push({id:uid(),phrase:T.phrase,n:T.n,s,r});
+    this.done('«'+T.phrase+'» ымы сақталды')},
+  frame(res,now){const st=this.st,ar=st.c.width/st.c.height,hs=handsOf(res,ar);drawHands(st.g,st.c,res);const T=this.train;
+    if(T&&!T.go)return;
+    if(T&&T.kind==='stat'){if(hs.length&&now-T.last>80){const n=Math.min(hs.length,2);if(!T.n)T.n=n;if(n===T.n){T.s.push(statFeat(hs,n));T.last=now}}
+      st.res('Жазылып жатыр…',T.s.length+' / 30 үлгі',T.s.length/30);if(T.s.length>=30)this.finishStat();return}
+    if(this.mode==='dyn'||T){this.feedDyn(hs,now);return}
+    const c=classifyStatic(hs),sb=this.stab;
+    if(!c){if(sb.cur&&now-sb.seen>350){sb.cur=null;sb.fired=false}st.res(hs.length?'…':'',hs.length?'Белгісіз ым — оны үйретуге болады':'Қолыңызды камераға көрсетіңіз',0);return}
+    sb.seen=now;if(c.id!==sb.cur){sb.cur=c.id;sb.since=now;sb.fired=false}
+    const pr=clamp((now-sb.since)/S.hold,0,1);st.res(c.phrase,sb.fired?'Қабылданды':'Ұстап тұрыңыз…',sb.fired?1:pr);
+    if(pr>=1&&!sb.fired){sb.fired=true;this.cmp.add(c.phrase)}},
+  feedDyn(hs,now){const sg=this.seg;
+    if(hs.length){if(!sg.fr.length){sg.t0=now;sg.ref={}}sg.fr.push(dynFeat(hs,sg.ref));sg.last=now;this.st.res('●','Қимыл жазылып жатыр — біткен соң қолды түсіріңіз',clamp((now-sg.t0)/5000,0,1));if(now-sg.t0>5000)this.endSeg()}
+    else if(sg.fr.length){if(now-sg.last>350)this.endSeg()}
+    else if(!this.train&&now-(this.shown||0)>2500)this.st.res('','Қолды кадрға кіргізіп, ымды көрсетіңіз',0)},
+  endSeg(){const fr=this.seg.fr;this.seg.fr=[];if(fr.length<8)return;const q=resample(fr,RN),T=this.train;
+    if(T&&T.kind==='dyn'){T.t.push(q);vib(50);if(T.t.length<3){this.st.over(`Тағы да көрсетіңіз (${T.t.length+1} / 3)`);return}
+      const ex=T.id&&DB.dyn.find(x=>x.id===T.id);if(ex){ex.t=ex.t.concat(T.t).slice(-9);ex.r=intra(ex.t)}else DB.dyn.push({id:uid(),phrase:T.phrase,t:T.t,r:intra(T.t)});
+      this.done('«'+T.phrase+'» қозғалыс ымы сақталды');return}
+    if(this.mode!=='dyn')return;
+    if(!DB.dyn.length){this.st.res('','Алдымен қозғалыс ымын үйретіңіз',0);this.shown=performance.now();return}
+    const r=seqClassify(DB.dyn,q,.8);this.shown=performance.now();
+    if(r.ok){this.st.res(r.best.w.phrase,'Сенімділік '+Math.round(r.best.conf*100)+'%',1);this.cmp.add(r.best.w.phrase)}
+    else this.st.res('?','Танылмады'+(r.best?' · ең ұқсасы: '+r.best.w.phrase:''),0)}};
+
+/* ---------- lips ---------- */
+const RO=[61,146,91,181,84,17,314,405,321,375,291,409,270,269,267,0,37,39,40,185],RI=[78,95,88,178,87,14,317,402,318,324,308,415,310,311,312,13,82,81,80,191];
+const LP=[...RO.filter((_,i)=>i%2===0),...RI.filter((_,i)=>i%2===0)];
+function lipFeat(lm,ar){const P=i=>[lm[i].x*ar,lm[i].y],eL=P(33),eR=P(263),iod=Math.hypot(eR[0]-eL[0],eR[1]-eL[1])||1e-6,ang=Math.atan2(eR[1]-eL[1],eR[0]-eL[0]),c=Math.cos(-ang),s=Math.sin(-ang);
+  const pts=LP.map(P);let cx=0,cy=0;for(const p of pts){cx+=p[0];cy+=p[1]}cx/=pts.length;cy/=pts.length;const f=[];
+  for(const p of pts){const x=(p[0]-cx)/iod,y=(p[1]-cy)/iod;f.push(x*c-y*s,x*s+y*c)}
+  const dd=(a,b)=>{const A=P(a),B=P(b);return Math.hypot(A[0]-B[0],A[1]-B[1])/iod};return{f,o:dd(13,14),w:dd(61,291)}}
+function viseme(o,w,w0){const r=w0?w/w0:1;if(o<.02)return'М';if(o>=.15&&r>=.85)return'А';if(r<.88)return o>=.07?'О':'У';if(r>=1.05&&o<.12)return'И';if(o>=.07)return'Э';return'Ы'}
+const VN={'М':'М · Б · П — ерін жұмық','А':'А — ауыз кең ашық','О':'О · Ө — ерін дөңгелек','У':'У · Ұ · Ү — ерін сүйірленген','И':'И · Е · І — ерін керілген','Э':'Э · Ә — ауыз жартылай ашық','Ы':'Ы — бейтарап','–':'Бет көрінбей тұр'};
+function drawLips(g,c,lm){const W=c.width,H=c.height;g.lineWidth=Math.max(2,W/260);g.lineJoin='round';
+  const ring=(ids,fill)=>{g.beginPath();ids.forEach((i,k)=>{const x=lm[i].x*W,y=lm[i].y*H;k?g.lineTo(x,y):g.moveTo(x,y)});g.closePath();if(fill){g.fillStyle=fill;g.fill()}g.stroke()};
+  g.strokeStyle='#ffb224';ring(RO);g.strokeStyle='#fff';ring(RI,'rgba(255,178,36,.28)')}
+
+const Lips={mode:'words',train:null,prev:null,rest:null,pre:[],act:0,seg:null,lastClip:null,dr:{target:'А',since:0,score:0,hit:0},
+  init(){const st=this.st=new Stage($('#stL'),()=>Vision.face());st.onFrame=(r,now)=>this.frame(r,now);st.onEnd=()=>{if(this.seg)this.endSeg()};st.onStop=()=>this.cancel();st.onStart=()=>{this.rest=null;this.prev=null;this.seg=null;this.pre=[]};
+    this.cmp=Composer($('#cmpL'),'ерін');
+    $$('#lMode button').forEach(b=>b.onclick=()=>{this.mode=b.dataset.m;$$('#lMode button').forEach(x=>x.classList.toggle('on',x===b));$('#lWords').hidden=this.mode!=='words';$('#lDrill').hidden=this.mode!=='drill';this.cancel();if(this.mode==='drill')this.nextDrill()});
+    $('#lTrain').onclick=()=>this.train?this.cancel():this.begin();$('#drNext').onclick=()=>this.nextDrill();this.render()},
+  render(){renderList($('#lList'),$('#lCnt'),DB.lips,it=>`${it.t.length} жазба`,it=>{$('#lPhrase').value=it.phrase;this.begin(it.id)},
+    it=>{DB.lips=DB.lips.filter(x=>x.id!==it.id);saveDB();this.render()},'Әзірге сөз үйретілмеген. Жиі қолданатын 5–10 сөзден бастаңыз: «иә», «жоқ», «су», «рақмет», «көмек».')},
+  async begin(id){const phrase=$('#lPhrase').value.trim();if(!phrase){toast('Алдымен сөзді жазыңыз');$('#lPhrase').focus();return}
+    if(!this.st.on){await this.st.start();if(!this.st.on)return}
+    if(!id){const ex=DB.lips.find(x=>x.phrase.toLowerCase()===phrase.toLowerCase());if(ex)id=ex.id}
+    const T=this.train={phrase,id,t:[],go:false};$('#lTrain').textContent='Тоқтату';this.st.over('Ерніңізді жұмып, камераға қараңыз');await sleep(1300);if(this.train!==T)return;
+    this.seg=null;T.go=true;this.st.over(`«${phrase}» деп айтыңыз (1 / 3)`)},
+  cancel(){if(!this.train)return;this.train=null;$('#lTrain').textContent='Үйрету';this.st.over(null);this.seg=null},
+  nextDrill(){const all=['А','О','У','И','Э','М'],d=this.dr;let t;do{t=all[Math.floor(Math.random()*all.length)]}while(t===d.target);d.target=t;d.since=0;d.hit=0;$('#drTarget').textContent=t;$('#drTarget').classList.remove('hit');$('#drText').textContent=VN[t];$('#drProg').style.width='0%'},
+  frame(res,now){const st=this.st,lm=res&&res.multiFaceLandmarks&&res.multiFaceLandmarks[0];
+    if(!lm){$('#visBig').textContent='–';$('#visName').textContent=VN['–'];$('#visOpen').style.width='0%';st.res('','Бетіңізді камераға тура ұстаңыз',0);if(this.seg&&now-this.seg.lastAct>450)this.endSeg();this.prev=null;return}
+    const L=lipFeat(lm,st.c.width/st.c.height);drawLips(st.g,st.c,lm);
+    if(this.prev)for(let i=0;i<L.f.length;i++)L.f[i]=L.f[i]*.65+this.prev.f[i]*.35;
+    const m=this.prev?eu(L.f,this.prev.f):0;this.prev=L;
+    if(!this.rest)this.rest={f:L.f.slice(),o:L.o,w:L.w};const R=this.rest,k=1/S.sens;
+    const quiet=m<.045*k&&L.o<R.o+.02;
+    const v=viseme(L.o-Math.min(R.o,.015),L.w,R.w);$('#visBig').textContent=v;$('#visName').textContent=VN[v];$('#visOpen').style.width=clamp(L.o/.3,0,1)*100+'%';
+    if(this.mode==='drill'){this.drill(v,now);return}
+    const T=this.train;if(T&&!T.go)return;
+    if(!this.seg){if(quiet){const a=.12;for(let i=0;i<R.f.length;i++)R.f[i]+=(L.f[i]-R.f[i])*a;R.o+=(L.o-R.o)*a;R.w+=(L.w-R.w)*a}
+      this.pre.push(L.f.slice());if(this.pre.length>3)this.pre.shift();
+      this.act=(L.o>R.o+.035||m>.07*k)?this.act+1:0;
+      if(this.act>=2){const r0=R.f.slice();this.seg={r0,fr:this.pre.map(f=>f.map((x,i)=>x-r0[i])),t0:now,lastAct:now,lastIdx:this.pre.length-1};this.pre=[];this.act=0}
+      else if(!T&&now-(this.shown||0)>2500)st.res('',DB.lips.length?'Сөзді ерінмен айтыңыз':'Алдымен бір-екі сөз үйретіңіз',0);return}
+    const sg=this.seg;sg.fr.push(L.f.map((x,i)=>x-sg.r0[i]));if(!quiet){sg.lastAct=now;sg.lastIdx=sg.fr.length-1}
+    st.res('●','Ерін қимылы жазылып жатыр…',clamp((now-sg.t0)/5000,0,1));
+    if(now-sg.lastAct>450||now-sg.t0>5000)this.endSeg()},
+  endSeg(){const sg=this.seg;this.seg=null;if(!sg)return;const fr=sg.fr.slice(0,sg.lastIdx+3);if(fr.length<6)return;const q=resample(fr,RN),T=this.train;
+    if(T){T.t.push(q);vib(50);if(T.t.length<3){this.st.over(`Тағы бір рет айтыңыз (${T.t.length+1} / 3)`);return}
+      const ex=T.id&&DB.lips.find(x=>x.id===T.id);if(ex){ex.t=ex.t.concat(T.t).slice(-9);ex.r=intra(ex.t)}else DB.lips.push({id:uid(),phrase:T.phrase,t:T.t,r:intra(T.t)});
+      this.train=null;$('#lTrain').textContent='Үйрету';this.st.over(null);$('#lPhrase').value='';saveDB();this.render();toast('«'+T.phrase+'» сөзі сақталды');vib([60,40,60]);return}
+    if(!DB.lips.length)return;
+    const r=seqClassify(DB.lips,q,.12);this.shown=performance.now();this.lastClip={q,said:r.ok?r.best.w.id:null};
+    if(r.ok){this.st.res(r.best.w.phrase,'Сенімділік '+Math.round(r.best.conf*100)+'%',1);this.cmp.add(r.best.w.phrase)}
+    else this.st.res('?','Сенімді танылмады — төменнен дұрысын таңдаңыз',0);
+    const box=$('#lCands');box.innerHTML='';$('#lCandBox').hidden=!r.cands.length;
+    for(const c of r.cands){const b=el('button','chip');b.append(document.createTextNode(c.w.phrase),el('small','',Math.round(c.conf*100)+'%'));b.onclick=()=>this.correct(c.w.id);box.append(b)}},
+  correct(id){const lc=this.lastClip;if(!lc)return;const w=DB.lips.find(x=>x.id===id);if(!w)return;w.t=w.t.concat([lc.q]).slice(-9);w.r=intra(w.t);saveDB();this.render();
+    if(lc.said!==id)this.cmp.add(w.phrase);this.lastClip=null;$('#lCandBox').hidden=true;toast('Есте сақталды: «'+w.phrase+'»')},
+  drill(v,now){const d=this.dr,ok=v===d.target;if(d.hit){if(now-d.hit>1300)this.nextDrill();return}
+    if(ok){if(!d.since)d.since=now;const pr=clamp((now-d.since)/1000,0,1);$('#drProg').style.width=pr*100+'%';$('#drText').textContent='Дұрыс, ұстап тұрыңыз…';
+      if(pr>=1){d.score++;d.hit=now;$('#drTarget').classList.add('hit');$('#drText').textContent='Жарайсыз!';$('#drScore').textContent='Дұрыс: '+d.score;vib(60)}}
+    else{d.since=0;$('#drProg').style.width='0%';$('#drText').textContent=VN[d.target]+' (қазір: '+v+')'}}};
+
+/* ---------- phrases ---------- */
+const PH=[['Күнделікті',[['Сәлеметсіз бе!','Здравствуйте!'],['Мен естімеймін, жазып сөйлесейік.','Я не слышу, давайте общаться письменно.'],['Баяу әрі анық сөйлеңізші.','Говорите, пожалуйста, медленно и чётко.'],['Қайталап жіберіңізші.','Повторите, пожалуйста.'],['Түсінбедім.','Я не понял.'],['Иә.','Да.'],['Жоқ.','Нет.'],['Рақмет!','Спасибо!'],['Кешіріңіз.','Извините.'],['Сау болыңыз!','До свидания!']]],
+['Шұғыл',[['Маған көмек керек!','Мне нужна помощь!'],['Жедел жәрдем шақырыңыз!','Вызовите скорую помощь!'],['Полиция шақырыңыз!','Вызовите полицию!'],['Өрт шықты!','Пожар!'],['Мен адасып қалдым.','Я заблудился.'],['Жақыныма қоңырау шалып беріңізші.','Позвоните, пожалуйста, моему близкому.']]],
+['Дәрігерде',[['Менің мына жерім ауырады.','У меня болит вот здесь.'],['Басым ауырады.','У меня болит голова.'],['Қызуым көтерілді.','У меня поднялась температура.'],['Дәріге аллергиям бар.','У меня аллергия на лекарства.'],['Диагнозды жазып беріңізші.','Напишите, пожалуйста, диагноз.'],['Маған сурдоаудармашы керек.','Мне нужен сурдопереводчик.']]],
+['Дүкен, көлік',[['Мынау қанша тұрады?','Сколько это стоит?'],['Бағасын жазып көрсетіңізші.','Напишите, пожалуйста, цену.'],['Картамен төлеймін.','Я оплачу картой.'],['Осы аялдамадан түсемін.','Я выхожу на этой остановке.'],['Мына мекенжайға апарыңызшы.','Отвезите меня по этому адресу.'],['Бұл автобус қайда барады?','Куда идёт этот автобус?']]],
+['Мектепте',[['Түсінбедім, қайта түсіндіріңізші.','Я не понял, объясните ещё раз.'],['Тақтаға жазып беріңізші.','Напишите, пожалуйста, на доске.'],['Маған қарап сөйлеңізші.','Говорите, пожалуйста, повернувшись ко мне.'],['Сұрағым бар.','У меня есть вопрос.'],['Шығуға бола ма?','Можно выйти?'],['Тапсырманы орындадым.','Я выполнил задание.']]],
+['Мекемеде',[['Маған анықтама керек.','Мне нужна справка.'],['Кезегім қашан келеді?','Когда подойдёт моя очередь?'],['Қай терезеге баруым керек?','К какому окну мне подойти?'],['Қандай құжаттар керек?','Какие документы нужны?'],['Жазбаша түсіндіріп беріңізші.','Объясните, пожалуйста, письменно.']]]];
+const Phr={cat:0,
+  init(){$('#phAddBtn').onclick=()=>{const v=$('#phNew').value.trim();if(!v)return;DB.phr.push(v);saveDB();$('#phNew').value='';this.cat=PH.length;this.render()};$('#phNew').onkeydown=e=>{if(e.key==='Enter')$('#phAddBtn').click()};this.render()},
+  render(){const cats=$('#cats');cats.innerHTML='';[...PH.map(c=>c[0]),'Менікі'].forEach((n,i)=>{const b=el('button','chip'+(i===this.cat?' on':''),n);b.onclick=()=>{this.cat=i;this.render()};cats.append(b)});
+    const g=$('#pgrid');g.innerHTML='';const ru=S.ttsLang==='ru';
+    if(this.cat<PH.length)for(const[kk,rus]of PH[this.cat][1]){const b=el('button','ph'+(this.cat===1?' urgent':''));b.append(el('b','',ru?rus:kk),el('small','',ru?kk:rus));b.onclick=()=>{const t=ru?rus:kk;Talk.say(t,'фраза');Big.open(t)};g.append(b)}
+    else{if(!DB.phr.length)g.append(el('div','empty-note','Өз фразаларыңыз осында тұрады. Төмендегі өріске жазып қосыңыз.'));
+      DB.phr.forEach((t,i)=>{const w=el('div','ph'),b=el('button');b.style.cssText='text-align:left;width:100%;padding-right:34px';b.append(el('b','',t));b.onclick=()=>{Talk.say(t,'фраза');Big.open(t)};
+        const x=el('button','rm');x.innerHTML=icon('x');x.setAttribute('aria-label','Өшіру');twoStep(x,()=>{DB.phr.splice(i,1);saveDB();this.render()});w.append(b,x);g.append(w)})}}};
+
+/* ---------- alerts ---------- */
+const Alerts={log:[],
+  fire(title,detail){vib([300,150,300,150,300]);const old=$('#flash');if(old)old.remove();const f=el('div');f.id='flash';f.append(document.createTextNode(title));if(detail)f.append(el('small','',detail));document.body.append(f);setTimeout(()=>f.remove(),2800);f.onclick=()=>f.remove();
+    this.log.unshift({title,detail,t:new Date()});this.log=this.log.slice(0,12);this.render()},
+  render(){const b=$('#sndLog');b.innerHTML='';for(const a of this.log){const r=el('div','it'),d=el('div');d.append(el('b','',a.title),el('small','',a.t.toLocaleTimeString('kk-KZ')+(a.detail?' · '+a.detail:'')));r.append(d);b.append(r)}},
+  keywords(t){if(!S.kwOn||!t)return;const low=t.toLowerCase(),now=Date.now();if(now-(this.kwAt||0)<5000)return;const hit=DB.kw.find(k=>k&&low.includes(k.toLowerCase()));if(hit){this.kwAt=now;this.fire('«'+hit+'» деген сөз естілді',t.slice(0,80))}}};
+const Snd={on:false,
+  async start(){try{if(!navigator.mediaDevices)throw 0;this.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}catch(e){toast(LOCALF?NOHTTPS:'Микрофон ашылмады: браузерден микрофонға рұқсат беріңіз.',6000);return}
+    const AC=window.AudioContext||window.webkitAudioContext;this.ctx=new AC();const an=this.an=this.ctx.createAnalyser();an.fftSize=2048;an.smoothingTimeConstant=.4;this.ctx.createMediaStreamSource(this.stream).connect(an);
+    this.td=new Float32Array(an.fftSize);this.fd=new Uint8Array(an.frequencyBinCount);this.on=true;this.hot=0;this.cool=0;this.ui();wake();this.tick()},
+  stop(){this.on=false;if(this.stream)this.stream.getTracks().forEach(t=>t.stop());try{this.ctx&&this.ctx.close()}catch(e){}$('#sndLvl').style.width='0%';this.ui()},
+  ui(){const b=$('#sndBtn');$('span',b).textContent=this.on?'Аңдуды тоқтату':'Аңдуды бастау';b.classList.toggle('warn',this.on)},
+  tick(){if(!this.on)return;const an=this.an;an.getFloatTimeDomainData(this.td);let s=0;for(const x of this.td)s+=x*x;const db=20*Math.log10(Math.sqrt(s/this.td.length)+1e-7),lvl=clamp((db+70)/60*100,0,100);
+    $('#sndLvl').style.width=lvl+'%';const now=performance.now();this.hot=lvl>S.sndThr?this.hot+1:0;
+    if(this.hot>=4&&now>this.cool){this.cool=now+4000;an.getByteFrequencyData(this.fd);const hz=this.ctx.sampleRate/an.fftSize;let pk=0,pi=0,sum=0,n=0;for(let i=Math.ceil(80/hz);i<this.fd.length;i++){const v=this.fd[i];sum+=v;n++;if(v>pk){pk=v;pi=i}}
+      const f=pi*hz,tonal=pk/(sum/n+1)>3.2;Alerts.fire('Қатты дыбыс шықты!',tonal&&f>1500?'Жіңішке сигнал — қоңырау не дабыл болуы мүмкін':tonal&&f>180?'Дауысқа ұқсайды — біреу шақырып тұруы мүмкін':'Шу немесе тарсыл')}
+    requestAnimationFrame(()=>this.tick())}};
+$('#sndBtn').onclick=()=>Snd.on?Snd.stop():Snd.start();
+const kwSink=()=>{};
+$('#kwOn').checked=false;S.kwOn=false;
+$('#kwOn').onchange=e=>{S.kwOn=e.target.checked;if(S.kwOn){if(!STT.on&&!STT.start(kwSink)){S.kwOn=false;e.target.checked=false}}else if(STT.on&&STT.sink===kwSink)STT.stop()};
+$('#kwList').value=DB.kw.join(', ');$('#kwList').onchange=e=>{DB.kw=e.target.value.split(',').map(s=>s.trim()).filter(Boolean);saveDB()};
+
+/* ---------- SOS ---------- */
+const Sos={open(){const s=DB.sos,box=$('#sosInfo');box.innerHTML='';const add=(k,v)=>{if(v){box.append(el('b','',k),el('div','',v))}};add('Аты-жөнім',s.name);add('Жақын адамым',s.phone);add('Мекенжайым',s.addr);add('Қосымша',s.note);
+    box.hidden=!box.childNodes.length;const sms=$('#sosSms');sms.hidden=!s.phone;if(s.phone){const base='Маған көмек керек.'+(s.name?' '+s.name+'.':'');const set=t=>sms.href='sms:'+s.phone.replace(/[^\d+]/g,'')+'?&body='+encodeURIComponent(t);set(base);
+      try{navigator.geolocation&&navigator.geolocation.getCurrentPosition(p=>set(base+' Орналасқан жерім: https://maps.google.com/?q='+p.coords.latitude.toFixed(5)+','+p.coords.longitude.toFixed(5)),()=>{},{timeout:8000})}catch(e){}}
+    $('#sos').hidden=false;wake()},
+  close(){$('#sos').hidden=true;$('#sos').classList.remove('fl');clearInterval(this.iv)},
+  say(){const t=S.ttsLang==='ru'?'Помогите! Я не слышу. Мне нужна помощь!':'Көмектесіңіздер! Мен естімеймін. Маған көмек керек!';clearInterval(this.iv);TTS.speak(t);let n=0;this.iv=setInterval(()=>{if(++n>=3||$('#sos').hidden){clearInterval(this.iv);return}TTS.speak(t)},6000)}};
+$('#sosBtn').onclick=()=>Sos.open();$('#sosX').onclick=()=>Sos.close();$('#sosSay').onclick=()=>Sos.say();$('#sosFl').onclick=()=>$('#sos').classList.toggle('fl');
+for(const[id,k]of[['sosName','name'],['sosPhone','phone'],['sosAddr','addr'],['sosNote','note']]){const i=$('#'+id);i.value=DB.sos[k]||'';i.onchange=()=>{DB.sos[k]=i.value.trim();saveDB()}}
+
+/* ---------- settings ---------- */
+function bindRange(id,key,fmt,after){const r=$('#'+id),o=$('#'+id+'V');r.value=S[key];const show=()=>o.textContent=fmt(+r.value);show();r.oninput=()=>{S[key]=+r.value;show();saveS();after&&after()}}
+const applyCap=()=>document.documentElement.style.setProperty('--cap',S.cap+'px');applyCap();
+bindRange('rate','rate',v=>v.toFixed(1)+'×');bindRange('cap','cap',v=>v+' px',applyCap);bindRange('hold','hold',v=>(v/1000).toFixed(1)+' с');bindRange('sens','sens',v=>v.toFixed(1));
+bindRange('sndThr','sndThr',v=>v,()=>$('#sndMark').style.left=S.sndThr+'%');$('#sndMark').style.left=S.sndThr+'%';
+$('#ttsLang').value=S.ttsLang;$('#ttsLang').onchange=e=>{S.ttsLang=e.target.value;saveS();Phr.render()};
+$('#voiceSel').onchange=e=>{S.voice=e.target.value;saveS();TTS.speak(S.ttsLang==='ru'?'Проверка голоса':'Дауысты тексеру')};
+$('#expBtn').onclick=()=>{const data=JSON.stringify({app:'ym-dauys',v:1,db:DB});try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='ym_dauys_derekter.json';document.body.append(a);a.click();a.remove();toast('Файл жүктелді: ym_dauys_derekter.json')}catch(e){toast('Бұл ортада файлға шығару мүмкін болмады')}};
+$('#impFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const j=JSON.parse(await f.text());if(j.app!=='ym-dauys'||!j.db)throw 0;
+  for(const k of['stat','dyn','lips']){const have=new Set(DB[k].map(x=>x.id));for(const x of(j.db[k]||[]))if(x&&x.id&&x.phrase&&!have.has(x.id))DB[k].push(x)}
+  for(const p of(j.db.phr||[]))if(typeof p==='string'&&!DB.phr.includes(p))DB.phr.push(p);
+  saveDB();Sign.render();Lips.render();Phr.render();toast('Деректер қосылды')}catch(err){toast('Бұл файл Ым-Дауыс деректері емес')}};
+twoStep($('#wipeBtn'),()=>{DB.stat=[];DB.dyn=[];DB.lips=[];DB.phr=[];DB.bi={};saveDB();Sign.render();Lips.render();Phr.render();toast('Үйретілген деректер өшірілді')});
+
+/* ---------- tabs ---------- */
+function show(v){$$('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));$$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  if(v!=='sign'&&Sign.st.on)Sign.st.stop();if(v!=='lips'&&Lips.st.on)Lips.st.stop();$('#main').scrollTop=v==='talk'?$('#main').scrollHeight:0}
+$$('#tabs button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&(Sign.st.on||Lips.st.on||STT.on||Snd.on))wake()});
+
+TTS.init();Sign.init();Lips.init();Phr.init();fillVoices();
+window.__ymd={S,DB,Sign,Lips,Talk,TTS,STT,builtin,classifyStatic,statFeat,handsOf,dtw,resample,seqClassify,intra,lipFeat,viseme,show};
+})();
+</script>
+</body>
+</html>
