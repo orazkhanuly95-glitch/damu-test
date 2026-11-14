@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Физика оқиғалары</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Onest:wght@400;500;700&family=Unbounded:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: a 16:9 cartoon stage on the left, a squared-paper school notebook on the right, the task sheet below. */
+  --ink:#1b2550;      /* outlines, text */
+  --page:#e6ecfb;     /* page background */
+  --paper:#fbfcff;    /* cards, notebook paper */
+  --hot:#ff5533;      /* the iron: the one loud colour */
+  --sun:#ffc533;      /* hotspots, highlights */
+  --teal:#1f8f8a;     /* focus, calm accents */
+  --rule:#c5d2f3;     /* notebook grid, hairlines */
+  --muted:#56618c;
+  --ok:#1a8f58; --bad:#cf3a2b;
+  --display:"Unbounded","Arial Black","Segoe UI",system-ui,sans-serif;
+  --body:"Onest","Segoe UI",Roboto,system-ui,sans-serif;
+  --hand:"Caveat","Segoe Print","Comic Sans MS",cursive;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--page);color:var(--ink);font:400 17px/1.5 var(--body);-webkit-text-size-adjust:100%}
+.wrap{max-width:1340px;margin:0 auto;padding:12px 16px 40px;display:flex;flex-direction:column;gap:12px}
+button,input,select{font:inherit;color:inherit}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand svg{width:44px;height:44px;flex:none}
+.brand h1{font:800 clamp(18px,2.4vw,24px)/1.1 var(--display);margin:0;letter-spacing:-.01em}
+.brand p{margin:2px 0 0;font-size:14px;color:var(--muted)}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* sticker buttons */
+.btn{font:700 15px/1 var(--body);background:#fff;border:3px solid var(--ink);border-radius:13px;padding:10px 16px;box-shadow:0 4px 0 var(--ink);cursor:pointer;transition:transform .08s,box-shadow .08s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px);box-shadow:0 5px 0 var(--ink)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.4;cursor:default;transform:none;box-shadow:0 4px 0 var(--ink)}
+.btn.primary{background:var(--hot);color:#fff}
+.btn.sun{background:var(--sun)}
+.btn.small{padding:8px 12px;font-size:14px;border-width:2px;box-shadow:0 3px 0 var(--ink)}
+.btn[aria-pressed="true"]{background:var(--ink);color:#fff}
+:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+
+/* theatre */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.theatre{min-width:0;display:flex;flex-direction:column;gap:12px;align-items:center}
+.stage,.caption,.controls{width:min(100%,max(300px,calc((100vh - 245px) * 1.7778)))}
+.stage{position:relative;aspect-ratio:16/9;border:4px solid var(--ink);border-radius:22px;overflow:hidden;background:var(--ink);box-shadow:0 7px 0 var(--ink)}
+.stage svg{display:block;width:100%;height:100%}
+.scene-tag{position:absolute;left:12px;top:12px;background:#fff;border:3px solid var(--ink);border-radius:999px;padding:4px 12px;font:700 13px/1.2 var(--body)}
+.toast{position:absolute;left:50%;bottom:14px;transform:translate(-50%,20px);background:var(--ink);color:#fff;border-radius:12px;padding:8px 14px;font:700 14px/1.3 var(--body);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.caption{background:#fff3c2;border:3px solid var(--ink);border-radius:16px;padding:10px 16px;min-height:66px;display:flex;align-items:center}
+.caption p{margin:0;font-size:clamp(16px,1.6vw,20px);line-height:1.35;font-weight:500;text-wrap:pretty}
+.controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.dots{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center}
+.dot{width:16px;height:16px;border-radius:50%;border:3px solid var(--ink);background:#fff;padding:0;cursor:pointer}
+.dot.on{background:var(--hot);transform:scale(1.25)}
+.dot.seen{background:var(--ink)}
+.dot.on.seen{background:var(--hot)}
+.ctl-group{display:flex;gap:8px}
+
+/* notebook: squared school paper with a red margin */
+.notebook{background:
+    linear-gradient(90deg,transparent 33px,#f29a8e 33px,#f29a8e 35px,transparent 35px),
+    linear-gradient(var(--rule) 1px,transparent 1px) 0 0/100% 22px,
+    linear-gradient(90deg,var(--rule) 1px,transparent 1px) 0 0/22px 100%,
+    var(--paper);
+  border:3px solid var(--ink);border-radius:16px;box-shadow:0 6px 0 var(--ink);padding:14px 14px 16px 46px;display:flex;flex-direction:column;gap:6px}
+.notebook h2{font:800 17px/1.2 var(--display);margin:0}
+.notebook .hint{font-size:13.5px;line-height:1.35;color:var(--muted);margin:0 0 4px}
+.nb-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nb-list li{min-height:44px;display:flex;flex-direction:column;justify-content:center}
+.nb-list .k{font:700 12px/1.2 var(--body);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.nb-list .v{font:700 23px/1.05 var(--hand);color:#2337a8}
+.nb-list li.empty .v{color:#9aa6cf;font:500 20px/1.05 var(--hand)}
+.nb-list li.empty button{all:unset;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.nb-list li.new .v{animation:ink .7s ease}
+@keyframes ink{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.nb-count{font:700 14px/1.2 var(--body);margin:6px 0 8px}
+
+/* task sheet */
+.task{background:var(--paper);border:3px solid var(--ink);border-radius:20px;box-shadow:0 7px 0 var(--ink);padding:clamp(16px,3vw,30px);display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.task h2{font:800 clamp(20px,2.6vw,28px)/1.15 var(--display);margin:0;text-wrap:balance}
+.task .lead{font-size:clamp(17px,1.8vw,20px);max-width:68ch;margin:0}
+.task .lead strong{background:linear-gradient(transparent 62%,#ffd9cf 62%)}
+.steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.step{border:2px solid var(--ink);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:#fff}
+.step.wide{grid-column:1/-1}
+.step h3{font:700 17px/1.3 var(--body);margin:0;display:flex;gap:10px;align-items:baseline}
+.step h3 .n{font:800 14px/1 var(--display);background:var(--ink);color:#fff;border-radius:8px;padding:5px 8px;flex:none}
+.step p{margin:0;font-size:15.5px;color:var(--muted)}
+.step.done{border-color:var(--ok);box-shadow:inset 6px 0 0 var(--ok)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:700 16px/1 var(--body);font-variant-numeric:tabular-nums;border:2px solid var(--ink);background:#fff;border-radius:999px;padding:9px 13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--sun)}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-weight:700;font-size:18px}
+.row input{width:104px;font:700 18px/1 var(--body);font-variant-numeric:tabular-nums;border:2px solid var(--ink);border-radius:10px;padding:9px 10px;background:#fff}
+.row input.good{border-color:var(--ok);background:#e9f8f0}
+.row input.wrong{border-color:var(--bad);background:#fdecea}
+.fb{font-size:15px;font-weight:500;min-height:0}
+.fb.ok{color:var(--ok)} .fb.no{color:var(--bad)}
+.answer{border:3px solid var(--ink);border-radius:16px;background:var(--sun);padding:14px 18px;font:800 clamp(18px,2.4vw,24px)/1.25 var(--display)}
+.answer small{display:block;font:500 16px/1.4 var(--body);margin-top:6px}
+.solution{border:2px dashed var(--ink);border-radius:16px;padding:14px 18px;background:#fff;font-size:17px}
+.solution h3{margin:0 0 6px;font:700 17px/1.3 var(--body)}
+.solution p{margin:4px 0;font-variant-numeric:tabular-nums}
+.talk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.talk details{border:2px solid var(--ink);border-radius:14px;background:#fff;padding:12px 14px}
+.talk summary{cursor:pointer;font-weight:700;line-height:1.35}
+.talk details p{margin:8px 0 0;font-size:16px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.teacher{border-top:2px solid var(--rule);padding-top:14px}
+.teacher summary{cursor:pointer;font-weight:700}
+.teacher .fields{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;align-items:end}
+.teacher label{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700}
+.teacher select,.teacher input{border:2px solid var(--ink);border-radius:10px;padding:8px 10px;background:#fff;font-weight:700;width:150px}
+.foot{font-size:14px;color:var(--muted);text-align:center}
+h2.section{font:800 18px/1.2 var(--display);margin:6px 0 0}
+
+/* zoom dialog */
+.zoom{position:fixed;inset:0;background:rgba(27,37,80,.72);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.zoom[hidden]{display:none}
+.zoom-card{background:var(--paper);border:4px solid var(--ink);border-radius:20px;box-shadow:0 8px 0 var(--ink);padding:18px;width:min(440px,100%);display:flex;flex-direction:column;gap:14px;max-height:100%;overflow:auto}
+.zoom-card h2{font:800 18px/1.2 var(--display);margin:0}
+.plate{border:3px solid #8d98ab;border-radius:12px;background:linear-gradient(#f3f5f9,#dfe4ec);padding:16px;text-align:center;font-family:var(--body)}
+.plate .b{font:700 13px/1.2 var(--body);letter-spacing:.14em;color:#5a6278}
+.plate .big{font:800 clamp(22px,6vw,30px)/1.25 var(--display);margin:10px 0;font-variant-numeric:tabular-nums}
+.plate .s{font-size:13px;color:#5a6278}
+.bill{border:2px solid var(--rule);border-radius:8px;background:#fff;padding:14px;font-size:15.5px}
+.bill .hd{display:flex;justify-content:space-between;gap:8px;font:800 15px/1.2 var(--display);border-bottom:3px solid var(--ink);padding-bottom:8px;margin-bottom:6px}
+.bill .ln{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed var(--rule);font-variant-numeric:tabular-nums}
+.bill .ln b{white-space:nowrap}
+.bill .tot{display:flex;justify-content:space-between;font-weight:700;font-size:18px;padding-top:8px}
+
+/* ---------- scene animation ---------- */
+.scene{display:none}
+.scene.on{display:inline}
+.scene.on.fade{animation:sceneIn .45s ease}
+@keyframes sceneIn{from{opacity:0}to{opacity:1}}
+.b2{opacity:0;visibility:hidden}
+.scene.beat2 .b2{opacity:1;visibility:visible;transition:opacity .35s}
+.scene.beat2 .b1{opacity:0;visibility:hidden}
+.t-display{font-family:var(--display);font-weight:800}
+.t-bold{font-family:var(--body);font-weight:700}
+.t-body{font-family:var(--body);font-weight:500}
+.t-digit{font-family:"Courier New",ui-monospace,monospace;font-weight:700}
+
+.sw{animation:swing var(--d,.36s) ease-in-out infinite alternate;transform-origin:0 0}
+.sw.b{animation-direction:alternate-reverse}
+@keyframes swing{from{transform:rotate(var(--a,26deg))}to{transform:rotate(calc(-1 * var(--a,26deg)))}}
+.bob{animation:bob var(--d,.36s) ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-7px)}}
+.puff{animation:puff 2.8s ease-out infinite;opacity:0}
+@keyframes puff{0%{transform:translate(0,0) scale(.4);opacity:0}18%{opacity:.85}100%{transform:translate(var(--dx,10px),-130px) scale(1.7);opacity:0}}
+.blink{animation:blink .8s ease-in-out infinite alternate}
+@keyframes blink{from{opacity:.35}to{opacity:1}}
+.shake{animation:shake .12s linear infinite alternate}
+@keyframes shake{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+.zz{animation:zz 3s ease-in-out infinite;opacity:0}
+@keyframes zz{0%{opacity:0;transform:translate(0,10px)}30%{opacity:1}100%{opacity:0;transform:translate(26px,-46px)}}
+.breathe{animation:breathe 2.6s ease-in-out infinite alternate;transform-origin:1200px 652px}
+@keyframes breathe{from{transform:scaleY(1)}to{transform:scaleY(1.05)}}
+.sunrise{animation:sunrise 7s ease-out both}
+@keyframes sunrise{from{transform:translateY(70px)}to{transform:translateY(0)}}
+.rays{animation:spin 80s linear infinite;transform-origin:1185px 560px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.brush{animation:brush .16s ease-in-out infinite alternate}
+@keyframes brush{from{transform:translateX(-4px)}to{transform:translateX(5px)}}
+.float{animation:floatUp 3.4s ease-in infinite;opacity:0}
+@keyframes floatUp{0%{transform:translateY(0);opacity:0}15%{opacity:.9}100%{transform:translateY(-190px);opacity:0}}
+.flow{animation:flow .5s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-28}}
+.scene.beat2 .pop,.pop.now{animation:pop .5s cubic-bezier(.3,1.7,.5,1) both}
+@keyframes pop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+.exit-run{animation:exitRun 2.7s cubic-bezier(.5,0,.9,.6) .5s both}
+@keyframes exitRun{to{transform:translateX(1200px)}}
+.warn{animation:pop .5s cubic-bezier(.3,1.7,.5,1) 2.8s both;transform-origin:1053px 320px}
+.scrollL{animation:scrollL 5s cubic-bezier(.3,.1,.3,1) both}
+@keyframes scrollL{from{transform:translateX(0)}to{transform:translateX(-1600px)}}
+.scrollR{animation:scrollR 2.4s linear infinite}
+@keyframes scrollR{from{transform:translateX(-1600px)}to{transform:translateX(0)}}
+.whoosh{stroke-dasharray:90 160;animation:whoosh .5s linear infinite}
+@keyframes whoosh{to{stroke-dashoffset:-250}}
+.cloud{animation:drift 40s linear infinite alternate}
+@keyframes drift{to{transform:translateX(120px)}}
+
+/* hotspots */
+.hot{cursor:pointer;outline:none}
+.hot-hit{fill:transparent}
+.hot-ring{fill:rgba(255,197,51,.14);stroke:var(--sun);stroke-width:7;stroke-dasharray:16 13;animation:dash 5s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-290}}
+.hot:hover .hot-ring,.hot:focus-visible .hot-ring{fill:rgba(255,197,51,.32);stroke:#fff}
+.hot .ic-check{display:none}
+.hot.found .hot-ring{stroke:#2fd08a;fill:rgba(47,208,138,.12);stroke-dasharray:none;animation:none}
+.hot.found .ic-check{display:inline}
+.hot.found .ic-find{display:none}
+.hot.found .hot-badge circle{fill:#2fd08a}
+
+@media (max-width:920px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .steps,.talk{grid-template-columns:minmax(0,1fr)}
+  .nb-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px}
+}
+@media (max-width:520px){
+  .nb-list{grid-template-columns:minmax(0,1fr)}
+  .controls{justify-content:center}
+  .btn{padding:10px 13px}
+  .stage{border-radius:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  .sw,.bob,.puff,.blink,.shake,.zz,.breathe,.rays,.brush,.float,.flow,.scrollR,.whoosh,.cloud,.hot-ring{animation:none}
+  .puff,.zz,.float{opacity:.7}
+  .sunrise,.exit-run,.warn,.scrollL,.scene.on.fade{animation-duration:.01s;animation-delay:0s}
+}
+.eps{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin}
+.ep-tab{flex:none;display:flex;align-items:center;gap:9px;font:700 14px/1.2 var(--body);background:#fff;border:3px solid var(--ink);border-radius:14px;padding:7px 13px 7px 7px;box-shadow:0 3px 0 var(--ink);cursor:pointer;text-align:left;max-width:250px}
+.ep-tab .num{font:800 14px/1 var(--display);background:var(--ink);color:#fff;border-radius:9px;width:32px;height:32px;display:grid;place-items:center;flex:none}
+.ep-tab small{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:1px}
+.ep-tab[aria-current="true"]{background:var(--sun)}
+.ep-tab[aria-current="true"] .num{background:var(--hot)}
+.ep-tab.done small::after{content:" · шешілді";color:var(--ok);font-weight:700}
+.ref{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:14.5px}
+.ref span{border:1.5px dashed var(--ink);border-radius:8px;padding:4px 8px;background:#fff;font-variant-numeric:tabular-nums}
+.step.predict{background:#fff3c2}
+.rows{display:flex;flex-direction:column;gap:8px}
+.row input{width:132px}
+.row label{font-weight:700}
+.verdict{display:block;font:700 16px/1.4 var(--body);margin-top:6px}
+.dot.lock{background:repeating-linear-gradient(45deg,#fff 0 3px,#aab4c4 3px 6px)}
+.t-hand{font-family:var(--hand);font-weight:700}
+.snow{animation:snow 5s linear infinite}
+@keyframes snow{from{transform:translateY(0)}to{transform:translateY(1000px)}}
+.flick{animation:flick .26s ease-in-out infinite alternate;transform-origin:0 0}
+@keyframes flick{from{transform:scale(1,1)}to{transform:scale(.93,1.12)}}
+.spin{animation:spin 1.6s linear infinite}
+.drip{animation:drip 3.6s ease-in infinite}
+@keyframes drip{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(46px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.snow,.flick,.spin,.drip{animation:none}.drip{opacity:1}}
+.stage,.caption,.controls{width:min(100%,max(300px,calc((100vh - 322px) * 1.7778)))}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#1b2550"/><circle cx="24" cy="24" r="14" fill="#ffc533"/><path d="M20,16 L33,24 L20,32 Z" fill="#1b2550"/></svg>
+      <div>
+        <h1>Физика оқиғалары</h1>
+        <p>Функционалдық сауаттылық · 8-сынып, §7–§12 · 6 мультфильм</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn small" id="btnSound" type="button" aria-pressed="true">Дыбыс: қосулы</button>
+      <button class="btn small" id="btnFull" type="button">Толық экран</button>
+    </div>
+  </header>
+  <nav class="eps" id="eps" aria-label="Оқиғалар"></nav>
+  <main class="layout">
+    <section class="theatre" aria-label="Мультфильм">
+      <div class="stage" id="stage">
+        <svg id="svg" viewBox="0 0 1600 900" role="img" aria-label="Физика оқиғасы туралы мультфильм"></svg>
+        <div class="scene-tag" id="tag"></div>
+        <div class="toast" id="toast" role="status"></div>
+      </div>
+      <div class="caption" aria-live="polite"><p id="cap"></p></div>
+      <div class="controls">
+        <button class="btn" id="btnPrev" type="button">◂ Артқа</button>
+        <div class="dots" id="dots"></div>
+        <div class="ctl-group">
+          <button class="btn sun" id="btnAuto" type="button" aria-pressed="false">▶ Өзі ойнасын</button>
+          <button class="btn primary" id="btnNext" type="button">Бастау ▸</button>
+        </div>
+      </div>
+    </section>
+    <aside class="notebook" aria-label="Дерек дәптері">
+      <h2>Дерек дәптері</h2>
+      <p class="hint">Көріністегі сары шеңберді бас. Табылған дерек осы дәптерге жазылады.</p>
+      <ul class="nb-list" id="nbList"></ul>
+      <p class="nb-count" id="nbCount"></p>
+      <button class="btn small primary" id="btnToTask" type="button">Есепке өту ▾</button>
+    </aside>
+  </main>
+  <section class="task" id="task" aria-labelledby="taskTitle"></section>
+  <p class="foot">Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі</p>
+</div>
+<div class="zoom" id="zoom" hidden role="dialog" aria-modal="true" aria-labelledby="zoomTitle">
+  <div class="zoom-card">
+    <h2 id="zoomTitle"></h2>
+    <div id="zoomBody"></div>
+    <button class="btn primary" id="zoomClose" type="button">Жабу</button>
+  </div>
+</div>
+<script>
+(() => {
+'use strict';
+const SK='#f6c9a0', SK2='#e8b088', HAIR='#2a1d16', INK='#1b2550', PJ='#9fd3ff';
+const r1=n=>Math.round(n*10)/10;
+
+/* ================= drawing helpers ================= */
+function limb(x1,y1,x2,y2,w,col,bend=0){
+  const mx=(x1+x2)/2,my=(y1+y2)/2,dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1;
+  return `<path d="M${r1(x1)},${r1(y1)} Q${r1(mx-dy/L*bend)},${r1(my+dx/L*bend)} ${r1(x2)},${r1(y2)}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
+}
+function head(c={}){
+  const f=c.face||'smile', lk=c.look||0, e1=-22+lk, e2=22+lk;
+  const eye=x=>`<ellipse cx="${x}" cy="-2" rx="8.5" ry="11" fill="#1c1a26"/><circle cx="${x+3}" cy="-6" r="3.2" fill="#fff"/>`;
+  const wide=x=>`<circle cx="${x}" cy="-4" r="16" fill="#fff" stroke="#1c1a26" stroke-width="3"/><circle cx="${x+lk*.3}" cy="-3" r="6.5" fill="#1c1a26"/>`;
+  const arcD=x=>`<path d="M${x-10},-3 Q${x},8 ${x+10},-3" fill="none" stroke="#1c1a26" stroke-width="5" stroke-linecap="round"/>`;
+  const arcU=x=>`<path d="M${x-10},3 Q${x},-9 ${x+10},3" fill="none" stroke="#1c1a26" stroke-width="5" stroke-linecap="round"/>`;
+  const brow=(x,dy,rot)=>`<path d="M${x-11},${-24+dy} L${x+11},${-24+dy}" stroke="${HAIR}" stroke-width="5" stroke-linecap="round" transform="rotate(${rot} ${x} ${-24+dy})"/>`;
+  const M={
+    smile:`<path d="M${lk-14},26 Q${lk},40 ${lk+14},26" fill="none" stroke="#7a2b2b" stroke-width="5" stroke-linecap="round"/>`,
+    grin:`<path d="M${lk-18},24 Q${lk},52 ${lk+18},24 Z" fill="#7a2b2b"/><path d="M${lk-13},26 L${lk+13},26 L${lk+10},32 L${lk-10},32 Z" fill="#fff"/>`,
+    o:`<ellipse cx="${lk}" cy="33" rx="10" ry="13" fill="#7a2b2b"/>`,
+    zz:`<ellipse cx="${lk}" cy="32" rx="7" ry="8" fill="#7a2b2b"/>`,
+    worry:`<path d="M${lk-12},35 Q${lk},25 ${lk+12},35" fill="none" stroke="#7a2b2b" stroke-width="5" stroke-linecap="round"/>`,
+    pant:`<path d="M${lk-14},25 Q${lk},54 ${lk+14},25 Z" fill="#7a2b2b"/><ellipse cx="${lk}" cy="41" rx="7" ry="5" fill="#ff8f7a"/>`,
+    none:''
+  };
+  const sweat=`<path d="M56,-46 q-10,15 0,22 q10,-7 0,-22" fill="#8fd0ff"/>`;
+  const F={
+    smile:eye(e1)+eye(e2)+brow(e1,0,0)+brow(e2,0,0)+M.smile,
+    happy:arcU(e1)+arcU(e2)+brow(e1,-2,0)+brow(e2,-2,0)+M.grin,
+    shock:wide(e1)+wide(e2)+brow(e1,-12,-8)+brow(e2,-12,8)+M.o+sweat,
+    sleep:arcD(e1)+arcD(e2)+M.zz,
+    worry:eye(e1)+eye(e2)+brow(e1,-2,-16)+brow(e2,-2,16)+M.worry+sweat,
+    relief:arcU(e1)+arcU(e2)+brow(e1,-4,-10)+brow(e2,-4,10)+M.pant+sweat,
+    run:eye(e1)+eye(e2)+brow(e1,0,14)+brow(e2,0,-14)+M.pant+sweat,
+    brush:eye(e1)+eye(e2)+brow(e1,-2,0)+brow(e2,-2,0)
+  };
+  let s='';
+  if(c.hair==='mom') s+=`<path d="M-72,0 C-86,-72 -42,-94 0,-92 C42,-94 86,-72 72,0 C78,52 72,86 58,100 L-58,100 C-72,86 -78,52 -72,0 Z" fill="${HAIR}"/><circle cx="0" cy="-94" r="28" fill="${HAIR}"/>`;
+  s+=`<circle cx="-60" cy="6" r="13" fill="${SK2}"/><circle cx="60" cy="6" r="13" fill="${SK2}"/><circle cx="0" cy="0" r="62" fill="${SK}"/>`;
+  s+=`<circle cx="${-38+lk}" cy="20" r="11" fill="#ff8f7a" opacity=".45"/><circle cx="${38+lk}" cy="20" r="11" fill="#ff8f7a" opacity=".45"/>`;
+  s+=F[f]||F.smile;
+  if(c.hair==='mom') s+=`<path d="M-64,-6 C-68,-58 -30,-76 0,-72 C30,-76 68,-58 64,-6 C52,-36 26,-48 0,-44 C-26,-48 -52,-36 -64,-6 Z" fill="${HAIR}"/>`;
+  else{
+    s+=`<path d="M-64,-4 C-72,-62 -30,-84 4,-80 C46,-86 76,-52 64,-2 C58,-26 44,-40 26,-43 C4,-32 -30,-35 -44,-45 C-56,-34 -60,-22 -64,-4 Z" fill="${HAIR}"/><path d="M-8,-76 C-12,-100 8,-106 14,-93 C22,-106 40,-98 30,-78 Z" fill="${HAIR}"/>`;
+    if(c.messy) s+=`<path d="M-52,-54 L-72,-84 L-38,-68 L-34,-102 L-12,-74 L8,-108 L22,-74 L52,-98 L46,-58 Z" fill="${HAIR}"/>`;
+  }
+  return s;
+}
+function kid(o={}){
+  const c=Object.assign({top:'#fff',bottom:'#27315f',shoe:'#161b3a',la:[-64,-122],ra:[64,-122],lf:[-24,0],rf:[24,0],bendA:[-12,12]},o);
+  const sl=c.sleeve||c.top; let s='<g>';
+  if(c.pack) s+=`<rect x="-72" y="-238" width="144" height="120" rx="32" fill="#ffc533"/>`;
+  s+=limb(-20,-120,c.lf[0],c.lf[1]-12,34,c.bottom)+limb(20,-120,c.rf[0],c.rf[1]-12,34,c.bottom);
+  s+=`<ellipse cx="${c.lf[0]-4}" cy="${c.lf[1]-9}" rx="25" ry="13" fill="${c.shoe}"/><ellipse cx="${c.rf[0]+4}" cy="${c.rf[1]-9}" rx="25" ry="13" fill="${c.shoe}"/>`;
+  s+=`<rect x="-50" y="-234" width="100" height="128" rx="34" fill="${c.top}"/>`;
+  if(c.stripes) s+=`<path d="M-47,-196 H47 M-50,-168 H50 M-47,-140 H47" stroke="#fff" stroke-width="8" opacity=".65"/>`;
+  if(c.vest) s+=`<path d="M-50,-198 Q-50,-234 -24,-234 L0,-178 L24,-234 Q50,-234 50,-198 L50,-140 Q50,-106 16,-106 L-16,-106 Q-50,-106 -50,-140 Z" fill="#27315f"/>`;
+  if(c.tie) s+=`<path d="M-7,-226 L7,-226 L4,-214 L9,-188 L0,-178 L-9,-188 L-4,-214 Z" fill="#1f8f8a"/>`;
+  if(c.pack) s+=`<path d="M-34,-230 L-30,-150 M34,-230 L30,-150" stroke="#e0a400" stroke-width="10" stroke-linecap="round"/>`;
+  if(!c.noLA) s+=limb(-44,-214,c.la[0],c.la[1],26,sl,c.bendA[0])+`<circle cx="${c.la[0]}" cy="${c.la[1]}" r="15" fill="${SK}"/>`;
+  if(!c.noRA) s+=limb(44,-214,c.ra[0],c.ra[1],26,sl,c.bendA[1])+`<circle cx="${c.ra[0]}" cy="${c.ra[1]}" r="15" fill="${SK}"/>`;
+  s+=`<rect x="-13" y="-248" width="26" height="22" fill="${SK2}"/><g transform="translate(0,-292)">${head(c)}</g></g>`;
+  return s;
+}
+function kidMove(o={}){
+  const c=Object.assign({a:26,d:'.36s',lean:5,face:'smile',look:12},o);
+  const st=`style="--a:${c.a}deg;--d:${c.d}"`;
+  const arm=(cls,col)=>`<g transform="translate(0,-212)"><g class="sw ${cls}" ${st}>${limb(0,0,0,82,24,col)}<circle cx="0" cy="90" r="14" fill="${SK}"/></g></g>`;
+  const leg=(cls,col)=>`<g transform="translate(0,-122)"><g class="sw ${cls}" ${st}>${limb(0,0,0,102,34,col)}<ellipse cx="12" cy="110" rx="26" ry="13" fill="#161b3a"/></g></g>`;
+  return `<g class="bob" ${st}><g transform="rotate(${c.lean})">${arm('b','#dfe6fb')}${leg('a','#1f2850')}
+    <rect x="-86" y="-232" width="66" height="106" rx="24" fill="#ffc533"/><rect x="-80" y="-182" width="40" height="42" rx="10" fill="#e0a400"/>
+    <rect x="-46" y="-234" width="92" height="128" rx="34" fill="#fff"/>
+    <path d="M-46,-198 Q-46,-234 -20,-234 L6,-180 L26,-234 Q46,-234 46,-198 L46,-140 Q46,-106 14,-106 L-14,-106 Q-46,-106 -46,-140 Z" fill="#27315f"/>
+    <path d="M0,-226 L12,-226 L10,-214 L14,-190 L6,-180 L-2,-190 L2,-214 Z" fill="#1f8f8a"/>
+    ${leg('b','#27315f')}${arm('a','#fff')}
+    <g transform="translate(4,-292)">${head(c)}</g></g></g>`;
+}
+const sh=(x,y,rx)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${r1(rx*.16)}" fill="${INK}" opacity=".16"/>`;
+function iron(on=true){
+  return `<g>
+  <path d="M2,150 Q14,118 64,104 L288,104 Q300,104 300,116 L300,150 Z" fill="url(#gMetal)"/>
+  <rect x="2" y="147" width="298" height="13" rx="6" fill="#8d98ab"/>
+  <path d="M22,126 Q44,60 132,42 L268,42 Q296,42 296,70 L296,106 L64,106 Q36,112 22,126 Z" fill="url(#gIron)"/>
+  <path d="M46,100 Q66,70 134,55 L176,55" fill="none" stroke="#ffb9a3" stroke-width="6" stroke-linecap="round" opacity=".8"/>
+  <path d="M112,46 Q122,-8 190,-8 L262,-8 Q294,-8 294,22 L294,46 L260,46 L260,34 Q260,24 250,24 L192,24 Q152,24 148,46 Z" fill="#232b4d"/>
+  <rect x="84" y="66" width="62" height="22" rx="11" fill="#bfe6ff" stroke="#fff" stroke-width="3"/>
+  <circle cx="190" cy="76" r="17" fill="#fff"/><circle cx="190" cy="76" r="11" fill="#232b4d"/><rect x="188" y="61" width="4" height="12" rx="2" fill="#ffc533"/>
+  ${on?'<circle cx="232" cy="76" r="21" fill="#ffd23c" opacity=".4" class="blink"/>':''}
+  <circle cx="232" cy="76" r="9" fill="${on?'#ffd23c':'#6b7385'}" stroke="#232b4d" stroke-width="3"/>
+  <rect x="258" y="58" width="30" height="36" rx="4" fill="#fff"/><path d="M263,67 H283 M263,75 H283 M263,83 H277" stroke="#8d98ab" stroke-width="3"/>
+  </g>`;
+}
+const ironUp=(x,yb,s,on)=>`<g transform="translate(${x},${r1(yb-300*s)}) rotate(90) scale(${s})">${iron(on)}</g>`;
+function steam(x,y,n=4,sp=60,cls=''){
+  let s='';
+  for(let i=0;i<n;i++){const dx=r1((n>1?i/(n-1)-.5:0)*sp);
+    s+=`<g transform="translate(${x+dx},${y})"><circle class="puff" r="${16+(i%3)*5}" fill="#fff" style="animation-delay:${r1(-i*.75)}s;--dx:${(i%2?1:-1)*16}px"/></g>`;}
+  return `<g class="${cls}">${s}</g>`;
+}
+function clock(cx,cy,r,h,m){
+  let t='';
+  for(let i=0;i<60;i++){const a=i*6*Math.PI/180,big=i%5===0,ra=r*(big?.8:.87),rb=r*.92;
+    t+=`<line x1="${r1(cx+Math.sin(a)*ra)}" y1="${r1(cy-Math.cos(a)*ra)}" x2="${r1(cx+Math.sin(a)*rb)}" y2="${r1(cy-Math.cos(a)*rb)}" stroke="${INK}" stroke-width="${big?r1(r*.045):r1(r*.018)}" stroke-linecap="round"/>`;}
+  for(let i=1;i<=12;i++){const a=i*30*Math.PI/180;
+    t+=`<text x="${r1(cx+Math.sin(a)*r*.63)}" y="${r1(cy-Math.cos(a)*r*.63+r*.075)}" text-anchor="middle" font-size="${r1(r*.21)}" class="t-bold" fill="${INK}">${i}</text>`;}
+  const ma=m*6, ha=(h%12+m/60)*30;
+  return `<g><circle cx="${cx}" cy="${cy+8}" r="${r+10}" fill="${INK}" opacity=".18"/><circle cx="${cx}" cy="${cy}" r="${r+10}" fill="${INK}"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff"/>${t}
+  <line x1="${cx}" y1="${cy+r*.1}" x2="${cx}" y2="${cy-r*.46}" stroke="${INK}" stroke-width="${r1(r*.08)}" stroke-linecap="round" transform="rotate(${ha} ${cx} ${cy})"/>
+  <line x1="${cx}" y1="${cy+r*.14}" x2="${cx}" y2="${cy-r*.74}" stroke="#ff5533" stroke-width="${r1(r*.05)}" stroke-linecap="round" transform="rotate(${ma} ${cx} ${cy})"/>
+  <circle cx="${cx}" cy="${cy}" r="${r1(r*.07)}" fill="${INK}"/></g>`;
+}
+function bubble(x,y,w,h,lines,tx,ty,fs=32){
+  const cx=x+w/2, bx=Math.min(Math.max(tx,x+46),x+w-46), below=ty>y+h, by=below?y+h-3:y+3, cy=below?by-5:by+5;
+  const lh=fs*1.25, y0=y+h/2-(lines.length-1)*lh/2+fs*.35;
+  return `<g><path d="M${bx-24},${by} L${tx},${ty} L${bx+24},${by} Z" fill="#fff" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>
+  <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="30" fill="#fff" stroke="${INK}" stroke-width="5"/>
+  <path d="M${bx-20},${cy} L${bx+20},${cy}" stroke="#fff" stroke-width="11"/>
+  ${lines.map((l,i)=>`<text x="${cx}" y="${r1(y0+i*lh)}" text-anchor="middle" font-size="${fs}" class="t-bold" fill="${INK}">${l}</text>`).join('')}</g>`;
+}
+function hot(key,cx,cy,r,label){
+  const bx=r1(cx+r*.72), by=r1(cy-r*.72);
+  return `<g class="hot" data-key="${key}" tabindex="0" role="button" aria-label="${label}">
+  <circle class="hot-hit" cx="${cx}" cy="${cy}" r="${r+14}"/><circle class="hot-ring" cx="${cx}" cy="${cy}" r="${r}"/>
+  <g class="hot-badge" transform="translate(${bx},${by})"><circle r="26" fill="#ffc533" stroke="${INK}" stroke-width="5"/>
+  <g class="ic-find" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"><circle cx="-3" cy="-3" r="9"/><path d="M4,4 L12,12"/></g>
+  <path class="ic-check" d="M-11,0 L-3,9 L12,-8" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g></g>`;
+}
+function horn(cx,cy,s,col){
+  return `<g transform="translate(${cx},${cy}) scale(${s})" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M0,34 L0,-6 C0,-34 -40,-36 -42,-10 C-43,6 -24,10 -22,-4"/><path d="M0,34 L0,-6 C0,-34 40,-36 42,-10 C43,6 24,10 22,-4"/>
+  <path d="M0,34 C-10,52 -34,50 -34,36 M0,34 C10,52 34,50 34,36"/></g>`;
+}
+function rug(x,y,w,h){
+  return `<g><rect x="${x}" y="${y+6}" width="${w}" height="${h}" rx="10" fill="${INK}" opacity=".15"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="#1f8f8a"/>
+  <rect x="${x+14}" y="${y+14}" width="${w-28}" height="${h-28}" rx="6" fill="none" stroke="#ffc533" stroke-width="6"/>
+  ${horn(x+w*.24,y+h*.5,1.1,'#fff4d6')}${horn(x+w*.5,y+h*.5,1.45,'#ffc533')}${horn(x+w*.76,y+h*.5,1.1,'#fff4d6')}
+  ${Array.from({length:Math.floor(w/26)},(_,i)=>`<line x1="${x+13+i*26}" y1="${y+h}" x2="${x+13+i*26}" y2="${y+h+16}" stroke="#ffc533" stroke-width="5" stroke-linecap="round"/>`).join('')}</g>`;
+}
+function dombyra(x,y,rot){
+  return `<g transform="translate(${x},${y}) rotate(${rot})"><rect x="-7" y="-160" width="14" height="210" rx="5" fill="#8a5a2e"/><rect x="-11" y="-184" width="22" height="30" rx="6" fill="#6b4a35"/>
+  <circle cx="-15" cy="-174" r="5" fill="#ffc533"/><circle cx="15" cy="-166" r="5" fill="#ffc533"/>
+  <path d="M0,150 C-50,150 -56,88 -26,58 L-8,38 L8,38 L26,58 C56,88 50,150 0,150 Z" fill="#d79a5a" stroke="#8a5a2e" stroke-width="5"/>
+  <circle cx="0" cy="96" r="8" fill="#6b4a35"/><path d="M-3,-150 L-3,128 M3,-150 L3,128" stroke="#fff" stroke-width="1.5" opacity=".8"/></g>`;
+}
+function room(){
+  return `<rect width="1600" height="660" fill="url(#gWall)"/>
+  <g opacity=".3" stroke="#fff" stroke-width="3">${Array.from({length:20},(_,i)=>`<line x1="${40+i*80}" y1="0" x2="${40+i*80}" y2="606"/>`).join('')}</g>
+  <rect y="606" width="1600" height="54" fill="#9fb0e6"/><rect y="600" width="1600" height="10" fill="#fff" opacity=".75"/>
+  <rect y="660" width="1600" height="240" fill="url(#gFloor)"/>
+  <g stroke="#a86f3c" stroke-width="3" opacity=".45"><line x1="0" y1="725" x2="1600" y2="725"/><line x1="0" y1="805" x2="1600" y2="805"/>
+  ${[150,520,900,1300].map(x=>`<line x1="${x}" y1="660" x2="${x}" y2="725"/>`).join('')}${[340,700,1100,1480].map(x=>`<line x1="${x}" y1="725" x2="${x}" y2="805"/>`).join('')}${[200,620,980,1380].map(x=>`<line x1="${x}" y1="805" x2="${x}" y2="900"/>`).join('')}</g>`;
+}
+function win(id,x,y,w,h,mode){
+  const dusk=mode==='dusk';
+  return `<g><clipPath id="${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8"/></clipPath>
+  <rect x="${x-70}" y="${y-48}" width="${w+140}" height="14" rx="7" fill="#6b4a35"/>
+  <rect x="${x-16}" y="${y-16}" width="${w+32}" height="${h+32}" rx="18" fill="#fff"/>
+  <g clip-path="url(#${id})"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#${dusk?'gDusk':'gDawn'})"/>
+  ${dusk?`<circle cx="${x+w*.7}" cy="${y+h*.28}" r="${w*.1}" fill="#fff6c2"/><circle cx="${x+w*.76}" cy="${y+h*.25}" r="${w*.09}" fill="#3a3f8a"/>${[[.2,.2],[.4,.12],[.3,.42],[.55,.3],[.86,.5]].map(p=>`<circle cx="${r1(x+w*p[0])}" cy="${r1(y+h*p[1])}" r="3.5" fill="#fff" class="blink"/>`).join('')}`
+        :`<g class="sunrise"><circle cx="${x+w*.62}" cy="${y+h*.6}" r="${w*.3}" fill="#fff6c2" opacity=".35"/><circle cx="${x+w*.62}" cy="${y+h*.6}" r="${w*.17}" fill="url(#gSun)"/></g>`}
+  <path d="M${x},${y+h*.82} Q${x+w*.28},${y+h*.6} ${x+w*.55},${y+h*.8} T${x+w},${y+h*.7} L${x+w},${y+h} L${x},${y+h} Z" fill="${dusk?'#242a63':'#6fae8a'}"/></g>
+  <line x1="${x+w/2}" y1="${y}" x2="${x+w/2}" y2="${y+h}" stroke="#fff" stroke-width="12"/><line x1="${x}" y1="${y+h*.45}" x2="${x+w}" y2="${y+h*.45}" stroke="#fff" stroke-width="12"/>
+  <rect x="${x-34}" y="${y+h+14}" width="${w+68}" height="18" rx="9" fill="#fff"/>
+  <path d="M${x-52},${y-38} L${x+56},${y-38} Q${x+30},${y+h*.5} ${x-14},${y+h+12} L${x-52},${y+h+12} Z" fill="#ffc533"/>
+  <path d="M${x+w+52},${y-38} L${x+w-56},${y-38} Q${x+w-30},${y+h*.5} ${x+w+14},${y+h+12} L${x+w+52},${y+h+12} Z" fill="#ffc533"/></g>`;
+}
+function board(bx,by,len){
+  const ex=bx+len;
+  return `<g><line x1="${r1(bx+len*.27)}" y1="${by+30}" x2="${r1(bx+len*.72)}" y2="856" stroke="#9aa4b8" stroke-width="15" stroke-linecap="round"/>
+  <line x1="${r1(bx+len*.75)}" y1="${by+30}" x2="${r1(bx+len*.3)}" y2="856" stroke="#b6bfd0" stroke-width="15" stroke-linecap="round"/>
+  <path d="M${bx},${by+19} Q${bx+12},${by} ${bx+80},${by} L${ex-20},${by} Q${ex},${by} ${ex},${by+19} Q${ex},${by+38} ${ex-20},${by+38} L${bx+80},${by+38} Q${bx+12},${by+38} ${bx},${by+19} Z" fill="#2aa79b"/>
+  <path d="M${bx+70},${by+8} L${ex-26},${by+8}" stroke="#7fdcd0" stroke-width="7" stroke-linecap="round"/></g>`;
+}
+const socket=(x,y)=>`<rect x="${x-24}" y="${y-28}" width="48" height="56" rx="10" fill="#fff" stroke="#c5d2f3" stroke-width="4"/><circle cx="${x-8}" cy="${y}" r="4" fill="${INK}"/><circle cx="${x+8}" cy="${y}" r="4" fill="${INK}"/>`;
+function door(x){
+  return `<rect x="${x-16}" y="174" width="252" height="486" rx="8" fill="#6b4a35"/><rect x="${x}" y="190" width="220" height="470" fill="url(#gOut)"/>
+  <path d="M${x+220},190 L${x+286},216 L${x+286},690 L${x+220},660 Z" fill="#a67a55"/><circle cx="${x+270}" cy="450" r="9" fill="#ffc533"/>`;
+}
+function tree(x,y,col){return `<rect x="${x-11}" y="${y-150}" width="22" height="150" fill="#8a5a2e"/><circle cx="${x}" cy="${y-195}" r="72" fill="${col}"/><circle cx="${x-48}" cy="${y-150}" r="46" fill="${col}"/><circle cx="${x+48}" cy="${y-150}" r="46" fill="${col}"/>`;}
+function streetTile(){
+  let w='';
+  for(let i=0;i<4;i++)for(let j=0;j<4;j++)w+=`<rect x="${544+i*82}" y="${300+j*84}" width="50" height="54" rx="4" fill="${(i*3+j*5)%7===0?'#ffe08a':'#8fd0ff'}"/>`;
+  let lines='';
+  for(let i=0;i<16;i++)lines+=`<line x1="${i*100+60}" y1="652" x2="${i*100+20}" y2="790" stroke="#c9cfe0" stroke-width="4"/>`;
+  for(let i=0;i<8;i++)lines+=`<rect x="${i*200+40}" y="846" width="110" height="12" rx="4" fill="#fff" opacity=".85"/>`;
+  return `<rect x="70" y="424" width="330" height="228" fill="#fff4e0"/><path d="M40,434 L235,304 L430,434 Z" fill="#c95a45"/>
+  <rect x="112" y="484" width="92" height="92" rx="6" fill="#8fd0ff" stroke="#fff" stroke-width="9"/><line x1="158" y1="484" x2="158" y2="576" stroke="#fff" stroke-width="7"/>
+  <rect x="272" y="504" width="84" height="148" rx="6" fill="#8a6243"/><circle cx="340" cy="584" r="6" fill="#ffc533"/>
+  ${tree(470,652,'#f2a93b')}
+  <rect x="520" y="252" width="340" height="400" fill="#eef2ff"/><rect x="510" y="240" width="360" height="28" rx="6" fill="#9fb0e6"/>${w}
+  <rect x="1070" y="444" width="300" height="208" fill="#ffe9d2"/><rect x="1060" y="398" width="320" height="54" rx="8" fill="#1f8f8a"/>
+  <text x="1220" y="436" text-anchor="middle" font-size="30" class="t-bold" fill="#fff">НАУБАЙХАНА</text>
+  ${[0,1,2,3,4,5].map(i=>`<path d="M${1070+i*50},452 h50 v26 q-25,22 -50,0 Z" fill="${i%2?'#fff':'#ffc533'}"/>`).join('')}
+  <rect x="1094" y="506" width="150" height="100" rx="6" fill="#8fd0ff" stroke="#fff" stroke-width="8"/>
+  <ellipse cx="1136" cy="582" rx="28" ry="15" fill="#d79a5a"/><ellipse cx="1200" cy="584" rx="26" ry="13" fill="#e8b06c"/>
+  <rect x="1276" y="506" width="72" height="146" rx="6" fill="#8a6243"/>
+  ${tree(1450,652,'#e8892b')}
+  <rect x="1548" y="330" width="10" height="322" fill="#5a6278"/><path d="M1553,334 q0,-34 -42,-34" stroke="#5a6278" stroke-width="10" fill="none"/><ellipse cx="1506" cy="304" rx="24" ry="10" fill="#ffe08a"/>
+  ${lines}`;
+}
+function streetBack(){
+  return `<rect width="1600" height="660" fill="url(#gDay)"/>
+  <circle cx="1400" cy="130" r="120" fill="#fff6c2" opacity=".5"/><circle cx="1400" cy="130" r="70" fill="url(#gSun)"/>
+  <g class="cloud" fill="#fff" opacity=".9"><ellipse cx="300" cy="150" rx="110" ry="34"/><ellipse cx="360" cy="124" rx="70" ry="34"/><ellipse cx="900" cy="96" rx="90" ry="28"/><ellipse cx="950" cy="76" rx="56" ry="28"/></g>
+  <path d="M0,540 L120,430 L220,480 L360,330 L470,440 L560,385 L700,480 L820,352 L960,455 L1080,395 L1220,476 L1360,362 L1480,446 L1600,404 L1600,600 L0,600 Z" fill="#a9bdea"/>
+  <g fill="#fff"><path d="M328,364 L360,330 L390,360 L372,354 L360,370 L346,354 Z"/><path d="M790,384 L820,352 L852,380 L834,374 L820,390 L806,374 Z"/><path d="M1330,394 L1360,362 L1390,388 L1374,384 L1360,400 L1346,384 Z"/></g>
+  <rect y="570" width="1600" height="90" fill="#8fce8a"/>
+  <rect y="652" width="1600" height="140" fill="#e3e7f2"/><rect y="790" width="1600" height="18" fill="#b9c0d4"/><rect y="806" width="1600" height="94" fill="#5a6278"/>`;
+}
+
+const DEFS=`<defs>
+<linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9e2fb"/><stop offset="1" stop-color="#bccaf2"/></linearGradient>
+<linearGradient id="gFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6ad74"/><stop offset="1" stop-color="#c88a52"/></linearGradient>
+<linearGradient id="gDawn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb6ff"/><stop offset=".6" stop-color="#ffd3a8"/><stop offset="1" stop-color="#ff9f80"/></linearGradient>
+<linearGradient id="gDay" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc4ff"/><stop offset="1" stop-color="#e4f5ff"/></linearGradient>
+<linearGradient id="gDusk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f2468"/><stop offset=".65" stop-color="#8e4a8f"/><stop offset="1" stop-color="#ffa76b"/></linearGradient>
+<linearGradient id="gIron" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7d55"/><stop offset="1" stop-color="#ee3b1c"/></linearGradient>
+<linearGradient id="gMetal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1f4f8"/><stop offset="1" stop-color="#a9b3c4"/></linearGradient>
+<linearGradient id="gOut" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe6ff"/><stop offset="1" stop-color="#fff3c2"/></linearGradient>
+<linearGradient id="gCone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a" stop-opacity=".5"/><stop offset="1" stop-color="#ffe08a" stop-opacity=".04"/></linearGradient>
+<radialGradient id="gGlow"><stop offset="0" stop-color="#ff8a3c" stop-opacity=".75"/><stop offset=".6" stop-color="#ff5533" stop-opacity=".22"/><stop offset="1" stop-color="#ff5533" stop-opacity="0"/></radialGradient>
+<radialGradient id="gSun"><stop offset="0" stop-color="#fff9d6"/><stop offset="1" stop-color="#ffc533"/></radialGradient>
+<pattern id="pTile" width="90" height="90" patternUnits="userSpaceOnUse"><rect width="90" height="90" fill="#bfe3e6"/><rect x="3" y="3" width="84" height="84" rx="8" fill="#d8f2f3"/></pattern>
+</defs>`;
+/* ================= extra drawing helpers ================= */
+const HOTC='#ff5533', SUN='#ffc533', TEAL='#1f8f8a';
+let uid=0; const nid=()=>'cw'+(++uid);
+const at=(x,y,s,inner)=>`<g transform="translate(${x},${y}) scale(${s})">${inner}</g>`;
+function acc(t,col){
+  col=col||HOTC;
+  const hat='M-66,-30 C-64,-134 64,-134 66,-30 Z';
+  switch(t){
+    case 'bow': return `<path d="M0,-116 L-32,-136 L-32,-98 Z M0,-116 L32,-136 L32,-98 Z" fill="${col}"/><circle cx="0" cy="-116" r="9" fill="${col}"/>`;
+    case 'scarf': return `<path d="M-70,14 C-86,-80 -44,-132 0,-132 C44,-132 86,-80 70,14 C74,48 62,72 44,82 C60,34 52,-18 30,-40 C10,-52 -10,-52 -30,-40 C-52,-18 -60,34 -44,82 C-62,72 -74,48 -70,14 Z" fill="#fff" stroke="#c5d2f3" stroke-width="3"/><path d="M-44,78 Q0,104 44,78 L40,98 Q0,120 -40,98 Z" fill="#fff" stroke="#c5d2f3" stroke-width="3"/>`;
+    case 'ata': return `<path d="M-64,-4 C-72,-62 -30,-84 4,-80 C46,-86 76,-52 64,-2 C58,-26 44,-40 26,-43 C4,-32 -30,-35 -44,-45 C-56,-34 -60,-22 -64,-4 Z" fill="#eef1f8"/><path d="M-60,-38 C-58,-136 58,-136 60,-38 Z" fill="#27315f"/><rect x="-60" y="-52" width="120" height="14" fill="${SUN}"/><path d="M-46,30 C-52,104 52,104 46,30 C30,60 -30,60 -46,30 Z" fill="#eef1f8"/><path d="M-24,20 Q-12,10 0,18 Q12,10 24,20 Q12,27 0,22 Q-12,27 -24,20 Z" fill="#dfe4ee"/>`;
+    case 'cap': return `<path d="${hat}" fill="${col}"/><path d="M10,-42 L104,-32 Q108,-16 86,-16 L10,-26 Z" fill="${col}"/><path d="M-64,-32 L64,-32" stroke="#fff" stroke-width="5" opacity=".45"/>`;
+    case 'beanie': return `<path d="${hat}" fill="${col}"/><rect x="-68" y="-48" width="136" height="24" rx="11" fill="#fff"/><circle cx="0" cy="-112" r="17" fill="#fff"/>`;
+    case 'det': return `<path d="${hat}" fill="#8a6243"/><ellipse cx="0" cy="-34" rx="90" ry="13" fill="#6b4a35"/><path d="M-30,-104 L30,-60 M30,-104 L-30,-60" stroke="#6b4a35" stroke-width="4" opacity=".6"/>`;
+    case 'chef': return `<circle cx="-36" cy="-104" r="32" fill="#fff"/><circle cx="36" cy="-104" r="32" fill="#fff"/><circle cx="0" cy="-120" r="38" fill="#fff"/><rect x="-54" y="-86" width="108" height="44" rx="8" fill="#fff" stroke="#d7e0fa" stroke-width="3"/>`;
+    case 'stache': return `<path d="M-26,20 Q-12,8 0,18 Q12,8 26,20 Q12,29 0,22 Q-12,29 -26,20 Z" fill="${HAIR}"/>`;
+    case 'phones': return `<path d="M-66,-8 C-72,-114 72,-114 66,-8" fill="none" stroke="${INK}" stroke-width="10"/><rect x="-84" y="-20" width="26" height="46" rx="10" fill="${col}"/><rect x="58" y="-20" width="26" height="46" rx="10" fill="${col}"/>`;
+  }
+  return '';
+}
+function person(o={}){return `<g>${kid(o)}<g transform="translate(0,-292)">${(o.acc||[]).map(a=>Array.isArray(a)?acc(a[0],a[1]):acc(a)).join('')}</g></g>`;}
+const P=(x,y,s,o)=>at(x,y,s,person(o));
+function disp(x,y,w,h,t,fs,extra=''){
+  return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${Math.min(18,h/3)}" fill="${INK}"/><rect x="${x+8}" y="${y+8}" width="${w-16}" height="${h-16}" rx="${Math.min(12,h/4)}" fill="#0c1230"/><text x="${x+w/2}" y="${r1(y+h/2+fs*.34)}" text-anchor="middle" font-size="${fs}" class="t-digit" fill="#b8ff6a" ${extra}>${t}</text></g>`;
+}
+function hotPin(key,x,y,label){
+  return `<g class="hot" data-key="${key}" tabindex="0" role="button" aria-label="${label}"><circle class="hot-hit" cx="${x}" cy="${y}" r="46"/><circle class="hot-ring" cx="${x}" cy="${y}" r="38"/>
+  <g class="hot-badge" transform="translate(${x},${y})"><circle r="24" fill="#ffc533" stroke="${INK}" stroke-width="5"/>
+  <g class="ic-find" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"><circle cx="-3" cy="-3" r="8"/><path d="M4,4 L11,11"/></g>
+  <path class="ic-check" d="M-10,0 L-3,8 L11,-7" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g></g>`;
+}
+function kettleE(level,on){
+  const H=160,y0=-26,wy=r1(y0-H*level/1.7);
+  const marks=[0.5,1,1.5,1.7].map(v=>{const y=r1(y0-H*v/1.7);return `<path d="M-20,${y} h14" stroke="${INK}" stroke-width="3"/><text x="-3" y="${y+5}" font-size="15" class="t-bold" fill="${INK}">${String(v).replace('.',',')}</text>`;}).join('');
+  return `<g><rect x="-100" y="0" width="200" height="22" rx="9" fill="#232b4d"/>${on?'<circle cx="72" cy="11" r="6" fill="#ffd23c" class="blink"/>':''}
+  <path d="M84,-186 Q156,-186 156,-108 Q156,-30 94,-34" fill="none" stroke="#232b4d" stroke-width="22" stroke-linecap="round"/>
+  <path d="M-72,-196 L-116,-214 L-108,-184 L-76,-170 Z" fill="#c3ccd9"/>
+  <path d="M-84,0 L-72,-204 Q-68,-232 -32,-234 L52,-234 Q80,-232 82,-204 L92,0 Z" fill="url(#gMetal)"/>
+  <ellipse cx="10" cy="-236" rx="64" ry="11" fill="#232b4d"/><rect x="-2" y="-256" width="24" height="16" rx="6" fill="#232b4d"/>
+  <rect x="-28" y="-194" width="66" height="176" rx="12" fill="#eaf6ff" stroke="#fff" stroke-width="5"/>
+  <rect x="-25" y="${wy}" width="60" height="${r1(-21-wy)}" rx="8" fill="#5ab6ff"/>${marks}</g>`;
+}
+function kettleG(level){
+  const H=120,y0=-22,wy=r1(y0-H*level/2);
+  const marks=[0.5,1,1.5,2].map(v=>{const y=r1(y0-H*v/2);return `<path d="M-24,${y} h14" stroke="${INK}" stroke-width="3"/><text x="-7" y="${y+5}" font-size="15" class="t-bold" fill="${INK}">${String(v).replace('.',',')}</text>`;}).join('');
+  return `<g><path d="M100,-70 L172,-122 L180,-100 L114,-38 Z" fill="#ee3b1c"/><rect x="166" y="-136" width="24" height="24" rx="7" fill="#232b4d"/>
+  <path d="M-72,-150 Q0,-264 72,-150" fill="none" stroke="#232b4d" stroke-width="18" stroke-linecap="round"/>
+  <path d="M-112,0 Q-124,-152 0,-162 Q124,-152 112,0 Z" fill="url(#gIron)"/>
+  <ellipse cx="0" cy="-162" rx="48" ry="10" fill="#232b4d"/><circle cx="0" cy="-176" r="10" fill="#232b4d"/>
+  <rect x="-32" y="-148" width="66" height="134" rx="12" fill="#eaf6ff" stroke="#fff" stroke-width="5"/>
+  <rect x="-29" y="${wy}" width="60" height="${r1(-17-wy)}" rx="8" fill="#5ab6ff"/>${marks}</g>`;
+}
+function kitchenBack(flip,noWin){
+  const cx=flip?880:70, wx=flip?150:1200; let cab='';
+  for(let i=0;i<3;i++){const x=cx+i*240;cab+=`<rect x="${x}" y="46" width="222" height="204" rx="12" fill="#2aa79b"/><rect x="${x+14}" y="60" width="194" height="176" rx="8" fill="none" stroke="#7fdcd0" stroke-width="4"/><circle cx="${x+196}" cy="214" r="7" fill="${SUN}"/>`;}
+  return `<rect width="1600" height="900" fill="url(#gWall)"/><rect y="296" width="1600" height="270" fill="url(#pTile)"/>${cab}${noWin?'':win(nid(),wx,96,270,170,'dawn')}`;
+}
+function counter(){
+  let low='';for(let i=0;i<5;i++){const x=40+i*310;low+=`<rect x="${x}" y="622" width="290" height="250" rx="12" fill="none" stroke="#17746f" stroke-width="5"/><rect x="${x+110}" y="642" width="70" height="12" rx="6" fill="${SUN}"/>`;}
+  return `<rect y="556" width="1600" height="40" fill="#f4f6ff"/><rect y="592" width="1600" height="8" fill="#c5d2f3"/><rect y="600" width="1600" height="300" fill="#1f8f8a"/>${low}`;
+}
+function tap(x,t){
+  return `<ellipse cx="${x+40}" cy="562" rx="120" ry="12" fill="#c5d2f3"/><path d="M${x},556 L${x},474 Q${x},436 ${x+38},436 L${x+72},436 L${x+72},458" stroke="#aab4c4" stroke-width="20" fill="none" stroke-linecap="round" stroke-linejoin="round"/>${t?disp(x-130,452,112,54,t,26):''}`;
+}
+function wallT(x,y,v){return `<rect x="${x}" y="${y}" width="42" height="150" rx="21" fill="#fff" stroke="#c5d2f3" stroke-width="4"/><rect x="${x+16}" y="${y+56}" width="10" height="70" fill="${HOTC}"/><circle cx="${x+21}" cy="${y+126}" r="13" fill="${HOTC}"/><text x="${x+21}" y="${y+178}" text-anchor="middle" font-size="24" class="t-bold" fill="${INK}">${v}</text>`;}
+function cup(x,y){return `<path d="M${x+26},${y-56} q26,2 24,24 q-2,18 -28,16" fill="none" stroke="#c5d2f3" stroke-width="8"/><path d="M${x-32},${y-72} h64 l-8,72 h-48 Z" fill="#fff" stroke="#c5d2f3" stroke-width="4"/><text x="${x}" y="${y-30}" text-anchor="middle" font-size="14" class="t-bold" fill="${INK}">250 мл</text>`;}
+function mug(x,y,c){return `<path d="M${x+22},${y-40} q22,2 20,18 q-2,14 -22,12" fill="none" stroke="${c}" stroke-width="7"/><rect x="${x-24}" y="${y-52}" width="48" height="52" rx="8" fill="${c}"/>${steam(x,y-66,2,16)}`;}
+function mts(y,col,snow){
+  return `<path d="M0,${y+210} L120,${y+100} L220,${y+150} L360,${y} L470,${y+110} L560,${y+55} L700,${y+150} L820,${y+22} L960,${y+125} L1080,${y+65} L1220,${y+146} L1360,${y+32} L1480,${y+116} L1600,${y+74} L1600,${y+320} L0,${y+320} Z" fill="${col}"/>${snow?`<g fill="#fff"><path d="M328,${y+34} L360,${y} L390,${y+30} L372,${y+24} L360,${y+40} L346,${y+24} Z"/><path d="M790,${y+54} L820,${y+22} L852,${y+50} L834,${y+44} L820,${y+60} L806,${y+44} Z"/><path d="M1330,${y+64} L1360,${y+32} L1390,${y+58} L1374,${y+54} L1360,${y+70} L1346,${y+54} Z"/></g>`:''}`;
+}
+const skyDay=()=>`<rect width="1600" height="900" fill="url(#gDay)"/><circle cx="1400" cy="120" r="115" fill="#fff6c2" opacity=".5"/><circle cx="1400" cy="120" r="66" fill="url(#gSun)"/><g class="cloud" fill="#fff" opacity=".9"><ellipse cx="300" cy="130" rx="110" ry="34"/><ellipse cx="360" cy="104" rx="70" ry="34"/><ellipse cx="900" cy="86" rx="90" ry="28"/><ellipse cx="950" cy="66" rx="56" ry="28"/></g>`;
+function house(x,y){return `<rect x="${x+236}" y="${y-380}" width="40" height="110" fill="#a67a55"/><rect x="${x}" y="${y-228}" width="330" height="228" fill="#fff4e0"/><path d="M${x-30},${y-218} L${x+165},${y-348} L${x+360},${y-218} Z" fill="#c95a45"/><rect x="${x+42}" y="${y-168}" width="92" height="92" rx="6" fill="#8fd0ff" stroke="#fff" stroke-width="9"/><line x1="${x+88}" y1="${y-168}" x2="${x+88}" y2="${y-76}" stroke="#fff" stroke-width="7"/><rect x="${x+202}" y="${y-148}" width="84" height="148" rx="6" fill="#8a6243"/><circle cx="${x+270}" cy="${y-68}" r="6" fill="${SUN}"/>`;}
+function aulBack(){
+  return `${skyDay()}${mts(290,'#a9bdea',true)}<rect y="570" width="1600" height="330" fill="#8fce8a"/><path d="M0,720 Q800,650 1600,730 L1600,900 L0,900 Z" fill="#7cc27a"/><path d="M430,900 Q760,690 1180,900 Z" fill="#e2c79a"/>${house(90,690)}
+  ${Array.from({length:11},(_,i)=>`<rect x="${470+i*36}" y="610" width="20" height="86" rx="6" fill="#fff"/>`).join('')}<rect x="466" y="640" width="400" height="10" fill="#fff"/>${tree(1490,700,'#59b36b')}`;
+}
+function money(x,y){return `<g transform="translate(${x},${y})">${[-22,0,22].map(a=>`<g transform="rotate(${a})"><rect x="-24" y="-70" width="48" height="80" rx="5" fill="#59b36b" stroke="#2e8f57" stroke-width="3"/><circle cx="0" cy="-32" r="12" fill="#c8efd2"/></g>`).join('')}</g>`;}
+function ball(x,y,r){return `<g transform="translate(${x},${y})"><circle r="${r}" fill="#fff" stroke="${INK}" stroke-width="${r1(r*.1)}"/><path d="M0,${r1(-r*.38)} L${r1(r*.36)},${r1(-r*.12)} L${r1(r*.22)},${r1(r*.3)} L${r1(-r*.22)},${r1(r*.3)} L${r1(-r*.36)},${r1(-r*.12)} Z" fill="${INK}"/><path d="M0,${r1(-r*.38)} V${-r} M${r1(r*.36)},${r1(-r*.12)} L${r1(r*.92)},${r1(-r*.3)} M${r1(r*.22)},${r1(r*.3)} L${r1(r*.56)},${r1(r*.8)} M${r1(-r*.22)},${r1(r*.3)} L${r1(-r*.56)},${r1(r*.8)} M${r1(-r*.36)},${r1(-r*.12)} L${r1(-r*.92)},${r1(-r*.3)}" stroke="${INK}" stroke-width="${r1(r*.08)}"/></g>`;}
+function logPile(x,y,rows){let s='';for(let r=0;r<rows;r++){const n=rows-r+1;for(let i=0;i<n;i++){const cx=x+(i-(n-1)/2)*70,cy=y-34-r*60;s+=`<circle cx="${cx}" cy="${cy}" r="34" fill="#d79a5a" stroke="#8a5a2e" stroke-width="6"/><circle cx="${cx}" cy="${cy}" r="17" fill="none" stroke="#b77a42" stroke-width="4"/><circle cx="${cx}" cy="${cy}" r="5" fill="#8a5a2e"/>`;}}return s;}
+function coalHeap(x,y,w){let s='';const pts=[[-.4,0,.2],[-.15,0,.24],[.12,0,.22],[.38,0,.2],[-.26,-.2,.2],[0,-.24,.24],[.26,-.2,.2],[-.1,-.42,.18],[.14,-.44,.18],[.02,-.6,.15]];pts.forEach((p,i)=>{const cx=r1(x+p[0]*w),cy=r1(y-26+p[1]*w*.8),r=r1(p[2]*w*.55);s+=`<ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${r1(r*.8)}" fill="${i%2?'#2b2f3a':'#3a3f4d'}"/><path d="M${r1(cx-r*.5)},${r1(cy-r*.3)} l${r1(r*.4)},${r1(-r*.2)}" stroke="#6b7385" stroke-width="5" stroke-linecap="round"/>`;});return s;}
+function megaphone(x,y,rot){return `<g transform="translate(${x},${y}) rotate(${rot})"><rect x="-30" y="-15" width="34" height="30" rx="7" fill="#232b4d"/><path d="M0,-15 L78,-48 L78,48 L0,15 Z" fill="${HOTC}"/><ellipse cx="78" cy="0" rx="11" ry="48" fill="#ffb9a3"/><path class="blink" d="M104,-30 q16,30 0,60 M126,-46 q26,46 0,92" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/></g>`;}
+function stall(x,w,c1){let st='';const n=8,sw=w/n;for(let i=0;i<n;i++)st+=`<path d="M${r1(x+i*sw)},150 h${r1(sw)} v64 q-${r1(sw/2)},36 -${r1(sw)},0 Z" fill="${i%2?'#fff':c1}"/>`;
+  return `<rect x="${x+12}" y="150" width="14" height="430" fill="#8a6243"/><rect x="${x+w-26}" y="150" width="14" height="430" fill="#8a6243"/>${st}<rect x="${x-10}" y="128" width="${w+20}" height="28" rx="9" fill="${c1}"/>`;}
+const table=(x,w)=>`<rect x="${x}" y="560" width="${w}" height="44" rx="8" fill="#c79a6b"/><rect x="${x+14}" y="604" width="${w-28}" height="90" fill="#8a6243"/>`;
+function pine(x,y,s){return `<g transform="translate(${x},${y}) scale(${s})"><rect x="-10" y="-40" width="20" height="40" fill="#8a5a2e"/><path d="M0,-260 L70,-150 L36,-150 L90,-40 L-90,-40 L-36,-150 L-70,-150 Z" fill="#2e7d5b"/><path d="M0,-260 L34,-206 L12,-212 L0,-196 L-12,-212 L-34,-206 Z" fill="#fff"/><path d="M-58,-92 q28,16 58,0 q28,16 58,0 l10,16 q-34,18 -68,2 q-34,16 -68,-2 Z" fill="#fff"/></g>`;}
+function winterBack(){
+  return `<rect width="1600" height="900" fill="url(#gWinter)"/>${mts(240,'#c9d8f2',true)}<path d="M0,580 Q400,510 800,570 T1600,550 L1600,900 L0,900 Z" fill="#f4f8ff"/><path d="M0,740 Q500,670 1000,730 T1600,720 L1600,900 L0,900 Z" fill="#e3ecfb"/>${pine(110,640,1.15)}${pine(1510,610,1.2)}${pine(1340,580,.8)}
+  <g class="cloud"><ellipse cx="170" cy="110" rx="230" ry="72" fill="#56618c"/><ellipse cx="350" cy="84" rx="150" ry="60" fill="#6b76a3"/><ellipse cx="60" cy="166" rx="170" ry="52" fill="#444d75"/></g>`;
+}
+function snowfall(){let s='';for(let i=0;i<30;i++){s+=`<g transform="translate(${(i*211)%1600},${-40-(i*37)%80})"><circle class="snow" r="${5+i%4*2}" fill="#fff" style="animation-delay:${r1(-(i*0.37)%5)}s;animation-duration:${4+i%3}s"/></g>`;}return s;}
+function canister(){return `<g><rect x="-22" y="-26" width="44" height="30" rx="6" fill="#c3ccd9"/><rect x="-82" y="0" width="164" height="214" rx="32" fill="#3f7fe0"/><path d="M-70,30 q-4,70 0,150" stroke="#8fb6ff" stroke-width="8" fill="none" stroke-linecap="round"/><rect x="-58" y="56" width="116" height="110" rx="8" fill="#fff"/><path d="M0,70 c-18,22 -14,34 0,44 c14,-10 18,-22 0,-44 Z" fill="${HOTC}"/><path d="M-42,130 H42 M-42,146 H20" stroke="#8d98ab" stroke-width="5" stroke-linecap="round"/></g>`;}
+function handScale(x,y,t){return `<line x1="${x}" y1="${y-34}" x2="${x}" y2="${y}" stroke="#5a6278" stroke-width="6"/>${disp(x-62,y,124,74,t,28)}<path d="M${x},${y+74} v26 q0,14 -12,14" fill="none" stroke="#5a6278" stroke-width="6" stroke-linecap="round"/>`;}
+function tent(x,y,c){return `<path d="M${x-150},${y} L${x},${y-190} L${x+150},${y} Z" fill="${c}"/><path d="M${x-36},${y} L${x},${y-120} L${x+36},${y} Z" fill="${INK}" opacity=".5"/><path d="M${x},${y-190} v-26" stroke="${INK}" stroke-width="5"/>`;}
+function campBack(){
+  return `${skyDay()}${mts(170,'#93a9dd',true)}<path d="M0,520 Q300,430 620,500 T1250,470 T1600,500 L1600,900 L0,900 Z" fill="#6fae8a"/><path d="M0,640 Q500,590 1000,640 T1600,630 L1600,900 L0,900 Z" fill="#8fce8a"/>${tent(1120,640,SUN)}${tent(1390,660,HOTC)}`;
+}
+function flame(x,y,s){return `<g transform="translate(${x},${y}) scale(${s})"><g class="flick"><path d="M-60,0 C-84,-60 -30,-70 -36,-124 C0,-92 10,-62 0,-42 C20,-72 52,-72 42,-134 C84,-82 82,-30 60,0 Z" fill="#ff8a3c"/><path d="M-30,0 C-42,-40 -10,-52 -6,-84 C16,-52 36,-40 28,0 Z" fill="#ffd23c"/></g></g>`;}
+function qazan(x,y,fire,nSteam,low){
+  return `<g><path d="M${x-150},${y} L${x},${y-340} L${x+150},${y}" fill="none" stroke="#5a6278" stroke-width="12" stroke-linejoin="round"/><line x1="${x}" y1="${y-340}" x2="${x}" y2="${y-190}" stroke="#5a6278" stroke-width="6"/>
+  <rect x="${x-96}" y="${y-22}" width="190" height="24" rx="12" fill="#8a5a2e" transform="rotate(7 ${x} ${y})"/><rect x="${x-96}" y="${y-22}" width="190" height="24" rx="12" fill="#a67a55" transform="rotate(-9 ${x} ${y})"/>
+  ${flame(x,y-14,fire)}
+  <path d="M${x-122},${y-190} Q${x-122},${y-70} ${x},${y-70} Q${x+122},${y-70} ${x+122},${y-190} Z" fill="#2b2f3a"/><ellipse cx="${x}" cy="${y-190}" rx="126" ry="22" fill="#3d4352"/><ellipse cx="${x}" cy="${y-187}" rx="${low?70:104}" ry="${low?9:15}" fill="#8fd0ff"/>
+  ${steam(x,y-214,nSteam,130)}</g>`;
+}
+function cooker(x,y){return `<g transform="translate(${x},${y})"><rect x="-116" y="-96" width="232" height="18" rx="9" fill="#232b4d"/><rect x="-86" y="-120" width="172" height="120" rx="22" fill="url(#gMetal)"/><ellipse cx="0" cy="-122" rx="92" ry="16" fill="#8d98ab"/><rect x="-12" y="-152" width="24" height="26" rx="6" fill="${HOTC}"/><text x="0" y="-48" text-anchor="middle" font-size="24" class="t-bold" fill="${INK}">≈120 °C</text></g>`;}
+function lockerBg(){
+  let l='';for(let i=0;i<8;i++){const x=40+i*192;l+=`<rect x="${x}" y="130" width="180" height="500" rx="10" fill="${i%2?'#5a9fd6':'#4f90c8'}"/><path d="M${x+50},180 h80 M${x+50},200 h80 M${x+50},220 h80" stroke="#2f6aa0" stroke-width="6" stroke-linecap="round"/><rect x="${x+146}" y="360" width="12" height="40" rx="6" fill="${SUN}"/>`;}
+  return `<rect width="1600" height="660" fill="url(#gWall)"/>${l}<rect y="650" width="1600" height="250" fill="#c9cfe0"/><g stroke="#aab4c4" stroke-width="3">${Array.from({length:9},(_,i)=>`<line x1="${i*200}" y1="650" x2="${i*200-60}" y2="900"/>`).join('')}<line x1="0" y1="770" x2="1600" y2="770"/></g>
+  <rect x="90" y="716" width="430" height="26" rx="8" fill="#a67a55"/><rect x="120" y="742" width="16" height="70" fill="#8a6243"/><rect x="474" y="742" width="16" height="70" fill="#8a6243"/>`;
+}
+const scalePlat=(m)=>`<rect x="1040" y="380" width="16" height="410" fill="#5a6278"/><rect x="1000" y="786" width="96" height="16" rx="8" fill="#5a6278"/>${disp(928,250,244,134,m,52)}<rect x="660" y="778" width="290" height="30" rx="12" fill="#5a6278"/><rect x="676" y="772" width="258" height="14" rx="7" fill="#8d98ab"/>`;
+function stove(x){return `<rect x="${x-180}" y="528" width="360" height="30" rx="8" fill="#232b4d"/><path d="M${x-70},528 v-10 h140 v10" fill="none" stroke="#5a6278" stroke-width="8"/><g fill="#5ab6ff" class="blink">${[-48,-24,0,24,48].map(d=>`<path d="M${x+d-9},528 q9,-26 18,0 Z"/>`).join('')}</g>`;}
+const stoveKnobs=(x)=>[-120,-40,40,120].map(d=>`<circle cx="${x+d}" cy="640" r="20" fill="#232b4d"/><rect x="${x+d-3}" y="622" width="6" height="18" rx="3" fill="${SUN}"/>`).join('');
+function fogWin(){return `<rect x="150" y="96" width="270" height="170" rx="8" fill="#fff" opacity=".5"/><g fill="#8fd0ff">${[[190,150],[240,210],[300,140],[350,200],[390,160],[270,240]].map((p,i)=>`<g transform="translate(${p[0]},${p[1]})"><path class="drip" style="animation-delay:${-i*.6}s" d="M0,-12 q-9,13 0,19 q9,-6 0,-19"/></g>`).join('')}</g>`;}
+function magnifier(x,y){return `<g transform="translate(${x},${y}) rotate(35)"><rect x="-8" y="40" width="16" height="70" rx="8" fill="#8a6243"/><circle r="44" fill="#bfe6ff" fill-opacity=".55" stroke="${INK}" stroke-width="10"/><path d="M-22,-16 q10,-14 26,-12" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/></g>`;}
+
+/* generic scenes */
+function raysAt(){let rays='';for(let i=0;i<12;i++){const a1=(i*30-7)*Math.PI/180,a2=(i*30+7)*Math.PI/180;rays+=`<path d="M1185,560 L${r1(1185+Math.cos(a1)*1500)},${r1(560+Math.sin(a1)*1500)} L${r1(1185+Math.cos(a2)*1500)},${r1(560+Math.sin(a2)*1500)} Z" fill="#25316c"/>`;}return `<rect width="1600" height="900" fill="${INK}"/><g class="rays">${rays}</g>`;}
+function titleScene(e){
+  const ts=Math.min(84,r1(830/(e.title.length*.78))), ss=Math.min(58,r1(830/(e.sub.length*.78)));
+  return `${raysAt()}<circle cx="1185" cy="560" r="390" fill="url(#gGlow)"/>${e.icon()}
+  <rect x="90" y="150" width="300" height="56" rx="28" fill="#fff"/><text x="240" y="187" text-anchor="middle" font-size="26" class="t-bold" fill="${INK}">${e.n}-оқиға · ${e.para}</text>
+  <text x="90" y="318" font-size="${ts}" class="t-display" fill="#fff">${e.title}</text>
+  <text x="90" y="${318+ss+26}" font-size="${ss}" class="t-display" fill="${SUN}">${e.sub}</text>
+  ${e.hookLines.map((l,i)=>`<text x="92" y="${500+i*46}" font-size="32" class="t-body" fill="#fff">${l}</text>`).join('')}
+  <rect x="90" y="640" width="400" height="54" rx="27" fill="${SUN}"/><text x="290" y="676" text-anchor="middle" font-size="25" class="t-bold" fill="${INK}">Функционалдық сауаттылық</text>
+  <text x="92" y="842" font-size="23" class="t-body" fill="#c9d3f5">Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі</text>`;
+}
+function stopScene(e){
+  return `${raysAt().replace(/1185/g,'800').replace('class="rays"','class="rays" style="transform-origin:800px 560px"')}
+  <circle cx="800" cy="210" r="96" fill="${SUN}" stroke="#fff" stroke-width="8"/><rect x="760" y="160" width="28" height="100" rx="8" fill="${INK}"/><rect x="812" y="160" width="28" height="100" rx="8" fill="${INK}"/>
+  <text x="800" y="450" text-anchor="middle" font-size="130" class="t-display" fill="#fff">ТОҚТА!</text>
+  <text x="800" y="540" text-anchor="middle" font-size="40" class="t-bold" fill="${SUN}">${e.predict.q}</text>
+  ${['1. Болжам жаса','2. Дерек жина','3. Есепті шығар'].map((t,i)=>`<rect x="${250+i*380}" y="620" width="340" height="64" rx="32" fill="#fff"/><text x="${420+i*380}" y="662" text-anchor="middle" font-size="28" class="t-bold" fill="${INK}">${t}</text>`).join('')}
+  <text x="800" y="790" text-anchor="middle" font-size="30" class="t-body" fill="#c9d3f5">Оқиғаның түйіні есеп шыққан соң ашылады</text>`;
+}
+
+/* ================= episodes ================= */
+const AI={hair:'mom',top:'#ff8fa3',bottom:'#ff8fa3',acc:[['bow',HOTC]]}, ALI={top:SUN};
+const ATA={top:'#fff',vest:true,bottom:'#3a3f55',acc:['ata']}, ERL={top:'#ff8a3c'};
+const BEK={top:'#ff8a3c',acc:[['beanie',TEAL]]}, SAN={top:'#3f7fe0',acc:[['beanie',SUN]]};
+const NUR={top:SUN}, DIAS={top:'#59b36b'}, COACH={top:TEAL,bottom:'#232b4d',acc:[['cap',HOTC]]};
+const ASH={top:'#fff',acc:['chef']}, F1={hair:'mom',top:'#ff8fa3',acc:[['bow',SUN]]}, F2={top:'#3f7fe0'}, GUIDE={top:'#59b36b',bottom:'#3a3f55',acc:[['cap',INK]]};
+const DAS={top:PJ,stripes:true}, AYA={hair:'mom',top:'#ff8fa3',acc:[['bow',SUN]]};
+const skis=(x,y)=>`<rect x="${x-150}" y="${y-8}" width="300" height="12" rx="6" fill="${HOTC}"/>`;
+
+const EPS=[
+/* ---------- 1 ---------- */
+{n:1,para:'§7',title:'Шәйнек жарысы',sub:'3 минут қалды!',
+ hook:'Әжесі 3 минуттан кейін келеді. Айша шәйнекті толтыра құйды, Әли екі кесе ғана. Кім үлгереді? Ұтылған адам бір апта ыдыс жуады!',
+ hookLines:['Әжесі 3 минуттан кейін келеді.','Кімнің шәйнегі бірінші қайнайды?'],
+ icon:()=>`${steam(990,470,4,60)}${at(1185,770,1.75,kettleE(1.7,true))}`,
+ scenes:[
+  {name:'Қоңырау',beats:[{t:0,text:'Телефон шырылдады. Әжесі: «Балаларым, 3 минуттан кейін есік алдындамын. Шайларың дайын ба?» Кері санақ басталды!'}],
+   draw:()=>`${kitchenBack()}<text x="970" y="96" text-anchor="middle" font-size="22" class="t-bold" fill="${INK}">ӘЖЕ КЕЛГЕНШЕ</text>${disp(850,106,240,112,'03:00',64)}${wallT(790,56,'24 °C')}
+    ${P(420,790,1.5,{...AI,face:'shock',look:6})}${P(1110,790,1.5,{...ALI,face:'shock',look:-6})}${counter()}
+    <rect x="96" y="428" width="210" height="128" rx="8" fill="#d79a5a"/><rect x="96" y="428" width="210" height="34" rx="8" fill="#b77a42"/><text x="201" y="512" text-anchor="middle" font-size="26" class="t-bold" fill="#fff">ШӘЙНЕК</text>
+    <g transform="rotate(-8 250 440)"><rect x="196" y="398" width="130" height="44" rx="8" fill="#fff" stroke="${INK}" stroke-width="3"/><text x="261" y="428" text-anchor="middle" font-size="22" class="t-bold" fill="${HOTC}">12 990 тг</text></g>
+    <path class="blink" d="M700,470 q-16,30 0,60 M840,470 q16,30 0,60" fill="none" stroke="${HOTC}" stroke-width="7" stroke-linecap="round"/>
+    <g transform="translate(770,560) rotate(-6)"><rect x="-46" y="-152" width="92" height="152" rx="14" fill="${INK}"/><rect x="-38" y="-142" width="76" height="120" rx="8" fill="#2fd08a"/><text x="0" y="-98" text-anchor="middle" font-size="22" class="t-bold" fill="#fff">ӘЖЕ</text><circle cx="0" cy="-58" r="15" fill="#fff"/></g>
+    ${bubble(596,262,350,116,['3 минуттан кейін','есік алдындамын!'],770,402,29)}
+    ${hot('time',970,162,132,'Кері санақ')}${hotPin('room',811,112,'Қабырға термометрі')}${hotPin('price',160,404,'Шәйнектің бағасы')}`},
+  {name:'Су құю',beats:[{t:0,text:'Үйде бірдей екі шәйнек бар. Айша өзінікін ең жоғарғы белгіге дейін толтырды.'},{t:4500,text:'Әли кесемен өлшеп, тура екі кесе су құйды. Бәс: кімдікі кеш қайнаса, сол бір апта ыдыс жуады!'}],
+   draw:()=>`${kitchenBack()}${P(540,790,1.5,{...AI,face:'happy'})}${P(990,790,1.5,{...ALI,face:'smile',look:-4})}${counter()}${tap(750,'20 °C')}
+    ${at(290,556,1.15,kettleE(1.7))}${at(1330,556,1.15,kettleE(0.5))}${cup(1120,556)}${cup(1196,556)}
+    <g class="b1">${bubble(330,40,430,96,['Мен көп қайнатамын!'],560,158,30)}</g>
+    <g class="b2"><g class="pop" style="transform-origin:1000px 100px">${bubble(790,34,430,116,['Екі кесе жетеді.','Бәс тігеміз бе?'],990,186,29)}</g></g>
+    ${hot('ketA',290,420,150,'Айшаның шәйнегі')}${hot('cup',1158,512,86,'Кесе')}${hotPin('tapT',676,430,'Шүмектегі термометр')}`},
+  {name:'Жарыс',beats:[{t:0,text:'Екеуі шәйнекті бір мезетте қосты. Уақыт өтіп барады... Шәйнектің түбіндегі затбелгіге қара!'}],
+   draw:()=>`${kitchenBack()}<text x="970" y="96" text-anchor="middle" font-size="22" class="t-bold" fill="${INK}">ӘЖЕ КЕЛГЕНШЕ</text>${disp(850,106,240,112,'02:40',64,'data-cd="160" data-min="138"')}
+    ${P(520,790,1.5,{...AI,face:'worry'})}${P(1040,790,1.5,{...ALI,face:'happy',look:6})}${counter()}${tap(750)}
+    ${steam(160,300,2,24)}${at(290,556,1.15,kettleE(1.7,true))}${steam(1200,300,5,50)}${at(1330,556,1.15,kettleE(0.5,true))}
+    ${[[300,470,0],[280,430,1],[310,390,2],[1340,520,.5],[1320,500,1.5]].map(b=>`<g transform="translate(${b[0]},${b[1]})"><circle class="float" r="7" fill="#fff" opacity=".8" style="animation-delay:${-b[2]}s;animation-duration:1.6s"/></g>`).join('')}
+    ${hot('label',1330,566,84,'Шәйнектің затбелгісі')}`}
+ ],
+ twist:{text:'Есік қоңырауы соғылды. Әлидің шайы демделіп тұр, Айшаның шәйнегі әлі шуылдап жатыр. Ыдысты Айша жуады!',
+  draw:()=>`${kitchenBack(false,true)}${door(1310)}${disp(850,106,240,112,'00:00',64)}
+    ${P(1425,800,1.45,{top:'#7a5ea8',bottom:'#7a5ea8',face:'happy',look:-8,acc:['scarf']})}
+    ${P(400,790,1.5,{...AI,face:'worry'})}${P(900,790,1.5,{...ALI,face:'happy',ra:[70,-190],bendA:[-12,30]})}${counter()}${tap(250)}
+    ${steam(40,300,2,24)}${at(130,556,1,kettleE(1.7,true))}
+    <ellipse cx="560" cy="556" rx="70" ry="14" fill="#fff" stroke="#c5d2f3" stroke-width="4"/><ellipse cx="560" cy="544" rx="70" ry="14" fill="#fff" stroke="#c5d2f3" stroke-width="4"/><ellipse cx="560" cy="532" rx="70" ry="14" fill="#fff" stroke="#c5d2f3" stroke-width="4"/>
+    <g fill="#fff" opacity=".95"><circle cx="360" cy="548" r="22"/><circle cx="400" cy="538" r="28"/><circle cx="446" cy="550" r="20"/></g>
+    ${mug(1006,512,HOTC)}
+    ${bubble(1100,24,470,116,['Суды көп құйған —','жомарттық емес, ысырап!'],1420,186,27)}`},
+ lead:'Айша шәйнегін толтыра, Әли екі кесе ғана су құйды. Әжесі 3 минуттан кейін келеді. <strong>Кім үлгереді және ыдысты кім жуады?</strong>',
+ predict:{q:'Кім үлгереді?',opts:['Екеуі де','Тек Әли','Тек Айша','Ешкім'],ok:1},
+ data:[
+  {k:'time',sc:1,title:'Әже келгенше',val:'3 минут',chip:'3 мин',need:1},
+  {k:'room',sc:1,title:'Ас үйдегі ауа',val:'24 °C',need:0},
+  {k:'price',sc:1,title:'Шәйнектің бағасы',val:'12 990 тг',need:0},
+  {k:'ketA',sc:2,title:'Айшаның шәйнегі',val:'1,7 л су',chip:'1,7 л',need:1},
+  {k:'cup',sc:2,title:'Әли құйған су',val:'2 кесе, әрқайсысы 250 мл',chip:'2 × 250 мл',need:1},
+  {k:'tapT',sc:2,title:'Шүмектегі су',val:'20 °C',need:1},
+  {k:'label',sc:3,title:'Шәйнектің затбелгісі',val:'2000 Вт (секундына 2000 Дж)',chip:'2000 Вт',need:1,zoom:{title:'Шәйнектің затбелгісі',html:'<div class="plate"><div class="b">ЭЛЕКТР ШӘЙНЕГІ</div><div class="big">220 В ~ 50 Гц<br>2000 Вт</div><div class="s">1 Вт = секундына 1 Дж</div></div>'}}
+ ],
+ ref:['c(су) = 4200 Дж/(кг·°C)','1 л су = 1 кг','1 Вт = 1 Дж/с'],
+ qs:[
+  {t:'Суды қайнағанға дейін қыздыруға қанша жылу керек?',f:[{l:'Айша: Q =',u:'Дж',a:571200},{l:'Әли: Q =',u:'Дж',a:168000}],hint:'Q = c·m·Δt. 1 л судың массасы 1 кг, Δt = 100 − 20.',ok:'Айша: 4200 · 1,7 · 80 = 571 200 Дж. Әли: 4200 · 0,5 · 80 = 168 000 Дж.'},
+  {t:'Әр шәйнек неше секундта қайнайды?',f:[{l:'Айша: t ≈',u:'с',a:285.6,tol:1},{l:'Әли: t =',u:'с',a:84}],hint:'Шәйнек секундына 2000 Дж береді. Жылуды 2000-ға бөл.',ok:'571 200 : 2000 ≈ 286 с (4 мин 46 с). 168 000 : 2000 = 84 с (1 мин 24 с).'},
+  {t:'Әжесі 180 секундтан кейін келеді. Кім үлгереді?',c:['Екеуі де','Тек Әли','Тек Айша','Ешкім'],a:1,hint:'Әр уақытты 180 с-пен салыстыр.',ok:'84 с < 180 с < 286 с. Әли үлгереді, Айша 1 мин 46 с кешігеді.'},
+  {t:'Айша қанша жылуды босқа жұмсады?',f:[{l:'Q =',u:'Дж',a:403200}],hint:'Екі жылудың айырмасын тап.',ok:'571 200 − 168 000 = 403 200 Дж. Бұл қажетінен 3,4 есе көп.'}
+ ],
+ answer:'Әли үлгереді, ыдысты Айша жуады',
+ note:'Шын шәйнекте жылудың бір бөлігі ауаға кетеді, сондықтан нақты уақыт сәл ұзағырақ болады.',
+ talk:[['Неге суы аз шәйнек тезірек қайнайды?','Q = cmΔt: масса неше есе аз болса, қажет жылу да сонша есе аз. Шәйнектің қуаты бірдей, сондықтан уақыт та сонша есе қысқарады.'],['Айша күніне үш рет осылай қайнатса, бір айда қанша жылу босқа кетеді?','403 200 · 3 · 30 = 36 288 000 Дж ≈ 36,3 МДж.'],['Шәйнекке қанша су құю керегін қалай білеміз?','Қанша кесе ішілетінін санап, кесемен өлшеп құю керек. Сонда уақыт та, энергия да үнемделеді.']]
+},
+/* ---------- 2 ---------- */
+{n:2,para:'§8',title:'«Ең арзан отын!»',sub:'Жарнама алдай ма?',
+ hook:'Атасы Ерланға 45 000 теңге беріп, қысқы отынды алғаш рет өзіне сеніп тапсырды. Қате таңдаса, ақпанда үй суық қалады.',
+ hookLines:['Атасы қысқы отынды Ерланға','сеніп тапсырды. Қате таңдамаса екен!'],
+ icon:()=>`${logPile(1185,790,3)}<g transform="rotate(-8 1185 420)"><rect x="1030" y="360" width="310" height="110" rx="16" fill="${SUN}" stroke="#fff" stroke-width="8"/><text x="1185" y="434" text-anchor="middle" font-size="56" class="t-display" fill="${INK}">9 тг/кг</text></g>`,
+ scenes:[
+  {name:'Тапсырма',beats:[{t:0,text:'Күз. Атасы Ерланға ақша мен ескі дәптерін ұстатты: қысқы отынды биыл өзі алады.'}],
+   draw:()=>`${aulBack()}${sh(760,828,120)}${P(760,820,1.45,{...ATA,face:'smile',look:8,ra:[100,-170],bendA:[-12,20]})}${sh(1070,828,90)}${P(1070,820,1.2,{...ERL,face:'happy',look:-8,la:[-84,-170]})}
+    <rect x="620" y="596" width="62" height="80" rx="6" fill="#3f7fe0" stroke="#fff" stroke-width="4"/>${money(905,582)}
+    ${bubble(500,40,540,124,['Биыл отынды сен аласың.','Ақша қыс бойына жетуі керек!'],770,196,28)}
+    ${hot('money',905,548,88,'Ақша')}`},
+  {name:'Базар',beats:[{t:0,text:'Базар. Ағаш сатушысы айқайлап тұр: «Ең арзан отын! Көмірден екі еседен артық арзан!» Көмір сатушысы үндемей шай ішіп отыр.'},{t:5500,text:'Ерлан қуанып кетті: арзанын алса, артылған ақшаға доп сатып алмақ.'}],
+   draw:()=>`${skyDay()}${mts(250,'#a9bdea',true)}<rect y="560" width="1600" height="340" fill="#e2c79a"/><path d="M0,760 Q800,700 1600,770 L1600,900 L0,900 Z" fill="#d6b584"/>
+    <rect x="650" y="210" width="300" height="350" fill="#eef2ff"/><rect x="640" y="190" width="320" height="52" rx="10" fill="${INK}"/><text x="800" y="228" text-anchor="middle" font-size="30" class="t-bold" fill="#fff">СПОРТ</text>
+    <rect x="690" y="262" width="220" height="150" rx="8" fill="#8fd0ff" stroke="#fff" stroke-width="9"/>${ball(770,346,44)}<rect x="822" y="356" width="80" height="40" rx="6" fill="#fff" stroke="${INK}" stroke-width="3"/><text x="862" y="384" text-anchor="middle" font-size="20" class="t-bold" fill="${HOTC}">6000 тг</text>
+    ${stall(60,560,HOTC)}<rect x="300" y="262" width="296" height="184" rx="12" fill="${SUN}" stroke="#fff" stroke-width="7"/><text x="448" y="312" text-anchor="middle" font-size="36" class="t-display" fill="${INK}">ЕҢ АРЗАН</text><text x="448" y="356" text-anchor="middle" font-size="36" class="t-display" fill="${INK}">ОТЫН!</text><text x="448" y="416" text-anchor="middle" font-size="32" class="t-bold" fill="${HOTC}">1 кг — 9 теңге</text>
+    ${P(196,860,1.4,{top:'#8a6243',face:'happy',look:6,ra:[86,-246],bendA:[-12,24],acc:['stache']})}${megaphone(332,508,-8)}${table(70,540)}${logPile(330,800,3)}
+    ${stall(980,560,TEAL)}${P(1200,860,1.4,{top:'#5a6278',face:'smile',look:-6,ra:[60,-180],bendA:[-12,26]})}${mug(1290,590,'#fff')}${table(990,540)}${coalHeap(1180,800,330)}
+    <rect x="1433" y="536" width="12" height="30" fill="#8a6243"/><rect x="1366" y="452" width="146" height="88" rx="10" fill="#fff" stroke="${INK}" stroke-width="4"/><text x="1439" y="486" text-anchor="middle" font-size="24" class="t-bold" fill="${INK}">КӨМІР</text><text x="1439" y="524" text-anchor="middle" font-size="28" class="t-bold" fill="${HOTC}">22 тг/кг</text>
+    <g><rect x="1340" y="726" width="230" height="84" rx="10" fill="#a67a55" stroke="#6b4a35" stroke-width="5"/><text x="1455" y="782" text-anchor="middle" font-size="34" class="t-bold" fill="#fff">500 кг</text><circle cx="1400" cy="826" r="30" fill="#232b4d"/><circle cx="1400" cy="826" r="12" fill="#8d98ab"/><circle cx="1520" cy="826" r="30" fill="#232b4d"/><circle cx="1520" cy="826" r="12" fill="#8d98ab"/></g>
+    ${sh(800,858,90)}${P(800,850,1.2,{...ERL,face:'happy',ra:[72,-176]})}${money(888,650)}
+    <g class="b2"><g class="pop" style="transform-origin:640px 720px">${bubble(410,690,420,118,['Арзанын алсам,','допқа ақша артылады!'],720,560,27)}</g></g>
+    ${hot('wood',448,354,132,'Ағаш жарнамасы')}${hot('coal',1439,496,84,'Көмір бағасы')}${hot('cart',1455,776,100,'Тіркеме')}${hot('ball',800,336,104,'Доп')}`},
+  {name:'Дәптер',beats:[{t:0,text:'Кенет дәптер қолынан түсіп, ашылып қалды. Ішінде атасының жазуы бар. Ерлан ойланып қалды...'}],
+   draw:()=>`<rect width="1600" height="900" fill="#2aa79b"/>${[200,560,920,1280].map((x,i)=>horn(x+(i%2)*40,120+((i*3)%2)*640,1.6,'#3dbcae')).join('')}
+    <g transform="rotate(-3 800 450)"><rect x="342" y="104" width="940" height="720" rx="14" fill="${INK}" opacity=".25"/><rect x="330" y="90" width="940" height="720" rx="14" fill="#fbfcff"/>
+    <g stroke="#c5d2f3" stroke-width="2">${Array.from({length:17},(_,i)=>`<line x1="330" y1="${130+i*40}" x2="1270" y2="${130+i*40}"/>`).join('')}${Array.from({length:23},(_,i)=>`<line x1="${370+i*40}" y1="90" x2="${370+i*40}" y2="810"/>`).join('')}</g>
+    <line x1="420" y1="90" x2="420" y2="810" stroke="#f29a8e" stroke-width="4"/>${Array.from({length:14},(_,i)=>`<circle cx="352" cy="${130+i*50}" r="9" fill="#2aa79b"/>`).join('')}
+    <g class="t-hand" fill="#2337a8"><text x="450" y="192" font-size="60">Қысқы отын есебі</text><path d="M450,206 H830" stroke="#2337a8" stroke-width="4"/>
+    <text x="450" y="290" font-size="42">Үйді бір қыс жылытуға керек жылу:</text><text x="450" y="364" font-size="64">Q = 5,4·10¹⁰ Дж</text>
+    <text x="450" y="446" font-size="42">Үйдің ауданы — 80 м²</text>
+    <text x="450" y="540" font-size="42">Отынның меншікті жану жылуы:</text><text x="450" y="612" font-size="52">тас көмір — 2,7·10⁷ Дж/кг</text><text x="450" y="684" font-size="52">құрғақ ағаш — 1,0·10⁷ Дж/кг</text></g></g>
+    ${P(1420,1090,1.6,{...ERL,face:'worry',look:-10})}<text x="1310" y="520" font-size="90" class="t-display" fill="${SUN}">?</text>
+    ${hotPin('heat',1010,330,'Қажет жылу')}${hotPin('area',930,420,'Үйдің ауданы')}${hotPin('q',1160,610,'Меншікті жану жылуы')}`}
+ ],
+ twist:{text:'Ерлан ақшаны көмір сатушысына ұстатты. Үйде атасы есепті көріп, артылған 1000 теңгеге өз қалтасынан 5000 қосты: «Допыңды ал!»',
+  draw:()=>`${aulBack()}${coalHeap(620,700,260)}${sh(820,838,120)}${P(820,830,1.45,{...ATA,face:'happy',look:8,ra:[96,-176],bendA:[-12,20]})}${ball(964,566,48)}
+    ${sh(1150,838,90)}${P(1150,830,1.2,{...ERL,face:'happy',look:-8,la:[-92,-256],ra:[92,-256],bendA:[-20,20]})}
+    <g fill="${SUN}"><path d="M1040,330 l8,18 18,8 -18,8 -8,18 -8,-18 -18,-8 18,-8 Z"/><path d="M1290,420 l6,14 14,6 -14,6 -6,14 -6,-14 -14,-6 14,-6 Z"/></g>
+    ${bubble(560,40,520,124,['Допыңды ал.','Басыңмен тапқан ақша бұл!'],830,206,29)}`},
+ lead:'Ағаштың килосы көмірден әлдеқайда арзан. <strong>Қыс бойы үйді жылытуға қай отын арзанға түседі? Жарнама шын айта ма?</strong>',
+ predict:{q:'Қай отынды алған тиімді?',opts:['Ағаш','Көмір'],ok:1},
+ data:[
+  {k:'money',sc:1,title:'Ерланның ақшасы',val:'45 000 тг',need:1},
+  {k:'wood',sc:2,title:'Ағаштың бағасы',val:'1 кг — 9 тг',chip:'ағаш 9 тг/кг',need:1},
+  {k:'coal',sc:2,title:'Көмірдің бағасы',val:'1 кг — 22 тг',chip:'көмір 22 тг/кг',need:1},
+  {k:'cart',sc:2,title:'Тіркеме',val:'бір рейске 500 кг',chip:'500 кг',need:1},
+  {k:'ball',sc:2,title:'Доптың бағасы',val:'6000 тг',need:0},
+  {k:'heat',sc:3,title:'Бір қысқа қажет жылу',val:'5,4·10¹⁰ Дж',need:1},
+  {k:'q',sc:3,title:'Меншікті жану жылуы',val:'көмір 2,7·10⁷, ағаш 1,0·10⁷ Дж/кг',chip:'q(көмір), q(ағаш)',need:1},
+  {k:'area',sc:3,title:'Үйдің ауданы',val:'80 м²',need:0}
+ ],
+ ref:['Q = q·m','Сандарды атаның дәптерінен ізде'],
+ qs:[
+  {t:'Үйді бір қыс жылытуға әр отыннан неше килограмм керек?',f:[{l:'Ағаш: m =',u:'кг',a:5400},{l:'Көмір: m =',u:'кг',a:2000}],hint:'m = Q : q. Дәрежелерге мұқият қара: 10¹⁰ : 10⁷ = 10³.',ok:'Ағаш: 5,4·10¹⁰ : 1,0·10⁷ = 5400 кг. Көмір: 5,4·10¹⁰ : 2,7·10⁷ = 2000 кг.'},
+  {t:'Әрқайсысы қанша теңге тұрады?',f:[{l:'Ағаш:',u:'тг',a:48600},{l:'Көмір:',u:'тг',a:44000}],hint:'Массаны 1 кг бағасына көбейт.',ok:'Ағаш: 5400 · 9 = 48 600 тг. Көмір: 2000 · 22 = 44 000 тг.'},
+  {t:'Ерланның 45 000 теңгесі қайсысына жетеді?',c:['Ағашқа ғана','Көмірге ғана','Екеуіне де'],a:1,hint:'Екі соманы 45 000-мен салыстыр.',ok:'Ақша тек көмірге жетеді, 1000 теңге артылады. Жарнама жартылай шын: килосы арзан, бірақ 1 кг ағаш 2,7 есе аз жылу береді.'},
+  {t:'Әр отынды үйге жеткізуге тіркеме неше рейс жасайды?',f:[{l:'Көмір:',u:'рейс',a:4},{l:'Ағаш:',u:'рейс',a:11}],hint:'Массаны 500 кг-ға бөл. Толмаған рейс те рейс.',ok:'Көмір: 2000 : 500 = 4 рейс. Ағаш: 5400 : 500 = 10,8, яғни 11 рейс.'}
+ ],
+ answer:'Көмір тиімді: 44 000 тг, ал ағаш 48 600 тг',
+ talk:[['Сатушы қандай шаманы жасырып тұр?','Меншікті жану жылуын. 1 кг ағаш 1 кг көмірден 2,7 есе аз жылу береді, сондықтан килограммның емес, жылудың бағасын салыстыру керек.'],['Ағаш қанша тұрса, екі отынның құны теңесер еді?','44 000 : 5400 ≈ 8,1 тг/кг.'],['Көмірдің ағаштан қандай кемшіліктері бар?','Түтіні мен күлі көп, ауаны көбірек ластайды. Отын таңдағанда бағамен қатар денсаулық пен табиғатқа әсеріне де қарайды.']]
+},
+/* ---------- 3 ---------- */
+{n:3,para:'§10',title:'Соңғы 30 грамм газ',sub:'Қар ма, бұлақ па?',
+ hook:'Боран жақындап келеді. Баллонда газ таусылуға жақын, шайды бір-ақ рет қайнатуға болады. Қате таңдаса, ағайындылар ыстық шайсыз қалады.',
+ hookLines:['Боран жақын, газ таусылуға жақын.','Шайды бір-ақ рет қайнатуға болады!'],
+ icon:()=>`${at(1185,400,1.6,canister())}${[[980,330],[1390,300],[1420,620],[960,640]].map(p=>`<text x="${p[0]}" y="${p[1]}" font-size="70" fill="#fff" text-anchor="middle">✻</text>`).join('')}`,
+ scenes:[
+  {name:'Боран хабары',beats:[{t:0,text:'Қаңтар. Санжар мен ағасы Бекзат тауда шаңғы теуіп жүр. Көкжиектен қара бұлт көрінді.'}],
+   draw:()=>`${winterBack()}${skis(620,808)}${skis(990,808)}${sh(620,806,110)}${P(620,800,1.45,{...BEK,face:'worry',look:8,ra:[84,-200],bendA:[-12,26]})}${sh(990,806,90)}${P(990,800,1.2,{...SAN,face:'smile',look:-8})}
+    <rect x="722" y="470" width="44" height="74" rx="8" fill="${INK}"/><rect x="728" y="478" width="32" height="54" rx="4" fill="#8fd0ff"/>
+    <rect x="1200" y="664" width="124" height="132" rx="30" fill="${SUN}"/><rect x="1222" y="724" width="80" height="50" rx="14" fill="#e0a400"/>${disp(1196,596,132,58,'−10 °C',26)}
+    ${bubble(340,40,560,124,['Боран 40 минуттан кейін жетеді.','Шай ішіп алып, төмен түсеміз!'],640,196,27)}
+    ${hotPin('storm',800,470,'Телефондағы ауа райы')}${hot('air',1262,625,86,'Термометр')}`},
+  {name:'Өлшеу',beats:[{t:0,text:'Газ баллоны жеп-жеңіл. Санжар оны қол таразысына ілді, сосын қазаншаға қар толтырып, оны да өлшеді.'}],
+   draw:()=>`${winterBack()}<line x1="270" y1="790" x2="270" y2="170" stroke="#8d98ab" stroke-width="12" stroke-linecap="round"/><line x1="960" y1="790" x2="960" y2="170" stroke="#8d98ab" stroke-width="12" stroke-linecap="round"/><rect x="230" y="186" width="770" height="14" rx="7" fill="${HOTC}"/>
+    ${handScale(440,236,'130 г')}${at(440,380,1,canister())}
+    ${handScale(790,236,'2,0 кг')}<path d="M700,440 Q790,330 880,440" fill="none" stroke="#5a6278" stroke-width="8"/><path d="M680,440 L694,590 Q700,612 720,612 L860,612 Q880,612 886,590 L900,440 Z" fill="#5a6278"/><path d="M676,444 q30,-56 76,-34 q40,-44 84,-6 q42,-22 68,40 Z" fill="#fff"/>
+    ${sh(1280,818,96)}${P(1280,810,1.3,{...SAN,face:'happy',look:-10,la:[-108,-196],bendA:[-16,12]})}
+    ${bubble(1030,90,480,124,['Су іздеп қайтеміз?','Айнала толған қар ғой!'],1270,262,29)}
+    ${hot('gas',440,274,84,'Баллон таразысы')}${hot('can',440,500,116,'Баллондағы жазу')}${hot('snow',790,274,84,'Қар таразысы')}`},
+  {name:'Бәс',beats:[{t:0,text:'Бекзат төмендегі қатпайтын бұлақты нұсқады: «Суды содан алайық, газымыз аз кетеді».'},{t:5000,text:'Санжар сенбеді: «Қар да су емес пе? Бәстесеміз!» Газ екінші рет қайнатуға қалмайды.'}],
+   draw:()=>`${winterBack()}<path d="M1010,560 C1120,600 1080,700 1220,740 C1340,780 1380,840 1420,900 L1600,900 C1540,800 1480,740 1340,700 C1220,660 1260,590 1120,548 Z" fill="#7cc4ff" stroke="#fff" stroke-width="8"/>
+    <rect x="1244" y="660" width="10" height="90" fill="#8d98ab"/>${disp(1186,600,128,58,'5 °C',28)}
+    <rect x="893" y="556" width="14" height="150" fill="#8d98ab"/><rect x="796" y="462" width="208" height="100" rx="14" fill="#2456d6" stroke="#fff" stroke-width="8"/><text x="900" y="502" text-anchor="middle" font-size="28" class="t-bold" fill="#fff">БҰЛАҚ</text><text x="900" y="544" text-anchor="middle" font-size="34" class="t-bold" fill="${SUN}">400 м ↘</text>
+    ${sh(430,816,110)}${P(430,810,1.45,{...BEK,face:'smile',look:8,ra:[124,-206],bendA:[-12,10]})}${sh(710,826,90)}${P(710,820,1.2,{...SAN,face:'smile',look:6})}
+    <g class="b1">${bubble(190,36,500,124,['Қар — жылу ұрлағыш.','Газымыз жетпей қалады!'],440,194,29)}</g>
+    <g class="b2"><g class="pop" style="transform-origin:840px 240px">${bubble(640,176,430,118,['Қар да су емес пе?','Бәстесеміз: жетеді!'],724,318,29)}</g></g>
+    ${hot('spring',1250,629,86,'Бұлақтағы термометр')}${hot('dist',900,512,112,'Жол белгісі')}`}
+ ],
+ twist:{text:'Санжар бұлаққа жүгіріп барып келді. Шай қайнаған сәтте жалын «пыс» етіп өшті: газ таусылды. Қар жауа бастады...',
+  draw:()=>`${winterBack()}<rect width="1600" height="900" fill="${INK}" opacity=".28"/>${sh(560,816,110)}${P(560,810,1.45,{...BEK,face:'happy',look:8,ra:[72,-200],bendA:[-12,30]})}${mug(668,524,HOTC)}
+    ${sh(930,826,90)}${P(930,820,1.2,{...SAN,face:'relief',look:-6,la:[-70,-196],bendA:[-30,12]})}${mug(846,590,SUN)}
+    <rect x="712" y="770" width="76" height="30" rx="8" fill="#5a6278"/><rect x="700" y="750" width="100" height="22" rx="8" fill="#3f7fe0"/><text x="750" y="726" text-anchor="middle" font-size="30" class="t-bold" fill="#fff" opacity=".85">пыс...</text>
+    ${snowfall()}${bubble(960,150,560,124,['Қарды таңдағанымда қазір','жылы су ішіп тұрар едік...'],946,330,27)}`},
+ lead:'Баллонда газ аз қалды, ал шайды бір-ақ рет қайнатуға болады. <strong>Газ қардан шай қайнатуға жете ме, әлде бұлаққа бару керек пе?</strong>',
+ predict:{q:'Газ қардан шай қайнатуға жете ме?',opts:['Иә, жетеді','Жоқ, жетпейді'],ok:1},
+ data:[
+  {k:'storm',sc:1,title:'Боранға дейін',val:'40 минут',need:0},
+  {k:'air',sc:1,title:'Ауаның (қардың) температурасы',val:'−10 °C',need:1},
+  {k:'gas',sc:2,title:'Баллонның массасы',val:'130 г',need:1},
+  {k:'can',sc:2,title:'Баллондағы жазу',val:'бос баллон 100 г; q = 4,6·10⁷ Дж/кг',chip:'бос баллон 100 г; q',need:1,zoom:{title:'Баллондағы жазу',html:'<div class="plate"><div class="b">ГАЗ БАЛЛОНЫ</div><div class="big" style="font-size:22px">Бос баллонның массасы: 100 г<br>Меншікті жану жылуы:<br>4,6·10⁷ Дж/кг</div><div class="s">Оттан аулақ сақтаңыз</div></div>'}},
+  {k:'snow',sc:2,title:'Қардың массасы',val:'2 кг',need:1},
+  {k:'spring',sc:3,title:'Бұлақ суының температурасы',val:'5 °C',need:1},
+  {k:'dist',sc:3,title:'Бұлаққа дейін',val:'400 м',need:0}
+ ],
+ ref:['c(мұз) = 2100 Дж/(кг·°C)','λ(мұз) = 3,4·10⁵ Дж/кг','c(су) = 4200 Дж/(кг·°C)','L(су) = 2,3·10⁶ Дж/кг'],
+ qs:[
+  {t:'Баллонда қанша газ қалды? Ол толық жанғанда қанша жылу бөледі?',f:[{l:'Газ: m =',u:'г',a:30},{l:'Q =',u:'Дж',a:1380000}],hint:'Баллон массасынан бос баллонды азайт. Q = q·m, массаны килограммға айналдыр.',ok:'130 − 100 = 30 г = 0,03 кг. Q = 4,6·10⁷ · 0,03 = 1 380 000 Дж.'},
+  {t:'2 кг қарды −10 °C-тан қайнағанға дейін жеткізуге қанша жылу керек?',f:[{l:'0 °C-қа жылыту:',u:'Дж',a:42000},{l:'Еріту:',u:'Дж',a:680000},{l:'Суды 100 °C-қа қыздыру:',u:'Дж',a:840000},{l:'Барлығы:',u:'Дж',a:1562000}],hint:'Үш кезең: Q = c(мұз)·m·Δt, одан кейін Q = λ·m, соңында Q = c(су)·m·Δt.',ok:'2100 · 2 · 10 = 42 000 Дж; 3,4·10⁵ · 2 = 680 000 Дж; 4200 · 2 · 100 = 840 000 Дж. Барлығы 1 562 000 Дж.'},
+  {t:'2 кг бұлақ суын қайнатуға қанша жылу керек?',f:[{l:'Q =',u:'Дж',a:798000}],hint:'Q = c·m·Δt, Δt = 100 − 5.',ok:'4200 · 2 · 95 = 798 000 Дж. Бұл қарға кететін жылудан екі есеге жуық аз.'},
+  {t:'Бәсте кім ұтты?',c:['Санжар: газ қарға да жетеді','Бекзат: газ тек бұлақ суына жетеді','Газ ешқайсысына жетпейді'],a:1,hint:'Газдың жылуын екі қажет жылумен салыстыр.',ok:'1 562 000 > 1 380 000: қарға жетпейді. 798 000 < 1 380 000: бұлақ суына жетеді.'}
+ ],
+ answer:'Бекзат ұтты: газ тек бұлақ суына жетеді',
+ note:'Есепте газдың барлық жылуы суға беріледі деп алынды. Шын жорықта жылудың бір бөлігі ауаға кетеді, сондықтан айырмашылық бұдан да үлкен.',
+ talk:[['Қар еріп жатқанда қазаншадағы температура неге көтерілмейді?','Берілген жылу температураны арттыруға емес, мұздың кристалдық торын бұзуға жұмсалады. Қар толық ерігенше температура 0 °C болып тұрады.'],['Шөлдегенде қар жеуге неге болмайды?','Қарды ерітетін жылуды дене өзінен береді: әр килограмына 340 000 Дж. Адам тез тоңады.'],['Қардың массасын қаншаға азайтса, газ жетер еді?','1 кг қарға 781 000 Дж керек. 1 380 000 : 781 000 ≈ 1,77, яғни шамамен 1,7 кг қарға ғана жетеді.']]
+},
+/* ---------- 4 ---------- */
+{n:4,para:'§11',title:'Таразы жұмбағы',sub:'1 килограмм қайда кетті?',
+ hook:'Нұрлан жаттығудан кейін таразыға қарап қуанып тұр, досы оны мазақ етеді. Ал жаттықтырушы екеуін де таңғалдыратын жауап береді.',
+ hookLines:['Нұрлан су ішсе де, таразы аз көрсетті.','Жоғалған масса қайда кетті?'],
+ icon:()=>`${disp(1000,430,370,190,'? кг',110)}<rect x="1010" y="640" width="350" height="34" rx="14" fill="#8d98ab"/><rect x="1176" y="620" width="18" height="24" fill="#5a6278"/>`,
+ scenes:[
+  {name:'Жаттығу алдында',beats:[{t:0,text:'Шілде. Футбол жаттығуының алдында Нұрлан киім ауыстыратын бөлмедегі таразыға тұрды.'}],
+   draw:()=>`${lockerBg()}${scalePlat('52,0 кг')}${P(805,776,1.25,{...NUR,face:'smile'})}<text x="805" y="590" text-anchor="middle" font-size="46" class="t-display" fill="${INK}">7</text>${ball(330,690,36)}
+    ${hot('m1',1050,317,150,'Таразы')}`},
+  {name:'Аптап',beats:[{t:0,text:'90 минут аптап ыстықта жүгірді. Жейдесі су-су болды.'},{t:4500,text:'Үзілісте бөтелкесінен су ішті, түбінде аздап қана қалды.'}],
+   draw:()=>`${skyDay()}<rect y="300" width="1600" height="190" fill="#9fb0e6"/><g fill="#fff" opacity=".6">${Array.from({length:60},(_,i)=>`<circle cx="${20+(i%20)*82}" cy="${336+Math.floor(i/20)*50}" r="13"/>`).join('')}</g>
+    <rect y="480" width="1600" height="420" fill="#59b36b"/>${[0,2,4,6].map(i=>`<rect x="${i*230}" y="480" width="230" height="420" fill="#4fa862"/>`).join('')}<path d="M0,600 H1600" stroke="#fff" stroke-width="8" opacity=".8"/>
+    <path d="M1010,420 V640 M1010,420 H1210 V640" fill="none" stroke="#fff" stroke-width="12"/>
+    <rect x="80" y="60" width="500" height="190" rx="18" fill="${INK}"/><rect x="92" y="72" width="476" height="166" rx="12" fill="#0c1230"/><text x="330" y="134" text-anchor="middle" font-size="36" class="t-digit" fill="#b8ff6a">32 °C · ЫЛҒАЛ 40 %</text><text x="330" y="208" text-anchor="middle" font-size="60" class="t-digit" fill="${SUN}">90:00</text>
+    ${sh(620,808,100)}<g transform="translate(620,800) rotate(8)">${at(0,0,1.25,person({...NUR,face:'run',look:10,lf:[-56,-8],rf:[52,-34],la:[-84,-180],ra:[90,-120]}))}</g>
+    <g fill="#8fd0ff" class="blink"><path d="M500,360 q-10,15 0,22 q10,-7 0,-22"/><path d="M460,430 q-9,13 0,19 q9,-6 0,-19"/><path d="M530,470 q-9,13 0,19 q9,-6 0,-19"/></g>
+    <g transform="translate(850,800)"><g class="spin" style="transform-origin:0 0">${ball(0,0,36)}</g></g>
+    <rect x="1250" y="800" width="330" height="26" rx="8" fill="#a67a55"/>
+    <g transform="translate(1400,800)"><rect x="-32" y="-352" width="64" height="46" rx="10" fill="${HOTC}"/><rect x="-64" y="-312" width="128" height="312" rx="28" fill="#eaf6ff" stroke="#fff" stroke-width="7"/>
+      <g class="b1"><rect x="-56" y="-284" width="112" height="278" rx="22" fill="#5ab6ff"/></g><g class="b2"><rect x="-56" y="-62" width="112" height="56" rx="18" fill="#5ab6ff"/></g>
+      ${[1,2,3,4,5].map(i=>`<path d="M40,${-8-54*i} h24" stroke="${INK}" stroke-width="4"/><text x="74" y="${-54*i}" font-size="26" class="t-bold" fill="#fff">0,${i} л</text>`).join('')}</g>
+    ${hotPin('tab',596,84,'Стадион таблосы')}<g class="b2">${hot('bot',1400,640,186,'Бөтелке')}</g>`},
+  {name:'Жаттығудан кейін',beats:[{t:0,text:'Жаттығудан кейін қайта таразыға тұрды. «Бір айда шыбықтай боламын!» — деп қуанды.'},{t:4500,text:'Досы Диас сенбеді: «Су ішкен адам семіруі керек. Таразы бұзылған!» Кімдікі дұрыс?'}],
+   draw:()=>`${lockerBg()}<rect x="96" y="170" width="330" height="240" rx="12" fill="#fff" stroke="${INK}" stroke-width="5"/><text x="261" y="222" text-anchor="middle" font-size="28" class="t-bold" fill="${INK}">АДАМ ДЕНЕСІ</text><text x="261" y="300" text-anchor="middle" font-size="58" class="t-display" fill="${HOTC}">c ≈ 3500</text><text x="261" y="360" text-anchor="middle" font-size="32" class="t-bold" fill="${INK}">Дж/(кг·°C)</text>
+    ${scalePlat('51,4 кг')}${P(805,776,1.25,{...NUR,face:'happy',la:[-96,-256],ra:[96,-256],bendA:[-20,20]})}${sh(1360,808,90)}${P(1360,800,1.2,{...DIAS,face:'smile',look:-10,la:[-110,-190],bendA:[-14,12]})}
+    <g class="b1">${bubble(470,40,400,118,['Охо! 600 грамм','арықтаппын!'],790,262,30)}</g>
+    <g class="b2"><g class="pop" style="transform-origin:1380px 110px">${bubble(1190,40,390,118,['Су іштің ғой!','Таразы бұзылған!'],1370,196,30)}</g></g>
+    ${hot('m2',1050,317,150,'Таразы')}${hotPin('body',430,180,'Плакат')}`}
+ ],
+ twist:{text:'Жаттықтырушы: «Таразы дұрыс. Сен май емес, тер жоғалттың. Ол сені ыстық өтуден құтқарды». Нұрлан су ішіп еді, таразы қайта 52,0 кг көрсетті.',
+  draw:()=>`${lockerBg()}${scalePlat('52,0 кг')}${P(805,776,1.25,{...NUR,face:'smile',ra:[44,-250],bendA:[-12,40]})}<rect x="842" y="420" width="34" height="74" rx="10" fill="#5ab6ff" stroke="#fff" stroke-width="4"/><rect x="850" y="408" width="18" height="16" rx="4" fill="${HOTC}"/>
+    ${sh(1340,808,110)}${P(1340,800,1.45,{...COACH,face:'happy',look:-8,la:[-104,-196],bendA:[-14,12]})}
+    ${bubble(1100,20,480,118,['1 кг тер жоғалттың —','1 литр су іш!'],1340,186,29)}`},
+ lead:'Нұрлан су ішсе де, таразы аз көрсетті. <strong>Жоғалған масса қайда кетті және ол денеден қанша жылу алып кетті?</strong>',
+ predict:{q:'Жоғалған масса қайда кетті?',opts:['Май жанды','Тер болып буланды','Таразы қате көрсетті'],ok:1},
+ data:[
+  {k:'m1',sc:1,title:'Жаттығуға дейінгі масса',val:'52,0 кг',need:1},
+  {k:'tab',sc:2,title:'Стадион таблосы',val:'32 °C, ылғалдылық 40 %, 90 мин',chip:'32 °C, 40 %, 90 мин',need:0},
+  {k:'bot',sc:2,title:'Бөтелке',val:'0,5 л-ден 0,1 л қалды',chip:'0,5 л → 0,1 л',need:1},
+  {k:'m2',sc:3,title:'Жаттығудан кейінгі масса',val:'51,4 кг',need:1},
+  {k:'body',sc:3,title:'Плакат',val:'адам денесі: c ≈ 3500 Дж/(кг·°C)',chip:'c ≈ 3500 Дж/(кг·°C)',need:1}
+ ],
+ ref:['L(су) = 2,3·10⁶ Дж/кг','c(су) = 4200 Дж/(кг·°C)','1 л су = 1 кг'],
+ qs:[
+  {t:'Нұрлан қанша су ішті?',f:[{l:'m =',u:'кг',a:0.4}],hint:'0,5 − 0,1 литр. 1 л судың массасы 1 кг.',ok:'0,5 − 0,1 = 0,4 л, яғни 0,4 кг.'},
+  {t:'Жаттығу кезінде денеден қанша тер шықты?',f:[{l:'m =',u:'кг',a:1}],hint:'Бастапқы масса + ішкен су − соңғы масса.',ok:'52,0 + 0,4 − 51,4 = 1,0 кг. Таразы дұрыс, бірақ жоғалғаны май емес, су.'},
+  {t:'Осы тер түгел буланса, денеден қанша жылу алып кетеді?',f:[{l:'Q =',u:'Дж',a:2300000}],hint:'Q = L·m.',ok:'Q = 2,3·10⁶ · 1,0 = 2 300 000 Дж = 2,3 МДж.'},
+  {t:'Тер шықпай, осы жылу денеде қалса, температурасы неше градусқа көтерілер еді?',f:[{l:'Δt ≈',u:'°C',a:12.6,tol:.25}],hint:'Δt = Q : (c·m), c ≈ 3500 Дж/(кг·°C), m = 52 кг.',ok:'2 300 000 : (3500 · 52) ≈ 12,6 °C. Дене 49 °C-қа дейін қызар еді, бұл өмірге қауіпті.'}
+ ],
+ answer:'Жоғалған 1 кг — буланған тер, ол 2,3 МДж жылу алып кетті',
+ note:'Бұл жуық бағалау: тердің бір бөлігі буланбай тамшылап түседі, ал дене жылуды басқа жолмен де береді.',
+ talk:[['Ылғалдылық 95 % болатын күні сол температураның өзінде неге әлдеқайда қиын?','Ауадағы бу қанығуға жақын, тер буланбай, тамшылап ағады. Буланбаған тер денені суытпайды.'],['Жел соққанда неге салқын сезіледі?','Жел тері бетіндегі буды әкетеді, булану жылдамдайды, денеден жылу тезірек кетеді.'],['Нұрлан жаттығудан кейін неге су ішуі керек?','Дене жоғалтқан 1 кг суды қайтару керек. Су жетпесе, тер бөлінбей, дене қызып кетеді.']]
+},
+/* ---------- 5 ---------- */
+{n:5,para:'§12',title:'Қайнап тұр,',sub:'бірақ піспейді!',
+ hook:'Асхат бүкіл лагерьге «бір сағатта ет асып беремін» деп уәде беріп қойды. Сағат өтіп барады, жұрт аш, ет тастай қатты.',
+ hookLines:['Су сақырлап қайнап тұр, от күшті,','ал ет тастай қатты. Неге?'],
+ icon:()=>`<g transform="translate(1185,800) scale(1.45)">${qazan(0,0,1.25,5)}</g>`,
+ scenes:[
+  {name:'Уәде',beats:[{t:0,text:'Тау лагері. Асхат бүкіл топқа уәде беріп қойды: бір сағатта ет асып береді.'}],
+   draw:()=>`${campBack()}<rect x="140" y="410" width="14" height="330" fill="#8a6243"/><rect x="420" y="410" width="14" height="330" fill="#8a6243"/><rect x="80" y="296" width="414" height="130" rx="14" fill="#a67a55" stroke="#6b4a35" stroke-width="6"/><text x="287" y="344" text-anchor="middle" font-size="28" class="t-bold" fill="#fff">«ҚЫРАН» ЛАГЕРІ</text><text x="287" y="396" text-anchor="middle" font-size="34" class="t-bold" fill="${SUN}">биіктігі 3000 м</text>
+    ${disp(1058,392,124,54,'8 °C',26)}
+    ${sh(1260,838,80)}${P(1260,830,1.05,{...F1,face:'smile',look:-8})}${sh(1440,848,80)}${P(1440,840,1.05,{...F2,face:'smile',look:-8})}
+    ${qazan(920,810,1,3)}${sh(640,818,100)}${P(640,810,1.3,{...ASH,face:'happy',look:8,ra:[92,-206],bendA:[-12,20]})}<path d="M760,542 L836,500" stroke="#8d98ab" stroke-width="10" stroke-linecap="round"/><ellipse cx="846" cy="494" rx="22" ry="14" fill="#8d98ab"/>
+    <rect x="1040" y="770" width="96" height="50" rx="10" fill="#8a6243"/><rect x="1046" y="716" width="84" height="56" rx="8" fill="#fff" stroke="#c5d2f3" stroke-width="4"/><text x="1088" y="752" text-anchor="middle" font-size="20" class="t-bold" fill="${HOTC}">ЕТ 2 кг</text>
+    ${bubble(390,60,560,124,['Үйде етті бір сағатта пісіремін.','Бүгін аспаз — менмін!'],650,228,27)}
+    ${hotPin('alt',494,298,'Лагерь тақтасы')}${hotPin('meat',1160,712,'Ет')}${hotPin('airT',1214,400,'Ауа температурасы')}`},
+  {name:'Піспейді',beats:[{t:0,text:'Бір сағат өтті. Су сақырлап қайнап тұр, ал ет тастай қатты. Достары аш.'},{t:5000,text:'Асхат отқа құшақ-құшақ отын тастады. Жалын қазанды орап кетті, бірақ ет бәрібір піспеді, ал су жартысына дейін азайып қалды.'}],
+   draw:()=>`${campBack()}${sh(1260,838,80)}${P(1260,830,1.05,{...F1,face:'worry',look:-8})}${sh(1440,848,80)}${P(1440,840,1.05,{...F2,face:'worry',look:-8})}
+    <g class="b1">${qazan(920,810,1,3)}${sh(640,818,100)}${P(640,810,1.3,{...ASH,face:'worry',look:8,ra:[92,-206],bendA:[-12,20]})}<path d="M760,542 L850,560" stroke="#8d98ab" stroke-width="8" stroke-linecap="round"/>
+      ${bubble(1090,250,430,96,['Аспаз, ет қайда?!'],1300,430,31)}</g>
+    <g class="b2">${qazan(920,810,2,7,true)}${sh(640,818,100)}${P(640,810,1.3,{...ASH,face:'run',look:8,la:[-20,-150],ra:[84,-150],bendA:[-30,30]})}<rect x="600" y="596" width="190" height="26" rx="13" fill="#8a5a2e"/><rect x="610" y="574" width="190" height="26" rx="13" fill="#a67a55"/>
+      <g class="pop" style="transform-origin:320px 220px">${bubble(110,170,400,96,['Тезірек пісші!'],572,330,31)}</g></g>`},
+  {name:'Термометр',beats:[{t:0,text:'Жол басшы қазанға термометр салды, сосын рюкзагынан кесте мен қақпағы бұралатын ерекше қазан шығарды.'}],
+   draw:()=>`${campBack()}${sh(470,818,110)}${P(470,810,1.45,{...GUIDE,face:'smile',look:8,ra:[96,-190],bendA:[-12,20]})}
+    <g transform="rotate(-6 660 520)"><rect x="566" y="420" width="200" height="210" rx="8" fill="#fff" stroke="${INK}" stroke-width="5"/><rect x="566" y="420" width="200" height="40" rx="8" fill="${INK}"/><path d="M582,486 H750 M582,516 H750 M582,546 H750 M582,576 H750 M582,606 H750 M666,470 V620" stroke="#aab4c4" stroke-width="5"/></g>
+    ${qazan(990,810,1,4)}<path d="M1060,640 L1100,470" stroke="#c3ccd9" stroke-width="12" stroke-linecap="round"/>${disp(1040,380,170,84,'?? °C',38)}
+    <rect x="1250" y="780" width="170" height="40" rx="12" fill="#8a6243"/>${cooker(1335,780)}
+    ${sh(1500,838,84)}${P(1500,830,1.1,{...ASH,face:'shock',look:-10})}
+    ${bubble(230,60,490,124,['Қарашы, қайнап тұрған','суың неше градус?'],480,196,29)}
+    ${hot('tbl',666,524,130,'Кесте')}${hotPin('pc',1335,600,'Қысымды қазан')}`}
+ ],
+ twist:{text:'Етті қысымды қазанға ауыстырды. Клапаны ысқырып, 40 минуттан кейін жұмсақ ет дайын болды. Достары қол соқты!',
+  draw:()=>`${campBack()}<rect x="1000" y="150" width="560" height="170" rx="16" fill="#a67a55" stroke="#6b4a35" stroke-width="7"/><g class="t-hand" fill="#fff"><text x="1280" y="222" text-anchor="middle" font-size="48">Тауда аспазға от емес,</text><text x="1280" y="286" text-anchor="middle" font-size="56">физика керек!</text></g>
+    <rect x="690" y="790" width="60" height="30" rx="10" fill="#8d98ab"/><rect x="850" y="790" width="60" height="30" rx="10" fill="#8d98ab"/>${flame(800,812,.9)}<rect x="680" y="772" width="240" height="14" rx="7" fill="#5a6278"/>${steam(800,590,4,40)}${cooker(800,772)}
+    ${sh(500,818,100)}${P(500,810,1.3,{...ASH,face:'happy',look:8,la:[-92,-256],ra:[92,-256],bendA:[-20,20]})}
+    ${sh(1180,838,80)}${P(1180,830,1.05,{...F1,face:'happy',look:-8,la:[-30,-150],ra:[30,-150],bendA:[-30,30]})}<ellipse cx="1180" cy="680" rx="62" ry="14" fill="#fff" stroke="#c5d2f3" stroke-width="4"/><ellipse cx="1180" cy="672" rx="34" ry="12" fill="#b9642a"/>
+    ${sh(1400,848,80)}${P(1400,840,1.05,{...F2,face:'happy',look:-8,la:[-30,-150],ra:[30,-150],bendA:[-30,30]})}<ellipse cx="1400" cy="690" rx="62" ry="14" fill="#fff" stroke="#c5d2f3" stroke-width="4"/><ellipse cx="1400" cy="682" rx="34" ry="12" fill="#b9642a"/>`},
+ lead:'Су сақырлап қайнап тұр, от күшті, ал ет піспейді. <strong>Асхаттың қатесі неде және мәселені қалай шешуге болады?</strong>',
+ predict:{q:'Отты күшейтсе, қайнап тұрған су ысый ма?',opts:['Иә, ыстығырақ болады','Жоқ, температурасы өзгермейді'],ok:1},
+ data:[
+  {k:'alt',sc:1,title:'Лагерьдің биіктігі',val:'3000 м',need:1},
+  {k:'meat',sc:1,title:'Еттің массасы',val:'2 кг',need:0},
+  {k:'airT',sc:1,title:'Ауа температурасы',val:'8 °C',need:0},
+  {k:'tbl',sc:3,title:'Жол басшының кестесі',val:'биіктік және қайнау температурасы',chip:'қайнау температурасының кестесі',need:1,zoom:{title:'Судың қайнау температурасы',html:'<div class="bill"><div class="hd"><span>Биіктік, м</span><span>Қайнау, °C</span></div>'+[[0,100],[1000,97],[2000,93],[3000,90],[4000,87],[5000,83]].map(r=>`<div class="ln"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')+'<div class="tot" style="font-size:14px;font-weight:500"><span>Мәндері жуықтап алынған</span></div></div>'}},
+  {k:'pc',sc:3,title:'Қысымды қазан',val:'ішінде су ≈120 °C-та қайнайды',chip:'қысымды қазан: ≈120 °C',need:1}
+ ],
+ ref:['Теңіз деңгейінде су 100 °C-та қайнайды','L(су) = 2,3·10⁶ Дж/кг'],
+ qs:[
+  {t:'Асхаттың қазанындағы су неше градуста қайнап тұр?',f:[{l:'Лагерьде су',u:'°C-та қайнайды',a:90},{l:'Бұл үйдегіден',u:'°C төмен',a:10}],hint:'Кестеден 3000 м жолын тап.',ok:'3000 м биіктікте су шамамен 90 °C-та қайнайды, яғни үйдегіден 10 °C төмен. Биікте атмосфералық қысым аз.'},
+  {t:'3500 м биіктікте су шамамен неше градуста қайнайды?',f:[{l:'t ≈',u:'°C',a:88.5,tol:.6}],hint:'3000 м мен 4000 м мәндерінің ортасын ал.',ok:'90 мен 87-нің ортасы: шамамен 88–89 °C.'},
+  {t:'Асхат отты күшейткенде не болды?',c:['Су ыстығырақ болып, ет тезірек пісті','Судың температурасы өзгермеді, ол тек тезірек буланды','Су суып қалды'],a:1,hint:'Қайнап тұрған сұйықтың температурасы қалай өзгереді?',ok:'Қайнау кезінде температура тұрақты. Қосымша жылу Q = Lm бойынша суды буға айналдыруға кетеді, сондықтан су азайып қалды.'},
+  {t:'Қақпағы бұралатын қазан мәселені қалай шешеді?',c:['Ішіндегі қысым артады, су жоғарырақ температурада қайнайды','От күшейеді','Су азаяды'],a:0,hint:'Қақпақ буды шығармайды. Қысым қалай өзгереді?',ok:'Бу шықпайды, қысым артады, су шамамен 120 °C-та қайнайды. Ет үйдегіден де тез піседі.'}
+ ],
+ answer:'Биікте су 90 °C-та қайнайды. Отты емес, қысымды арттыру керек',
+ talk:[['Биік тауда жұмыртқа пісіруге неге көбірек уақыт кетеді?','Су 100 °C-қа жетпей қайнайды, ал тағам төмен температурада баяу піседі.'],['Үйде сорпа қайнап шыққан соң газды неге бәсеңдету керек?','Температура бәрібір 100 °C-тан аспайды. Күшті от суды тек тезірек буландырады, газ босқа жанады.'],['Қысымды қазанның клапаны не үшін керек?','Қысым тым артып кетпеуі үшін артық буды шығарады. Бұл қауіпсіздік үшін қажет.']]
+},
+/* ---------- 6 ---------- */
+{n:6,para:'§7, §8, §12',title:'Дастан детектив',sub:'Суды кім ішті?',
+ hook:'Шәйнектегі су азайып қалған. Дастан қарындасын жазықсыз айыптап тұр. Шын «ұрыны» тауып, үйдің қандай қауіптен аман қалғанын дәлелде.',
+ hookLines:['Шәйнектегі су азайып қалған.','Дастан қарындасынан көріп тұр...'],
+ icon:()=>`${steam(1420,390,4,50)}${at(1150,790,1.9,kettleG(1))}${magnifier(1010,420)}`,
+ scenes:[
+  {name:'Шәйнек газда',beats:[{t:0,text:'Демалыс таңы. Дастан шәйнекке су құйып, газға қойды да, құлаққап киіп, ойынға кірісіп кетті.'}],
+   draw:()=>`${kitchenBack(true)}<rect x="520" y="110" width="170" height="130" rx="10" fill="#fff" stroke="${INK}" stroke-width="6"/>${horn(605,170,1.1,TEAL)}
+    ${P(540,790,1.5,{...DAS,face:'happy',la:[-36,-150],ra:[36,-150],bendA:[-34,34],acc:[['phones',HOTC]]})}${counter()}${stoveKnobs(1250)}${tap(900,'20 °C')}${stove(1250)}${at(1250,528,1.1,kettleG(1.5))}
+    <g transform="rotate(-6 300 470)"><rect x="200" y="408" width="210" height="140" rx="12" fill="${INK}"/><rect x="212" y="420" width="186" height="116" rx="6" fill="#2fd08a"/><text x="305" y="466" text-anchor="middle" font-size="24" class="t-bold" fill="#fff">ҰПАЙ</text><text x="305" y="512" text-anchor="middle" font-size="36" class="t-digit" fill="#fff">12 450</text></g><rect x="290" y="544" width="30" height="14" fill="${INK}"/>
+    <rect x="486" y="528" width="108" height="46" rx="20" fill="#232b4d"/><circle cx="510" cy="551" r="9" fill="${HOTC}"/><circle cx="570" cy="551" r="9" fill="${SUN}"/>
+    ${hot('v1',1250,430,132,'Шәйнектің шкаласы')}${hotPin('tw',826,430,'Шүмектегі термометр')}${hotPin('score',420,400,'Ойын экраны')}`},
+  {name:'Ысқырық',beats:[{t:0,text:'Шәйнек қайнап, ысқыра бастады. Дастан естіген жоқ. Бу терезеге қонып, әйнектен тамшы ағып жатыр.'}],
+   draw:()=>`${kitchenBack(true)}${fogWin()}${clock(770,172,92,7,30)}
+    ${P(540,790,1.5,{...DAS,face:'happy',la:[-36,-150],ra:[36,-150],bendA:[-34,34],acc:[['phones',HOTC]]})}${counter()}${stoveKnobs(1250)}${tap(900)}${stove(1250)}${at(1250,528,1.1,kettleG(1.4))}${steam(1450,376,6,70)}
+    <g class="blink" fill="${INK}"><text x="1480" y="330" font-size="60" class="t-display">♪</text><text x="1400" y="300" font-size="44" class="t-display">♪</text></g>
+    <rect x="486" y="528" width="108" height="46" rx="20" fill="#232b4d"/><circle cx="510" cy="551" r="9" fill="${HOTC}"/><circle cx="570" cy="551" r="9" fill="${SUN}"/>
+    <g class="blink" fill="${SUN}"><text x="420" y="330" font-size="44" class="t-display">♫</text><text x="660" y="380" font-size="36" class="t-display">♫</text></g>
+    ${hot('c1',770,172,118,'Қабырға сағаты')}`},
+  {name:'Су қайда?',beats:[{t:0,text:'Дастан ас үйге кіріп, шәйнекке қарады: су азайып қалған! «Аяла! Шайымды сен ішіп қойдың ба?!»'},{t:5000,text:'Аяла жыламсырап тұр. Дастан із кесуші болып, «іздерді» тізіп шықты: терлеген терезе, ысқырған шәйнек, жанып тұрған газ...'}],
+   draw:()=>`${kitchenBack(true)}${fogWin()}${clock(770,172,92,7,50)}
+    ${P(430,800,1.1,{...AYA,face:'worry',look:8})}${P(940,790,1.5,{...DAS,face:'shock',look:-6,ra:[104,-180],bendA:[-12,14]})}${counter()}${stoveKnobs(1250)}${tap(700)}${stove(1250)}${at(1250,528,1.1,kettleG(1))}${steam(1450,376,3,50)}
+    <g class="b1">${bubble(930,24,440,118,['Аяла! Шайымды','сен ішіп қойдың ба?!'],970,190,29)}</g>
+    <g class="b2"><g class="pop" style="transform-origin:560px 380px">${bubble(250,290,420,118,['Мен ас үйге','кірген де жоқпын!'],470,424,29)}</g></g>
+    ${hot('c2',770,172,118,'Қабырға сағаты')}${hot('v2',1250,430,132,'Шәйнектің шкаласы')}`}
+ ],
+ twist:{text:'Дастан терезедегі тамшыларды нұсқады: суды бу алып кетіпті. Ол Аяладан кешірім сұрап, оған бірінші болып шай құйып берді де, телефонына оятқыш қойды.',
+  draw:()=>`${kitchenBack(true)}${fogWin()}<text x="615" y="98" text-anchor="middle" font-size="22" class="t-bold" fill="${INK}">ОЯТҚЫШ: ШӘЙНЕК</text>${disp(500,108,230,110,'05:00',58)}
+    ${P(430,800,1.1,{...AYA,face:'happy',look:8})}${P(820,790,1.5,{...DAS,face:'happy',look:-8,la:[-124,-236],ra:[92,-180],bendA:[-10,16],acc:['det']})}${counter()}${stoveKnobs(1250)}${tap(1040)}${stove(1250)}${at(1250,528,1.1,kettleG(1))}
+    ${magnifier(980,470)}${mug(540,556,SUN)}
+    ${bubble(880,150,440,118,['Ұры табылды — бу!','Ал кінәлі — мен...'],850,210,29)}`},
+ lead:'Шәйнектегі су азайып қалған, Дастан қарындасынан көріп тұр. <strong>Су қайда кетті және үй қандай қауіптен аман қалды?</strong>',
+ predict:{q:'Жарты литр су қайда кетті?',opts:['Аяла ішті','Төгіліп қалды','Буға айналды'],ok:2},
+ data:[
+  {k:'v1',sc:1,title:'Басында құйылған су',val:'1,5 л',need:1},
+  {k:'tw',sc:1,title:'Шүмектегі су',val:'20 °C',need:1},
+  {k:'score',sc:1,title:'Ойындағы ұпай',val:'12 450',need:0},
+  {k:'c1',sc:2,title:'Шәйнек қайнаған уақыт',val:'07:30',need:1},
+  {k:'c2',sc:3,title:'Дастан байқаған уақыт',val:'07:50',need:1},
+  {k:'v2',sc:3,title:'Шәйнекте қалған су',val:'1,0 л',need:1}
+ ],
+ ref:['c(су) = 4200 Дж/(кг·°C)','L(су) = 2,3·10⁶ Дж/кг','q(табиғи газ) = 4,4·10⁷ Дж/кг','1 л су = 1 кг'],
+ qs:[
+  {t:'Суды қайнағанға дейін қыздыруға қанша жылу кетті?',f:[{l:'Q₁ =',u:'Дж',a:504000}],hint:'Q = c·m·Δt, m = 1,5 кг, Δt = 100 − 20.',ok:'Q₁ = 4200 · 1,5 · 80 = 504 000 Дж.'},
+  {t:'Қанша су буланды және оған қанша жылу кетті?',f:[{l:'m =',u:'кг',a:0.5},{l:'Q₂ =',u:'Дж',a:1150000}],hint:'m = 1,5 − 1,0. Q = L·m.',ok:'m = 0,5 кг. Q₂ = 2,3·10⁶ · 0,5 = 1 150 000 Дж. Бұл қыздыруға кеткен жылудан 2,3 есе көп.'},
+  {t:'Осы бос булануға кем дегенде неше грамм газ жанды?',f:[{l:'m ≈',u:'г',a:26,tol:.7}],hint:'m = Q₂ : q. Жауапты граммға айналдыр.',ok:'1 150 000 : 4,4·10⁷ ≈ 0,026 кг = 26 г. Жылудың бір бөлігі ауаға кететіндіктен, шын шығын бұдан көп.'},
+  {t:'Су осы қарқынмен булана берсе, шәйнек қашан құрғап қалар еді?',c:['08:10','08:30','09:00'],a:1,hint:'20 минутта 0,5 кг буланды. Шәйнекте 1,0 кг қалды.',ok:'Қалған 1,0 кг суға 40 минут керек: 07:50 + 40 мин = 08:30.'}
+ ],
+ answer:'Суды бу «ішті». 08:30-да шәйнек құрғап, күйе бастар еді',
+ talk:[['Терезе неге терледі?','Ыстық бу суық әйнекке тиіп, конденсацияланды: қайтадан су тамшыларына айналды. Бұл кезде жылу бөлінеді.'],['Құрғап қалған шәйнек несімен қауіпті?','Сусыз шәйнек қатты қызып, күйеді, өрт шығуы мүмкін. Су тасып төгіліп, жалынды өшірсе, газ бөлмеге жиналады.'],['100 °C бу 100 °C судан неге қаттырақ күйдіреді?','Бу теріде конденсацияланғанда әр килограмынан қосымша 2,3·10⁶ Дж жылу бөлінеді.']]
+}
+];
+
+/* ================= state ================= */
+const $=id=>document.getElementById(id);
+const svg=$('svg');
+const DEFS2=DEFS.replace('</defs>',`<linearGradient id="gWinter" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9db9e2"/><stop offset="1" stop-color="#eaf2fc"/></linearGradient></defs>`);
+let EP=null,epi=0,cur=0,auto=false,sound=true,AC=null,timers=[],autoT=0,cdT=0,scenes=[],META=[];
+const ST=EPS.map(()=>({found:new Set(),pred:null,okq:new Set(),vals:{},pick:{},chips:null,solved:false,open:false}));
+const S=()=>ST[epi];
+const iStop=()=>EP.scenes.length+1, iTwist=()=>EP.scenes.length+2;
+
+/* sound */
+function tone(f,d,type='sine',v=.07,when=0){
+  if(!sound||!AC)return;
+  try{const t=AC.currentTime+when,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;
+    g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02);}catch(e){}
+}
+const sfx={
+  next:()=>tone(520,.09,'triangle',.05),
+  boing:()=>{tone(300,.12,'triangle',.07);tone(620,.2,'triangle',.07,.1);},
+  found:()=>{tone(660,.12,'sine',.08);tone(990,.22,'sine',.08,.11);},
+  ok:()=>{[523,659,784].forEach((f,i)=>tone(f,.2,'sine',.08,i*.11));},
+  win:()=>{[523,659,784,1047].forEach((f,i)=>tone(f,.26,'triangle',.08,i*.13));},
+  stop:()=>{tone(440,.18,'square',.04);tone(330,.3,'square',.04,.18);},
+  no:()=>tone(170,.25,'sawtooth',.04)
+};
+const wakeAudio=()=>{try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}};
+['pointerdown','keydown','touchend'].forEach(ev=>document.addEventListener(ev,wakeAudio,{passive:true}));
+
+/* ================= theatre ================= */
+function clearTimers(){timers.forEach(clearTimeout);timers=[];clearInterval(cdT);}
+const setCap=t=>{$('cap').textContent=t;};
+let toastT;
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2800);}
+function toTask(){$('task').scrollIntoView({behavior:'smooth',block:'start'});}
+function show(i,fade=true){
+  i=Math.max(0,Math.min(scenes.length-1,i));
+  if(i===iTwist()&&!S().solved&&!S().open){toast('Түйін есеп шыққан соң ашылады');toTask();return;}
+  clearTimers();
+  scenes.forEach(s=>s.classList.remove('on','beat2','fade'));
+  cur=i;const el=scenes[i];void el.getBoundingClientRect();
+  el.classList.add('on');if(fade)el.classList.add('fade');
+  const m=META[i];setCap(m.beats[0].text);
+  $('tag').textContent=i===0?`${EP.n}-оқиға`:`${EP.n}-оқиға · ${m.name}`;
+  if(m.beats[1])timers.push(setTimeout(()=>{el.classList.add('beat2');setCap(m.beats[1].text);sfx.boing();},m.beats[1].t));
+  const cd=el.querySelector('[data-cd]');
+  if(cd){let v=+cd.dataset.cd;const mn=+cd.dataset.min,put=()=>{cd.textContent='0'+Math.floor(v/60)+':'+String(v%60).padStart(2,'0');};put();cdT=setInterval(()=>{if(v>mn){v--;put();tone(880,.03,'square',.015);}},1000);}
+  if(fade&&i===iStop())sfx.stop();
+  if(fade&&i===iTwist())sfx.win();
+  $('btnPrev').disabled=i===0;
+  $('btnNext').textContent=i===0?'Бастау ▸':i===iStop()?(S().solved||S().open?'Түйінді көру ▸':'Есепке өту ▾'):i===iTwist()?(epi<EPS.length-1?'Келесі оқиға ▸':'Басына ▸'):'Келесі ▸';
+  [...$('dots').children].forEach((d,k)=>{d.classList.toggle('on',k===i);d.setAttribute('aria-current',k===i?'true':'false');d.classList.toggle('lock',k===iTwist()&&!S().solved&&!S().open);});
+  clearTimeout(autoT);
+  if(auto){const hold=(m.beats[1]?m.beats[1].t:0)+(i===0?4000:7000);autoT=setTimeout(()=>{if(cur<iStop())show(cur+1);else setAuto(false);},hold);}
+}
+function setAuto(v){auto=v;$('btnAuto').setAttribute('aria-pressed',v);$('btnAuto').textContent=v?'❚❚ Тоқтату':'▶ Өзі ойнасын';clearTimeout(autoT);if(v)show(cur>=iStop()?0:cur,false);}
+function next(){
+  if(cur===iStop()){if(S().solved||S().open)show(iTwist());else toTask();return;}
+  if(cur===iTwist()){loadEp((epi+1)%EPS.length);$('stage').scrollIntoView({behavior:'smooth',block:'nearest'});return;}
+  sfx.next();show(cur+1);
+}
+function loadEp(i,sc=0){
+  epi=i;EP=EPS[i];uid=0;setAuto(false);
+  META=[{name:'Басы',beats:[{t:0,text:EP.hook}]},...EP.scenes.map(s=>({name:s.name,beats:s.beats})),{name:'Тоқта!',beats:[{t:0,text:'Мультфильм кідірді. Болжам жаса, дәптерге дерек жина, есепті шығар. Оқиғаның түйіні есеп шыққан соң ашылады.'}]},{name:'Түйін',beats:[{t:0,text:EP.twist.text}]}];
+  const draws=[()=>titleScene(EP),...EP.scenes.map(s=>s.draw),()=>stopScene(EP),EP.twist.draw];
+  svg.innerHTML=DEFS2+draws.map((f,k)=>`<g class="scene" id="s${k}">${f()}</g>`).join('');
+  scenes=[...svg.querySelectorAll('.scene')];
+  $('dots').innerHTML=META.map((m,k)=>`<button class="dot" type="button" aria-label="${m.name}"></button>`).join('');
+  [...$('dots').children].forEach((d,k)=>d.addEventListener('click',()=>{sfx.next();show(k);}));
+  [...$('eps').children].forEach((b,k)=>{b.setAttribute('aria-current',k===i?'true':'false');b.classList.toggle('done',ST[k].solved);});
+  renderTask();renderNotebook();show(sc,false);
+  try{if(location.hash!=='#ep-'+(i+1))location.hash='ep-'+(i+1);}catch(e){}
+}
+$('eps').innerHTML=EPS.map(e=>`<button class="ep-tab" type="button"><span class="num">${e.n}</span><span>${e.title}<small>${e.para} · ${e.sub}</small></span></button>`).join('');
+[...$('eps').children].forEach((b,k)=>b.addEventListener('click',()=>{sfx.next();loadEp(k);}));
+$('btnNext').addEventListener('click',next);
+$('btnPrev').addEventListener('click',()=>{sfx.next();show(cur-1);});
+$('btnAuto').addEventListener('click',()=>setAuto(!auto));
+$('btnToTask').addEventListener('click',toTask);
+$('btnSound').addEventListener('click',()=>{sound=!sound;$('btnSound').setAttribute('aria-pressed',sound);$('btnSound').textContent=sound?'Дыбыс: қосулы':'Дыбыс: өшірулі';});
+$('btnFull').addEventListener('click',()=>{try{if(document.fullscreenElement){document.exitFullscreen();}else{const p=document.documentElement.requestFullscreen();if(p&&p.catch)p.catch(()=>toast('Бұл терезеде толық экран ашылмады'));}}catch(e){toast('Бұл терезеде толық экран ашылмады');}});
+document.addEventListener('keydown',e=>{
+  if(!$('zoom').hidden){if(e.key==='Escape')closeZoom();return;}
+  if(/INPUT|SELECT|TEXTAREA|BUTTON|SUMMARY/.test(document.activeElement.tagName))return;
+  if(e.key==='ArrowRight'){e.preventDefault();next();}
+  if(e.key==='ArrowLeft'){e.preventDefault();show(cur-1);}
+});
+window.addEventListener('hashchange',()=>{const m=/^#ep-(\d)$/.exec(location.hash);if(m){const k=+m[1]-1;if(k>=0&&k<EPS.length&&k!==epi)loadEp(k);}});
+
+/* ================= notebook, hotspots, zoom ================= */
+function renderNotebook(newKey){
+  const f=S().found;
+  $('nbList').innerHTML=EP.data.map(d=>f.has(d.k)
+    ?`<li class="${d.k===newKey?'new':''}"><span class="k">${d.title}</span><span class="v">${d.val}</span></li>`
+    :`<li class="empty"><span class="k">${d.title}</span><span class="v"><button type="button" data-go="${d.sc}">? ${d.sc}-көріністен ізде</button></span></li>`).join('');
+  $('nbCount').textContent=`Табылғаны: ${f.size} / ${EP.data.length}`;
+  svg.querySelectorAll('.hot').forEach(h=>h.classList.toggle('found',f.has(h.dataset.key)));
+}
+$('nbList').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){show(+b.dataset.go);$('stage').scrollIntoView({behavior:'smooth',block:'nearest'});}});
+let lastFocus=null;
+function openZoom(z){$('zoomTitle').textContent=z.title;$('zoomBody').innerHTML=z.html;lastFocus=document.activeElement;$('zoom').hidden=false;$('zoomClose').focus();}
+function closeZoom(){$('zoom').hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus();}
+$('zoomClose').addEventListener('click',closeZoom);
+$('zoom').addEventListener('click',e=>{if(e.target===$('zoom'))closeZoom();});
+function hit(h){
+  const d=EP.data.find(x=>x.k===h.dataset.key);if(!d)return;
+  const isNew=!S().found.has(d.k);S().found.add(d.k);renderNotebook(isNew?d.k:null);
+  if(isNew)sfx.found();
+  if(d.zoom)openZoom(d.zoom);else toast(`${isNew?'Дәптерге жазылды. ':''}${d.title}: ${d.val}`);
+}
+svg.addEventListener('click',e=>{const h=e.target.closest('.hot');if(h)hit(h);});
+svg.addEventListener('keydown',e=>{const h=e.target.closest('.hot');if(h&&(e.key==='Enter'||e.key===' ')){e.preventDefault();hit(h);}});
+
+/* ================= task ================= */
+const num=v=>{const x=parseFloat(String(v).replace(/[\s ]/g,'').replace(',','.'));return isNaN(x)?null:x;};
+const near=(v,a,tol)=>v!==null&&Math.abs(v-a)<=(tol!=null?tol:Math.max(.006,Math.abs(a)*.006));
+function renderTask(){
+  const e=EP,s=S();
+  const chipsHtml=(arr,cls,sel)=>arr.map((t,i)=>`<button type="button" class="chip ${cls}" data-i="${i}" aria-pressed="${sel(i)}">${t}</button>`).join('');
+  let h=`<h2 id="taskTitle">${e.n}-оқиға. ${e.title.replace(/,$/,"")}: есеп</h2><p class="lead">${e.lead}</p>
+  <div class="step wide predict" id="stP"><h3><span class="n">?</span>Болжам: ${e.predict.q}</h3><p>Есептемей тұрып таңда. Кейін есеп болжамыңды тексереді.</p><div class="chips" id="pred">${chipsHtml(e.predict.opts,'pr',i=>s.pred===i)}</div></div>
+  <div class="ref"><b>Анықтама:</b>${e.ref.map(r=>`<span>${r}</span>`).join('')}</div>
+  <div class="steps"><div class="step wide${s.chips?' done':''}" id="st0"><h3><span class="n">1</span>Қажетті деректерді таңда</h3><p>Мультфильмдегі деректердің бәрі бірдей керек емес. Есепке қажеттерін ғана белгіле.</p>
+  <div class="chips" id="chips">${chipsHtml(e.data.map(d=>d.chip||d.val),'dc',()=>false)}</div><div class="tools"><button class="btn small" type="button" data-chk="chips">Тексеру</button><span class="fb" id="fb0" role="status"></span></div></div>`;
+  e.qs.forEach((q,i)=>{
+    const wide=q.c||q.f.length>2;
+    h+=`<div class="step${wide?' wide':''}${s.okq.has(i)?' done':''}" id="st${i+1}"><h3><span class="n">${i+2}</span>${q.t}</h3>`;
+    if(q.c)h+=`<div class="chips" data-qc="${i}">${chipsHtml(q.c,'qc',k=>s.pick[i]===k)}</div>`;
+    else h+=`<div class="rows">${q.f.map((f,j)=>`<div class="row"><label for="q${i}_${j}">${f.l}</label><input id="q${i}_${j}" inputmode="decimal" autocomplete="off" value="${s.vals[i+'_'+j]||''}"> ${f.u}</div>`).join('')}</div>`;
+    h+=`<div class="tools"><button class="btn small" type="button" data-chk="${i}">Тексеру</button><span class="fb${s.okq.has(i)?' ok':''}" id="fb${i+1}" role="status">${s.okq.has(i)?'Дұрыс! '+q.ok:''}</span></div></div>`;
+  });
+  h+=`</div><div class="answer" id="answer" hidden></div>
+  <div class="tools"><button class="btn small" type="button" id="btnSol" aria-expanded="false">Шешімін көрсету</button><button class="btn small" type="button" id="btnReset">Жауаптарды тазалау</button><button class="btn small" type="button" id="btnOpen">Мұғалімге: түйінді бірден ашу</button></div>
+  <div class="solution" id="solution" hidden><h3>Шешуі</h3>${e.qs.map((q,i)=>`<p><b>${i+2}.</b> ${q.ok}</p>`).join('')}${e.note?`<p style="color:var(--muted)">Ескерту: ${e.note}</p>`:''}<h3 style="margin-top:10px">Жауабы: ${e.answer}</h3></div>
+  <h2 class="section">Ойлан, талқыла</h2><div class="talk">${e.talk.map(t=>`<details><summary>${t[0]}</summary><p>${t[1]}</p></details>`).join('')}</div>`;
+  $('task').innerHTML=h;
+  if(s.solved)showAnswer(false);
+}
+function fb(n,ok,text){const el=$('fb'+n);el.textContent=text;el.className='fb '+(ok?'ok':'no');$('st'+n).classList.toggle('done',ok);}
+function showAnswer(fresh){
+  const e=EP,s=S(),a=$('answer');
+  const v=s.pred==null?'':s.pred===e.predict.ok?'Болжамың дұрыс шықты!':'Есеп болжамыңды жоққа шығарды. Ғылымда осылай болады: есептеп көрмей, сенуге болмайды.';
+  a.innerHTML=`Жауабы: ${e.answer}${v?`<span class="verdict">${v}</span>`:''}<div class="tools" style="margin-top:10px"><button class="btn primary" type="button" id="btnTwist">Түйінді көру ▸</button></div>`;
+  a.hidden=false;
+  [...$('eps').children][epi].classList.add('done');
+  if(cur===iStop())$('btnNext').textContent='Түйінді көру ▸';
+  [...$('dots').children].forEach(d=>d.classList.remove('lock'));
+  if(fresh){sfx.win();a.scrollIntoView({behavior:'smooth',block:'nearest'});}
+}
+$('task').addEventListener('input',e=>{const m=/^q(\d+)_(\d+)$/.exec(e.target.id);if(m)S().vals[m[1]+'_'+m[2]]=e.target.value;});
+$('task').addEventListener('click',ev=>{
+  const e=EP,s=S(),t=ev.target;
+  const ch=t.closest('.chip');
+  if(ch){
+    if(ch.classList.contains('dc')){ch.setAttribute('aria-pressed',ch.getAttribute('aria-pressed')!=='true');return;}
+    const grp=[...ch.parentNode.children];grp.forEach(b=>b.setAttribute('aria-pressed',b===ch));
+    if(ch.classList.contains('pr')){s.pred=+ch.dataset.i;if(s.solved)showAnswer(false);}
+    else s.pick[+ch.parentNode.dataset.qc]=+ch.dataset.i;
+    return;
+  }
+  if(t.dataset.chk==='chips'){
+    const ok=[...$('chips').children].every((b,i)=>(b.getAttribute('aria-pressed')==='true')===!!e.data[i].need);
+    s.chips=ok;fb(0,ok,ok?'Дұрыс! Қалғандары — артық дерек.':'Әлі дәл емес. Әр дерекке «бұл сан қай формулаға керек?» деп сұрақ қой.');ok?sfx.ok():sfx.no();return;
+  }
+  if(t.dataset.chk!=null){
+    const i=+t.dataset.chk,q=e.qs[i];let ok;
+    if(q.c)ok=s.pick[i]===q.a;
+    else{ok=true;q.f.forEach((f,j)=>{const inp=$('q'+i+'_'+j),g=near(num(inp.value),f.a,f.tol);inp.classList.toggle('good',g);inp.classList.toggle('wrong',!g);if(!g)ok=false;});}
+    fb(i+1,ok,ok?'Дұрыс! '+q.ok:'Әлі дәл емес. '+q.hint);
+    if(ok){s.okq.add(i);sfx.ok();if(!s.solved&&s.okq.size===e.qs.length){s.solved=true;showAnswer(true);}}else{s.okq.delete(i);sfx.no();}
+    return;
+  }
+  if(t.id==='btnSol'){const b=$('solution');b.hidden=!b.hidden;t.setAttribute('aria-expanded',!b.hidden);t.textContent=b.hidden?'Шешімін көрсету':'Шешімін жасыру';return;}
+  if(t.id==='btnReset'){ST[epi]={found:s.found,pred:null,okq:new Set(),vals:{},pick:{},chips:null,solved:false,open:s.open};renderTask();[...$('eps').children][epi].classList.remove('done');show(cur,false);return;}
+  if(t.id==='btnOpen'){s.open=true;show(iTwist());$('stage').scrollIntoView({behavior:'smooth',block:'nearest'});return;}
+  if(t.id==='btnTwist'){show(iTwist());$('stage').scrollIntoView({behavior:'smooth',block:'nearest'});}
+});
+
+/* ================= boot ================= */
+function start(d){
+  d=d||{};let k=d.ep||0;const m=/^#ep-(\d)$/.exec(location.hash||'');if(m&&+m[1]>=1&&+m[1]<=EPS.length)k=+m[1]-1;
+  loadEp(k);
+}
+const hotApi=window.claude&&window.claude.hot;
+if(hotApi&&hotApi.snapshot)hotApi.snapshot(()=>({ep:epi}));
+if(hotApi&&hotApi.ready)hotApi.ready(start);else start((hotApi&&hotApi.data)||{});
+
+})();
+</script>
+</body>
+</html>
