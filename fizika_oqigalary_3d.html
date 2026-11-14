@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Физика оқиғалары 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Onest:wght@400;500;700&family=Unbounded:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: a 16:9 cartoon stage on the left, a squared-paper school notebook on the right, the task sheet below. */
+  --ink:#1b2550;      /* outlines, text */
+  --page:#e6ecfb;     /* page background */
+  --paper:#fbfcff;    /* cards, notebook paper */
+  --hot:#ff5533;      /* the iron: the one loud colour */
+  --sun:#ffc533;      /* hotspots, highlights */
+  --teal:#1f8f8a;     /* focus, calm accents */
+  --rule:#c5d2f3;     /* notebook grid, hairlines */
+  --muted:#56618c;
+  --ok:#1a8f58; --bad:#cf3a2b;
+  --display:"Unbounded","Arial Black","Segoe UI",system-ui,sans-serif;
+  --body:"Onest","Segoe UI",Roboto,system-ui,sans-serif;
+  --hand:"Caveat","Segoe Print","Comic Sans MS",cursive;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--page);color:var(--ink);font:400 17px/1.5 var(--body);-webkit-text-size-adjust:100%}
+.wrap{max-width:1340px;margin:0 auto;padding:12px 16px 40px;display:flex;flex-direction:column;gap:12px}
+button,input,select{font:inherit;color:inherit}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand svg{width:44px;height:44px;flex:none}
+.brand h1{font:800 clamp(18px,2.4vw,24px)/1.1 var(--display);margin:0;letter-spacing:-.01em}
+.brand p{margin:2px 0 0;font-size:14px;color:var(--muted)}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* sticker buttons */
+.btn{font:700 15px/1 var(--body);background:#fff;border:3px solid var(--ink);border-radius:13px;padding:10px 16px;box-shadow:0 4px 0 var(--ink);cursor:pointer;transition:transform .08s,box-shadow .08s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px);box-shadow:0 5px 0 var(--ink)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.4;cursor:default;transform:none;box-shadow:0 4px 0 var(--ink)}
+.btn.primary{background:var(--hot);color:#fff}
+.btn.sun{background:var(--sun)}
+.btn.small{padding:8px 12px;font-size:14px;border-width:2px;box-shadow:0 3px 0 var(--ink)}
+.btn[aria-pressed="true"]{background:var(--ink);color:#fff}
+:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+
+/* theatre */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.theatre{min-width:0;display:flex;flex-direction:column;gap:12px;align-items:center}
+.stage,.caption,.controls{width:min(100%,max(300px,calc((100vh - 245px) * 1.7778)))}
+.stage{position:relative;aspect-ratio:16/9;border:4px solid var(--ink);border-radius:22px;overflow:hidden;background:var(--ink);box-shadow:0 7px 0 var(--ink)}
+.stage svg{display:block;width:100%;height:100%}
+.scene-tag{position:absolute;left:12px;top:12px;background:#fff;border:3px solid var(--ink);border-radius:999px;padding:4px 12px;font:700 13px/1.2 var(--body)}
+.toast{position:absolute;left:50%;bottom:14px;transform:translate(-50%,20px);background:var(--ink);color:#fff;border-radius:12px;padding:8px 14px;font:700 14px/1.3 var(--body);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.caption{background:#fff3c2;border:3px solid var(--ink);border-radius:16px;padding:10px 16px;min-height:66px;display:flex;align-items:center}
+.caption p{margin:0;font-size:clamp(16px,1.6vw,20px);line-height:1.35;font-weight:500;text-wrap:pretty}
+.controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.dots{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center}
+.dot{width:16px;height:16px;border-radius:50%;border:3px solid var(--ink);background:#fff;padding:0;cursor:pointer}
+.dot.on{background:var(--hot);transform:scale(1.25)}
+.dot.seen{background:var(--ink)}
+.dot.on.seen{background:var(--hot)}
+.ctl-group{display:flex;gap:8px}
+
+/* notebook: squared school paper with a red margin */
+.notebook{background:
+    linear-gradient(90deg,transparent 33px,#f29a8e 33px,#f29a8e 35px,transparent 35px),
+    linear-gradient(var(--rule) 1px,transparent 1px) 0 0/100% 22px,
+    linear-gradient(90deg,var(--rule) 1px,transparent 1px) 0 0/22px 100%,
+    var(--paper);
+  border:3px solid var(--ink);border-radius:16px;box-shadow:0 6px 0 var(--ink);padding:14px 14px 16px 46px;display:flex;flex-direction:column;gap:6px}
+.notebook h2{font:800 17px/1.2 var(--display);margin:0}
+.notebook .hint{font-size:13.5px;line-height:1.35;color:var(--muted);margin:0 0 4px}
+.nb-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nb-list li{min-height:44px;display:flex;flex-direction:column;justify-content:center}
+.nb-list .k{font:700 12px/1.2 var(--body);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.nb-list .v{font:700 23px/1.05 var(--hand);color:#2337a8}
+.nb-list li.empty .v{color:#9aa6cf;font:500 20px/1.05 var(--hand)}
+.nb-list li.empty button{all:unset;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.nb-list li.new .v{animation:ink .7s ease}
+@keyframes ink{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.nb-count{font:700 14px/1.2 var(--body);margin:6px 0 8px}
+
+/* task sheet */
+.task{background:var(--paper);border:3px solid var(--ink);border-radius:20px;box-shadow:0 7px 0 var(--ink);padding:clamp(16px,3vw,30px);display:flex;flex-direction:column;gap:18px;scroll-margin-top:12px}
+.task h2{font:800 clamp(20px,2.6vw,28px)/1.15 var(--display);margin:0;text-wrap:balance}
+.task .lead{font-size:clamp(17px,1.8vw,20px);max-width:68ch;margin:0}
+.task .lead strong{background:linear-gradient(transparent 62%,#ffd9cf 62%)}
+.steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.step{border:2px solid var(--ink);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:#fff}
+.step.wide{grid-column:1/-1}
+.step h3{font:700 17px/1.3 var(--body);margin:0;display:flex;gap:10px;align-items:baseline}
+.step h3 .n{font:800 14px/1 var(--display);background:var(--ink);color:#fff;border-radius:8px;padding:5px 8px;flex:none}
+.step p{margin:0;font-size:15.5px;color:var(--muted)}
+.step.done{border-color:var(--ok);box-shadow:inset 6px 0 0 var(--ok)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:700 16px/1 var(--body);font-variant-numeric:tabular-nums;border:2px solid var(--ink);background:#fff;border-radius:999px;padding:9px 13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--sun)}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-weight:700;font-size:18px}
+.row input{width:104px;font:700 18px/1 var(--body);font-variant-numeric:tabular-nums;border:2px solid var(--ink);border-radius:10px;padding:9px 10px;background:#fff}
+.row input.good{border-color:var(--ok);background:#e9f8f0}
+.row input.wrong{border-color:var(--bad);background:#fdecea}
+.fb{font-size:15px;font-weight:500;min-height:0}
+.fb.ok{color:var(--ok)} .fb.no{color:var(--bad)}
+.answer{border:3px solid var(--ink);border-radius:16px;background:var(--sun);padding:14px 18px;font:800 clamp(18px,2.4vw,24px)/1.25 var(--display)}
+.answer small{display:block;font:500 16px/1.4 var(--body);margin-top:6px}
+.solution{border:2px dashed var(--ink);border-radius:16px;padding:14px 18px;background:#fff;font-size:17px}
+.solution h3{margin:0 0 6px;font:700 17px/1.3 var(--body)}
+.solution p{margin:4px 0;font-variant-numeric:tabular-nums}
+.talk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.talk details{border:2px solid var(--ink);border-radius:14px;background:#fff;padding:12px 14px}
+.talk summary{cursor:pointer;font-weight:700;line-height:1.35}
+.talk details p{margin:8px 0 0;font-size:16px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.teacher{border-top:2px solid var(--rule);padding-top:14px}
+.teacher summary{cursor:pointer;font-weight:700}
+.teacher .fields{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;align-items:end}
+.teacher label{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700}
+.teacher select,.teacher input{border:2px solid var(--ink);border-radius:10px;padding:8px 10px;background:#fff;font-weight:700;width:150px}
+.foot{font-size:14px;color:var(--muted);text-align:center}
+h2.section{font:800 18px/1.2 var(--display);margin:6px 0 0}
+
+/* zoom dialog */
+.zoom{position:fixed;inset:0;background:rgba(27,37,80,.72);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.zoom[hidden]{display:none}
+.zoom-card{background:var(--paper);border:4px solid var(--ink);border-radius:20px;box-shadow:0 8px 0 var(--ink);padding:18px;width:min(440px,100%);display:flex;flex-direction:column;gap:14px;max-height:100%;overflow:auto}
+.zoom-card h2{font:800 18px/1.2 var(--display);margin:0}
+.plate{border:3px solid #8d98ab;border-radius:12px;background:linear-gradient(#f3f5f9,#dfe4ec);padding:16px;text-align:center;font-family:var(--body)}
+.plate .b{font:700 13px/1.2 var(--body);letter-spacing:.14em;color:#5a6278}
+.plate .big{font:800 clamp(22px,6vw,30px)/1.25 var(--display);margin:10px 0;font-variant-numeric:tabular-nums}
+.plate .s{font-size:13px;color:#5a6278}
+.bill{border:2px solid var(--rule);border-radius:8px;background:#fff;padding:14px;font-size:15.5px}
+.bill .hd{display:flex;justify-content:space-between;gap:8px;font:800 15px/1.2 var(--display);border-bottom:3px solid var(--ink);padding-bottom:8px;margin-bottom:6px}
+.bill .ln{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed var(--rule);font-variant-numeric:tabular-nums}
+.bill .ln b{white-space:nowrap}
+.bill .tot{display:flex;justify-content:space-between;font-weight:700;font-size:18px;padding-top:8px}
+
+/* ---------- scene animation ---------- */
+.scene{display:none}
+.scene.on{display:inline}
+.scene.on.fade{animation:sceneIn .45s ease}
+@keyframes sceneIn{from{opacity:0}to{opacity:1}}
+.b2{opacity:0;visibility:hidden}
+.scene.beat2 .b2{opacity:1;visibility:visible;transition:opacity .35s}
+.scene.beat2 .b1{opacity:0;visibility:hidden}
+.t-display{font-family:var(--display);font-weight:800}
+.t-bold{font-family:var(--body);font-weight:700}
+.t-body{font-family:var(--body);font-weight:500}
+.t-digit{font-family:"Courier New",ui-monospace,monospace;font-weight:700}
+
+.sw{animation:swing var(--d,.36s) ease-in-out infinite alternate;transform-origin:0 0}
+.sw.b{animation-direction:alternate-reverse}
+@keyframes swing{from{transform:rotate(var(--a,26deg))}to{transform:rotate(calc(-1 * var(--a,26deg)))}}
+.bob{animation:bob var(--d,.36s) ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-7px)}}
+.puff{animation:puff 2.8s ease-out infinite;opacity:0}
+@keyframes puff{0%{transform:translate(0,0) scale(.4);opacity:0}18%{opacity:.85}100%{transform:translate(var(--dx,10px),-130px) scale(1.7);opacity:0}}
+.blink{animation:blink .8s ease-in-out infinite alternate}
+@keyframes blink{from{opacity:.35}to{opacity:1}}
+.shake{animation:shake .12s linear infinite alternate}
+@keyframes shake{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+.zz{animation:zz 3s ease-in-out infinite;opacity:0}
+@keyframes zz{0%{opacity:0;transform:translate(0,10px)}30%{opacity:1}100%{opacity:0;transform:translate(26px,-46px)}}
+.breathe{animation:breathe 2.6s ease-in-out infinite alternate;transform-origin:1200px 652px}
+@keyframes breathe{from{transform:scaleY(1)}to{transform:scaleY(1.05)}}
+.sunrise{animation:sunrise 7s ease-out both}
+@keyframes sunrise{from{transform:translateY(70px)}to{transform:translateY(0)}}
+.rays{animation:spin 80s linear infinite;transform-origin:1185px 560px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.brush{animation:brush .16s ease-in-out infinite alternate}
+@keyframes brush{from{transform:translateX(-4px)}to{transform:translateX(5px)}}
+.float{animation:floatUp 3.4s ease-in infinite;opacity:0}
+@keyframes floatUp{0%{transform:translateY(0);opacity:0}15%{opacity:.9}100%{transform:translateY(-190px);opacity:0}}
+.flow{animation:flow .5s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-28}}
+.scene.beat2 .pop,.pop.now{animation:pop .5s cubic-bezier(.3,1.7,.5,1) both}
+@keyframes pop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+.exit-run{animation:exitRun 2.7s cubic-bezier(.5,0,.9,.6) .5s both}
+@keyframes exitRun{to{transform:translateX(1200px)}}
+.warn{animation:pop .5s cubic-bezier(.3,1.7,.5,1) 2.8s both;transform-origin:1053px 320px}
+.scrollL{animation:scrollL 5s cubic-bezier(.3,.1,.3,1) both}
+@keyframes scrollL{from{transform:translateX(0)}to{transform:translateX(-1600px)}}
+.scrollR{animation:scrollR 2.4s linear infinite}
+@keyframes scrollR{from{transform:translateX(-1600px)}to{transform:translateX(0)}}
+.whoosh{stroke-dasharray:90 160;animation:whoosh .5s linear infinite}
+@keyframes whoosh{to{stroke-dashoffset:-250}}
+.cloud{animation:drift 40s linear infinite alternate}
+@keyframes drift{to{transform:translateX(120px)}}
+
+/* hotspots */
+.hot{cursor:pointer;outline:none}
+.hot-hit{fill:transparent}
+.hot-ring{fill:rgba(255,197,51,.14);stroke:var(--sun);stroke-width:7;stroke-dasharray:16 13;animation:dash 5s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-290}}
+.hot:hover .hot-ring,.hot:focus-visible .hot-ring{fill:rgba(255,197,51,.32);stroke:#fff}
+.hot .ic-check{display:none}
+.hot.found .hot-ring{stroke:#2fd08a;fill:rgba(47,208,138,.12);stroke-dasharray:none;animation:none}
+.hot.found .ic-check{display:inline}
+.hot.found .ic-find{display:none}
+.hot.found .hot-badge circle{fill:#2fd08a}
+
+@media (max-width:920px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .steps,.talk{grid-template-columns:minmax(0,1fr)}
+  .nb-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px}
+}
+@media (max-width:520px){
+  .nb-list{grid-template-columns:minmax(0,1fr)}
+  .controls{justify-content:center}
+  .btn{padding:10px 13px}
+  .stage{border-radius:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  .sw,.bob,.puff,.blink,.shake,.zz,.breathe,.rays,.brush,.float,.flow,.scrollR,.whoosh,.cloud,.hot-ring{animation:none}
+  .puff,.zz,.float{opacity:.7}
+  .sunrise,.exit-run,.warn,.scrollL,.scene.on.fade{animation-duration:.01s;animation-delay:0s}
+}
+.eps{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin}
+.ep-tab{flex:none;display:flex;align-items:center;gap:9px;font:700 14px/1.2 var(--body);background:#fff;border:3px solid var(--ink);border-radius:14px;padding:7px 13px 7px 7px;box-shadow:0 3px 0 var(--ink);cursor:pointer;text-align:left;max-width:250px}
+.ep-tab .num{font:800 14px/1 var(--display);background:var(--ink);color:#fff;border-radius:9px;width:32px;height:32px;display:grid;place-items:center;flex:none}
+.ep-tab small{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:1px}
+.ep-tab[aria-current="true"]{background:var(--sun)}
+.ep-tab[aria-current="true"] .num{background:var(--hot)}
+.ep-tab.done small::after{content:" · шешілді";color:var(--ok);font-weight:700}
+.ref{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:14.5px}
+.ref span{border:1.5px dashed var(--ink);border-radius:8px;padding:4px 8px;background:#fff;font-variant-numeric:tabular-nums}
+.step.predict{background:#fff3c2}
+.rows{display:flex;flex-direction:column;gap:8px}
+.row input{width:132px}
+.row label{font-weight:700}
+.verdict{display:block;font:700 16px/1.4 var(--body);margin-top:6px}
+.dot.lock{background:repeating-linear-gradient(45deg,#fff 0 3px,#aab4c4 3px 6px)}
+.t-hand{font-family:var(--hand);font-weight:700}
+.snow{animation:snow 5s linear infinite}
+@keyframes snow{from{transform:translateY(0)}to{transform:translateY(1000px)}}
+.flick{animation:flick .26s ease-in-out infinite alternate;transform-origin:0 0}
+@keyframes flick{from{transform:scale(1,1)}to{transform:scale(.93,1.12)}}
+.spin{animation:spin 1.6s linear infinite}
+.drip{animation:drip 3.6s ease-in infinite}
+@keyframes drip{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(46px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.snow,.flick,.spin,.drip{animation:none}.drip{opacity:1}}
+.stage,.caption,.controls{width:min(100%,max(300px,calc((100vh - 322px) * 1.7778)))}
+body.fs-lock{overflow:hidden}
+.theatre.fs{position:fixed;inset:0;z-index:15;background:#0f1533;padding:8px 10px;justify-content:center;gap:8px}
+.theatre.fs .stage,.theatre.fs .caption,.theatre.fs .controls{width:min(100%,calc((100vh - 178px) * 1.7778))}
+.theatre.fs .stage{box-shadow:none;border-color:#3a4686}
+.theatre.fs .caption{min-height:58px;cursor:pointer}
+.theatre.fs .dot{border-color:#fff}
+.theatre.fs .dot.seen{background:#fff}
+.theatre.fs .btn{box-shadow:0 3px 0 #000}
+@media (max-height:560px){
+  .theatre.fs{padding:4px 8px;gap:4px;justify-content:flex-start}
+  .theatre.fs .stage{width:min(100%,calc((100vh - 56px) * 1.7778));border-width:2px;border-radius:12px}
+  .theatre.fs .controls{width:100%;flex-wrap:nowrap;justify-content:space-between}
+  .theatre.fs .btn{padding:8px 10px;font-size:13px;border-width:2px}
+  .theatre.fs .dots{flex-wrap:nowrap;gap:4px}
+  .theatre.fs .dot{width:12px;height:12px;border-width:2px}
+  .theatre.fs .caption{position:absolute;left:50%;transform:translateX(-50%);bottom:54px;width:min(94%,860px);min-height:0;padding:5px 12px;border-width:2px;opacity:.95}
+  .theatre.fs .caption p{font-size:14px;line-height:1.3}
+  .theatre.fs .caption.min{width:auto}
+  .theatre.fs .caption.min p{display:none}
+  .theatre.fs .caption.min::after{content:"Мәтін ▴";font:700 13px/1.2 var(--body)}
+  .theatre.fs .scene-tag{font-size:11px;padding:2px 8px;border-width:2px}
+}
+/* phone held upright: turn the cartoon sideways so it fills the screen */
+@media (orientation:portrait) and (max-width:640px){
+  .theatre.fs{inset:auto;top:0;left:100vw;width:100vh;width:100dvh;height:100vw;transform-origin:0 0;transform:rotate(90deg)}
+  .theatre.fs{padding:4px 8px;gap:4px;justify-content:flex-start}
+  .theatre.fs .stage{width:min(100%,calc((100vw - 56px) * 1.7778));border-width:2px;border-radius:12px}
+  .theatre.fs .controls{width:100%;flex-wrap:nowrap;justify-content:space-between}
+  .theatre.fs .btn{padding:8px 10px;font-size:13px;border-width:2px}
+  .theatre.fs .dots{flex-wrap:nowrap;gap:4px}
+  .theatre.fs .dot{width:12px;height:12px;border-width:2px}
+  .theatre.fs .caption{position:absolute;left:50%;transform:translateX(-50%);bottom:54px;width:min(94%,860px);min-height:0;padding:5px 12px;border-width:2px;opacity:.95}
+  .theatre.fs .caption p{font-size:14px;line-height:1.3}
+  .theatre.fs .caption.min{width:auto}
+  .theatre.fs .caption.min p{display:none}
+  .theatre.fs .caption.min::after{content:"Мәтін ▴";font:700 13px/1.2 var(--body)}
+  .theatre.fs .scene-tag{font-size:11px;padding:2px 8px;border-width:2px}
+}
+.stage{--u:9px;background:#cdd8f7}
+.stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.stage.paused canvas{filter:saturate(.3) brightness(.5)}
+.ov{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.ov>button{pointer-events:auto}
+.bub{position:absolute;transform:translate(-50%,-100%);background:#fff;border:max(2px,calc(var(--u)*.3)) solid var(--ink);border-radius:calc(var(--u)*1.8);padding:calc(var(--u)*.8) calc(var(--u)*1.4);font:700 max(11px,calc(var(--u)*1.85))/1.25 var(--body);width:max-content;max-width:calc(var(--u)*38);text-align:center;color:var(--ink);margin-top:calc(var(--u)*-1.6)}
+.bub::after{content:"";position:absolute;left:50%;bottom:calc(var(--u)*-1.05);width:calc(var(--u)*1.7);height:calc(var(--u)*1.7);background:#fff;border-right:max(2px,calc(var(--u)*.3)) solid var(--ink);border-bottom:max(2px,calc(var(--u)*.3)) solid var(--ink);transform:translateX(-50%) rotate(45deg)}
+.bub[hidden],.hs[hidden],.t3d[hidden],.s3d[hidden]{display:none}
+.hs{position:absolute;transform:translate(-50%,-50%);width:max(30px,calc(var(--u)*4.4));height:max(30px,calc(var(--u)*4.4));border-radius:50%;background:var(--sun);border:max(2px,calc(var(--u)*.32)) solid var(--ink);display:grid;place-items:center;cursor:pointer;padding:0;animation:hsPulse 1.5s ease-out infinite}
+.hs svg{width:62%;height:62%}
+.hs .c{display:none}
+.hs.found{background:#2fd08a;animation:none}
+.hs.found .c{display:inline}.hs.found .f{display:none}
+@keyframes hsPulse{0%{box-shadow:0 0 0 0 rgba(255,197,51,.75)}100%{box-shadow:0 0 0 calc(var(--u)*2.2) rgba(255,197,51,0)}}
+.t3d{position:absolute;inset:0;background:linear-gradient(90deg,rgba(27,37,80,.96) 0%,rgba(27,37,80,.88) 38%,rgba(27,37,80,0) 70%);color:#fff;padding:calc(var(--u)*6) calc(var(--u)*5.6);display:flex;flex-direction:column;gap:calc(var(--u)*1.5);justify-content:center}
+.t3d .tag{align-self:flex-start;background:#fff;color:var(--ink);border-radius:999px;padding:calc(var(--u)*.7) calc(var(--u)*1.8);font:700 calc(var(--u)*1.6)/1 var(--body)}
+.t3d h2{margin:0;font:800 calc(var(--u)*5.6)/1.05 var(--display)}
+.t3d h2 span{display:block;color:var(--sun);font-size:calc(var(--u)*3.8);margin-top:calc(var(--u)*1)}
+.t3d p{margin:0;font:500 calc(var(--u)*2)/1.4 var(--body);max-width:calc(var(--u)*44)}
+.t3d small{font:500 calc(var(--u)*1.45)/1.3 var(--body);color:#c9d3f5;margin-top:calc(var(--u)*3)}
+.s3d{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--u)*1.6);color:#fff;text-align:center;padding:calc(var(--u)*3)}
+.s3d .pz{width:calc(var(--u)*11);height:calc(var(--u)*11);border-radius:50%;background:var(--sun);border:calc(var(--u)*.5) solid #fff;display:flex;gap:calc(var(--u)*1.5);align-items:center;justify-content:center}
+.s3d .pz i{width:calc(var(--u)*1.8);height:calc(var(--u)*5.6);background:var(--ink);border-radius:calc(var(--u)*.5)}
+.s3d b{font:800 calc(var(--u)*8.4)/1 var(--display)}
+.s3d em{font:700 calc(var(--u)*2.6)/1.2 var(--body);color:var(--sun);font-style:normal}
+.s3d .row3{display:flex;gap:calc(var(--u)*1.4);flex-wrap:wrap;justify-content:center}
+.s3d .row3 span{background:#fff;color:var(--ink);border-radius:999px;padding:calc(var(--u)*.9) calc(var(--u)*2.2);font:700 calc(var(--u)*1.8)/1 var(--body)}
+.s3d small{font:500 calc(var(--u)*1.8)/1.3 var(--body);color:#dfe6fb}
+@media (prefers-reduced-motion:reduce){.hs{animation:none}}
+@media (max-width:520px){
+  .controls .ctl-group{width:100%;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+  .controls .ctl-group .btn{padding:9px 12px;font-size:14px;flex:1 1 auto;min-width:0;white-space:nowrap}
+  .t3d small{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#1b2550"/><circle cx="24" cy="24" r="14" fill="#ffc533"/><path d="M20,16 L33,24 L20,32 Z" fill="#1b2550"/></svg>
+      <div>
+        <h1>Физика оқиғалары 3D</h1>
+        <p>Функционалдық сауаттылық · 8-сынып, §7–§12 · дауысты 6 мультфильм</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn small" id="btnSound" type="button" aria-pressed="true">Дауыс: қосулы</button>
+      <button class="btn small" id="btnFull" type="button">Толық экран</button>
+    </div>
+  </header>
+  <nav class="eps" id="eps" aria-label="Оқиғалар"></nav>
+  <main class="layout">
+    <section class="theatre" aria-label="Мультфильм">
+      <div class="stage" id="stage">
+        <canvas id="gl" role="img" aria-label="Физика оқиғасы туралы 3D мультфильм"></canvas>
+        <div class="ov" id="ov">
+          <div class="t3d" id="t3d"><span class="tag" id="t3Tag"></span><h2><b id="t3Title" style="font-weight:inherit"></b><span id="t3Sub"></span></h2><p id="t3Hook"></p><small>Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі</small></div>
+          <div class="s3d" id="s3d" hidden><div class="pz"><i></i><i></i></div><b>ТОҚТА!</b><em id="s3Q"></em><div class="row3"><span>1. Болжам жаса</span><span>2. Дерек жина</span><span>3. Есепті шығар</span></div><small>Оқиғаның түйіні есеп шыққан соң ашылады</small></div>
+          <div class="bub" id="bub" hidden></div>
+        </div>
+        <div class="scene-tag" id="tag"></div>
+        <div class="toast" id="toast" role="status"></div>
+      </div>
+      <div class="caption" aria-live="polite"><p id="cap"></p></div>
+      <div class="controls">
+        <button class="btn" id="btnPrev" type="button">◂ Артқа</button>
+        <div class="dots" id="dots"></div>
+        <div class="ctl-group">
+          <button class="btn" id="btnCine" type="button" aria-pressed="false">⛶ Толық экран</button>
+          <button class="btn sun" id="btnAuto" type="button" aria-pressed="false">▶ Өзі ойнасын</button>
+          <button class="btn primary" id="btnNext" type="button">Бастау ▸</button>
+        </div>
+      </div>
+<div class="zoom" id="zoom" hidden role="dialog" aria-modal="true" aria-labelledby="zoomTitle">
+  <div class="zoom-card">
+    <h2 id="zoomTitle"></h2>
+    <div id="zoomBody"></div>
+    <button class="btn primary" id="zoomClose" type="button">Жабу</button>
+  </div>
+</div>
+    </section>
+    <aside class="notebook" aria-label="Дерек дәптері">
+      <h2>Дерек дәптері</h2>
+      <p class="hint">Көріністегі сары белгіні бас, дерек осы дәптерге жазылады. Сахнаны саусақпен не тінтуірмен тартып бұруға болады.</p>
+      <ul class="nb-list" id="nbList"></ul>
+      <p class="nb-count" id="nbCount"></p>
+      <button class="btn small primary" id="btnToTask" type="button">Есепке өту ▾</button>
+    </aside>
+  </main>
+  <section class="task" id="task" aria-labelledby="taskTitle"></section>
+  <p class="foot">Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі</p>
+</div>
+<script src="vendor/three-r128.min.js"></script>
+<script>
+(() => {
+'use strict';
+const W=THREE, $=id=>document.getElementById(id);
+const INK='#1b2550', HOT='#ff5533', SUN='#ffc533', TEAL='#1f8f8a';
+const stage=$('stage'), canvas=$('gl'), ov=$('ov');
+const DATA=[{"n":1,"para":"§7","title":"Шәйнек жарысы","sub":"3 минут қалды!","hook":"Әжесі 3 минуттан кейін келеді. Айша шәйнекті толтыра құйды, Әли екі кесе ғана. Кім үлгереді? Ұтылған адам бір апта ыдыс жуады!","hookLines":["Әжесі 3 минуттан кейін келеді.","Кімнің шәйнегі бірінші қайнайды?"],"lead":"Айша шәйнегін толтыра, Әли екі кесе ғана су құйды. Әжесі 3 минуттан кейін келеді. <strong>Кім үлгереді және ыдысты кім жуады?</strong>","predict":{"q":"Кім үлгереді?","opts":["Екеуі де","Тек Әли","Тек Айша","Ешкім"],"ok":1},"data":[{"k":"time","sc":1,"title":"Әже келгенше","val":"3 минут","chip":"3 мин","need":1},{"k":"room","sc":1,"title":"Ас үйдегі ауа","val":"24 °C","need":0},{"k":"price","sc":1,"title":"Шәйнектің бағасы","val":"12 990 тг","need":0},{"k":"ketA","sc":2,"title":"Айшаның шәйнегі","val":"1,7 л су","chip":"1,7 л","need":1},{"k":"cup","sc":2,"title":"Әли құйған су","val":"2 кесе, әрқайсысы 250 мл","chip":"2 × 250 мл","need":1},{"k":"tapT","sc":2,"title":"Шүмектегі су","val":"20 °C","need":1},{"k":"label","sc":3,"title":"Шәйнектің затбелгісі","val":"2000 Вт (секундына 2000 Дж)","chip":"2000 Вт","need":1,"zoom":{"title":"Шәйнектің затбелгісі","html":"<div class=\"plate\"><div class=\"b\">ЭЛЕКТР ШӘЙНЕГІ</div><div class=\"big\">220 В ~ 50 Гц<br>2000 Вт</div><div class=\"s\">1 Вт = секундына 1 Дж</div></div>"}}],"ref":["c(су) = 4200 Дж/(кг·°C)","1 л су = 1 кг","1 Вт = 1 Дж/с"],"qs":[{"t":"Суды қайнағанға дейін қыздыруға қанша жылу керек?","f":[{"l":"Айша: Q =","u":"Дж","a":571200},{"l":"Әли: Q =","u":"Дж","a":168000}],"hint":"Q = c·m·Δt. 1 л судың массасы 1 кг, Δt = 100 − 20.","ok":"Айша: 4200 · 1,7 · 80 = 571 200 Дж. Әли: 4200 · 0,5 · 80 = 168 000 Дж."},{"t":"Әр шәйнек неше секундта қайнайды?","f":[{"l":"Айша: t ≈","u":"с","a":285.6,"tol":1},{"l":"Әли: t =","u":"с","a":84}],"hint":"Шәйнек секундына 2000 Дж береді. Жылуды 2000-ға бөл.","ok":"571 200 : 2000 ≈ 286 с (4 мин 46 с). 168 000 : 2000 = 84 с (1 мин 24 с)."},{"t":"Әжесі 180 секундтан кейін келеді. Кім үлгереді?","c":["Екеуі де","Тек Әли","Тек Айша","Ешкім"],"a":1,"hint":"Әр уақытты 180 с-пен салыстыр.","ok":"84 с < 180 с < 286 с. Әли үлгереді, Айша 1 мин 46 с кешігеді."},{"t":"Айша қанша жылуды босқа жұмсады?","f":[{"l":"Q =","u":"Дж","a":403200}],"hint":"Екі жылудың айырмасын тап.","ok":"571 200 − 168 000 = 403 200 Дж. Бұл қажетінен 3,4 есе көп."}],"answer":"Әли үлгереді, ыдысты Айша жуады","note":"Шын шәйнекте жылудың бір бөлігі ауаға кетеді, сондықтан нақты уақыт сәл ұзағырақ болады.","talk":[["Неге суы аз шәйнек тезірек қайнайды?","Q = cmΔt: масса неше есе аз болса, қажет жылу да сонша есе аз. Шәйнектің қуаты бірдей, сондықтан уақыт та сонша есе қысқарады."],["Айша күніне үш рет осылай қайнатса, бір айда қанша жылу босқа кетеді?","403 200 · 3 · 30 = 36 288 000 Дж ≈ 36,3 МДж."],["Шәйнекке қанша су құю керегін қалай білеміз?","Қанша кесе ішілетінін санап, кесемен өлшеп құю керек. Сонда уақыт та, энергия да үнемделеді."]]},{"n":2,"para":"§8","title":"«Ең арзан отын!»","sub":"Жарнама алдай ма?","hook":"Атасы Ерланға 45 000 теңге беріп, қысқы отынды алғаш рет өзіне сеніп тапсырды. Қате таңдаса, ақпанда үй суық қалады.","hookLines":["Атасы қысқы отынды Ерланға","сеніп тапсырды. Қате таңдамаса екен!"],"lead":"Ағаштың килосы көмірден әлдеқайда арзан. <strong>Қыс бойы үйді жылытуға қай отын арзанға түседі? Жарнама шын айта ма?</strong>","predict":{"q":"Қай отынды алған тиімді?","opts":["Ағаш","Көмір"],"ok":1},"data":[{"k":"money","sc":1,"title":"Ерланның ақшасы","val":"45 000 тг","need":1},{"k":"wood","sc":2,"title":"Ағаштың бағасы","val":"1 кг — 9 тг","chip":"ағаш 9 тг/кг","need":1},{"k":"coal","sc":2,"title":"Көмірдің бағасы","val":"1 кг — 22 тг","chip":"көмір 22 тг/кг","need":1},{"k":"cart","sc":2,"title":"Тіркеме","val":"бір рейске 500 кг","chip":"500 кг","need":1},{"k":"ball","sc":2,"title":"Доптың бағасы","val":"6000 тг","need":0},{"k":"heat","sc":3,"title":"Бір қысқа қажет жылу","val":"5,4·10¹⁰ Дж","need":1},{"k":"q","sc":3,"title":"Меншікті жану жылуы","val":"көмір 2,7·10⁷, ағаш 1,0·10⁷ Дж/кг","chip":"q(көмір), q(ағаш)","need":1},{"k":"area","sc":3,"title":"Үйдің ауданы","val":"80 м²","need":0}],"ref":["Q = q·m","Сандарды атаның дәптерінен ізде"],"qs":[{"t":"Үйді бір қыс жылытуға әр отыннан неше килограмм керек?","f":[{"l":"Ағаш: m =","u":"кг","a":5400},{"l":"Көмір: m =","u":"кг","a":2000}],"hint":"m = Q : q. Дәрежелерге мұқият қара: 10¹⁰ : 10⁷ = 10³.","ok":"Ағаш: 5,4·10¹⁰ : 1,0·10⁷ = 5400 кг. Көмір: 5,4·10¹⁰ : 2,7·10⁷ = 2000 кг."},{"t":"Әрқайсысы қанша теңге тұрады?","f":[{"l":"Ағаш:","u":"тг","a":48600},{"l":"Көмір:","u":"тг","a":44000}],"hint":"Массаны 1 кг бағасына көбейт.","ok":"Ағаш: 5400 · 9 = 48 600 тг. Көмір: 2000 · 22 = 44 000 тг."},{"t":"Ерланның 45 000 теңгесі қайсысына жетеді?","c":["Ағашқа ғана","Көмірге ғана","Екеуіне де"],"a":1,"hint":"Екі соманы 45 000-мен салыстыр.","ok":"Ақша тек көмірге жетеді, 1000 теңге артылады. Жарнама жартылай шын: килосы арзан, бірақ 1 кг ағаш 2,7 есе аз жылу береді."},{"t":"Әр отынды үйге жеткізуге тіркеме неше рейс жасайды?","f":[{"l":"Көмір:","u":"рейс","a":4},{"l":"Ағаш:","u":"рейс","a":11}],"hint":"Массаны 500 кг-ға бөл. Толмаған рейс те рейс.","ok":"Көмір: 2000 : 500 = 4 рейс. Ағаш: 5400 : 500 = 10,8, яғни 11 рейс."}],"answer":"Көмір тиімді: 44 000 тг, ал ағаш 48 600 тг","talk":[["Сатушы қандай шаманы жасырып тұр?","Меншікті жану жылуын. 1 кг ағаш 1 кг көмірден 2,7 есе аз жылу береді, сондықтан килограммның емес, жылудың бағасын салыстыру керек."],["Ағаш қанша тұрса, екі отынның құны теңесер еді?","44 000 : 5400 ≈ 8,1 тг/кг."],["Көмірдің ағаштан қандай кемшіліктері бар?","Түтіні мен күлі көп, ауаны көбірек ластайды. Отын таңдағанда бағамен қатар денсаулық пен табиғатқа әсеріне де қарайды."]]},{"n":3,"para":"§10","title":"Соңғы 30 грамм газ","sub":"Қар ма, бұлақ па?","hook":"Боран жақындап келеді. Баллонда газ таусылуға жақын, шайды бір-ақ рет қайнатуға болады. Қате таңдаса, ағайындылар ыстық шайсыз қалады.","hookLines":["Боран жақын, газ таусылуға жақын.","Шайды бір-ақ рет қайнатуға болады!"],"lead":"Баллонда газ аз қалды, ал шайды бір-ақ рет қайнатуға болады. <strong>Газ қардан шай қайнатуға жете ме, әлде бұлаққа бару керек пе?</strong>","predict":{"q":"Газ қардан шай қайнатуға жете ме?","opts":["Иә, жетеді","Жоқ, жетпейді"],"ok":1},"data":[{"k":"storm","sc":1,"title":"Боранға дейін","val":"40 минут","need":0},{"k":"air","sc":1,"title":"Ауаның (қардың) температурасы","val":"−10 °C","need":1},{"k":"gas","sc":2,"title":"Баллонның массасы","val":"130 г","need":1},{"k":"can","sc":2,"title":"Баллондағы жазу","val":"бос баллон 100 г; q = 4,6·10⁷ Дж/кг","chip":"бос баллон 100 г; q","need":1,"zoom":{"title":"Баллондағы жазу","html":"<div class=\"plate\"><div class=\"b\">ГАЗ БАЛЛОНЫ</div><div class=\"big\" style=\"font-size:22px\">Бос баллонның массасы: 100 г<br>Меншікті жану жылуы:<br>4,6·10⁷ Дж/кг</div><div class=\"s\">Оттан аулақ сақтаңыз</div></div>"}},{"k":"snow","sc":2,"title":"Қардың массасы","val":"2 кг","need":1},{"k":"spring","sc":3,"title":"Бұлақ суының температурасы","val":"5 °C","need":1},{"k":"dist","sc":3,"title":"Бұлаққа дейін","val":"400 м","need":0}],"ref":["c(мұз) = 2100 Дж/(кг·°C)","λ(мұз) = 3,4·10⁵ Дж/кг","c(су) = 4200 Дж/(кг·°C)","L(су) = 2,3·10⁶ Дж/кг"],"qs":[{"t":"Баллонда қанша газ қалды? Ол толық жанғанда қанша жылу бөледі?","f":[{"l":"Газ: m =","u":"г","a":30},{"l":"Q =","u":"Дж","a":1380000}],"hint":"Баллон массасынан бос баллонды азайт. Q = q·m, массаны килограммға айналдыр.","ok":"130 − 100 = 30 г = 0,03 кг. Q = 4,6·10⁷ · 0,03 = 1 380 000 Дж."},{"t":"2 кг қарды −10 °C-тан қайнағанға дейін жеткізуге қанша жылу керек?","f":[{"l":"0 °C-қа жылыту:","u":"Дж","a":42000},{"l":"Еріту:","u":"Дж","a":680000},{"l":"Суды 100 °C-қа қыздыру:","u":"Дж","a":840000},{"l":"Барлығы:","u":"Дж","a":1562000}],"hint":"Үш кезең: Q = c(мұз)·m·Δt, одан кейін Q = λ·m, соңында Q = c(су)·m·Δt.","ok":"2100 · 2 · 10 = 42 000 Дж; 3,4·10⁵ · 2 = 680 000 Дж; 4200 · 2 · 100 = 840 000 Дж. Барлығы 1 562 000 Дж."},{"t":"2 кг бұлақ суын қайнатуға қанша жылу керек?","f":[{"l":"Q =","u":"Дж","a":798000}],"hint":"Q = c·m·Δt, Δt = 100 − 5.","ok":"4200 · 2 · 95 = 798 000 Дж. Бұл қарға кететін жылудан екі есеге жуық аз."},{"t":"Бәсте кім ұтты?","c":["Санжар: газ қарға да жетеді","Бекзат: газ тек бұлақ суына жетеді","Газ ешқайсысына жетпейді"],"a":1,"hint":"Газдың жылуын екі қажет жылумен салыстыр.","ok":"1 562 000 > 1 380 000: қарға жетпейді. 798 000 < 1 380 000: бұлақ суына жетеді."}],"answer":"Бекзат ұтты: газ тек бұлақ суына жетеді","note":"Есепте газдың барлық жылуы суға беріледі деп алынды. Шын жорықта жылудың бір бөлігі ауаға кетеді, сондықтан айырмашылық бұдан да үлкен.","talk":[["Қар еріп жатқанда қазаншадағы температура неге көтерілмейді?","Берілген жылу температураны арттыруға емес, мұздың кристалдық торын бұзуға жұмсалады. Қар толық ерігенше температура 0 °C болып тұрады."],["Шөлдегенде қар жеуге неге болмайды?","Қарды ерітетін жылуды дене өзінен береді: әр килограмына 340 000 Дж. Адам тез тоңады."],["Қардың массасын қаншаға азайтса, газ жетер еді?","1 кг қарға 781 000 Дж керек. 1 380 000 : 781 000 ≈ 1,77, яғни шамамен 1,7 кг қарға ғана жетеді."]]},{"n":4,"para":"§11","title":"Таразы жұмбағы","sub":"1 килограмм қайда кетті?","hook":"Нұрлан жаттығудан кейін таразыға қарап қуанып тұр, досы оны мазақ етеді. Ал жаттықтырушы екеуін де таңғалдыратын жауап береді.","hookLines":["Нұрлан су ішсе де, таразы аз көрсетті.","Жоғалған масса қайда кетті?"],"lead":"Нұрлан су ішсе де, таразы аз көрсетті. <strong>Жоғалған масса қайда кетті және ол денеден қанша жылу алып кетті?</strong>","predict":{"q":"Жоғалған масса қайда кетті?","opts":["Май жанды","Тер болып буланды","Таразы қате көрсетті"],"ok":1},"data":[{"k":"m1","sc":1,"title":"Жаттығуға дейінгі масса","val":"52,0 кг","need":1},{"k":"tab","sc":2,"title":"Стадион таблосы","val":"32 °C, ылғалдылық 40 %, 90 мин","chip":"32 °C, 40 %, 90 мин","need":0},{"k":"bot","sc":2,"title":"Бөтелке","val":"0,5 л-ден 0,1 л қалды","chip":"0,5 л → 0,1 л","need":1},{"k":"m2","sc":3,"title":"Жаттығудан кейінгі масса","val":"51,4 кг","need":1},{"k":"body","sc":3,"title":"Плакат","val":"адам денесі: c ≈ 3500 Дж/(кг·°C)","chip":"c ≈ 3500 Дж/(кг·°C)","need":1}],"ref":["L(су) = 2,3·10⁶ Дж/кг","c(су) = 4200 Дж/(кг·°C)","1 л су = 1 кг"],"qs":[{"t":"Нұрлан қанша су ішті?","f":[{"l":"m =","u":"кг","a":0.4}],"hint":"0,5 − 0,1 литр. 1 л судың массасы 1 кг.","ok":"0,5 − 0,1 = 0,4 л, яғни 0,4 кг."},{"t":"Жаттығу кезінде денеден қанша тер шықты?","f":[{"l":"m =","u":"кг","a":1}],"hint":"Бастапқы масса + ішкен су − соңғы масса.","ok":"52,0 + 0,4 − 51,4 = 1,0 кг. Таразы дұрыс, бірақ жоғалғаны май емес, су."},{"t":"Осы тер түгел буланса, денеден қанша жылу алып кетеді?","f":[{"l":"Q =","u":"Дж","a":2300000}],"hint":"Q = L·m.","ok":"Q = 2,3·10⁶ · 1,0 = 2 300 000 Дж = 2,3 МДж."},{"t":"Тер шықпай, осы жылу денеде қалса, температурасы неше градусқа көтерілер еді?","f":[{"l":"Δt ≈","u":"°C","a":12.6,"tol":0.25}],"hint":"Δt = Q : (c·m), c ≈ 3500 Дж/(кг·°C), m = 52 кг.","ok":"2 300 000 : (3500 · 52) ≈ 12,6 °C. Дене 49 °C-қа дейін қызар еді, бұл өмірге қауіпті."}],"answer":"Жоғалған 1 кг — буланған тер, ол 2,3 МДж жылу алып кетті","note":"Бұл жуық бағалау: тердің бір бөлігі буланбай тамшылап түседі, ал дене жылуды басқа жолмен де береді.","talk":[["Ылғалдылық 95 % болатын күні сол температураның өзінде неге әлдеқайда қиын?","Ауадағы бу қанығуға жақын, тер буланбай, тамшылап ағады. Буланбаған тер денені суытпайды."],["Жел соққанда неге салқын сезіледі?","Жел тері бетіндегі буды әкетеді, булану жылдамдайды, денеден жылу тезірек кетеді."],["Нұрлан жаттығудан кейін неге су ішуі керек?","Дене жоғалтқан 1 кг суды қайтару керек. Су жетпесе, тер бөлінбей, дене қызып кетеді."]]},{"n":5,"para":"§12","title":"Қайнап тұр,","sub":"бірақ піспейді!","hook":"Асхат бүкіл лагерьге «бір сағатта ет асып беремін» деп уәде беріп қойды. Сағат өтіп барады, жұрт аш, ет тастай қатты.","hookLines":["Су сақырлап қайнап тұр, от күшті,","ал ет тастай қатты. Неге?"],"lead":"Су сақырлап қайнап тұр, от күшті, ал ет піспейді. <strong>Асхаттың қатесі неде және мәселені қалай шешуге болады?</strong>","predict":{"q":"Отты күшейтсе, қайнап тұрған су ысый ма?","opts":["Иә, ыстығырақ болады","Жоқ, температурасы өзгермейді"],"ok":1},"data":[{"k":"alt","sc":1,"title":"Лагерьдің биіктігі","val":"3000 м","need":1},{"k":"meat","sc":1,"title":"Еттің массасы","val":"2 кг","need":0},{"k":"airT","sc":1,"title":"Ауа температурасы","val":"8 °C","need":0},{"k":"tbl","sc":3,"title":"Жол басшының кестесі","val":"биіктік және қайнау температурасы","chip":"қайнау температурасының кестесі","need":1,"zoom":{"title":"Судың қайнау температурасы","html":"<div class=\"bill\"><div class=\"hd\"><span>Биіктік, м</span><span>Қайнау, °C</span></div><div class=\"ln\"><span>0</span><b>100</b></div><div class=\"ln\"><span>1000</span><b>97</b></div><div class=\"ln\"><span>2000</span><b>93</b></div><div class=\"ln\"><span>3000</span><b>90</b></div><div class=\"ln\"><span>4000</span><b>87</b></div><div class=\"ln\"><span>5000</span><b>83</b></div><div class=\"tot\" style=\"font-size:14px;font-weight:500\"><span>Мәндері жуықтап алынған</span></div></div>"}},{"k":"pc","sc":3,"title":"Қысымды қазан","val":"ішінде су ≈120 °C-та қайнайды","chip":"қысымды қазан: ≈120 °C","need":1}],"ref":["Теңіз деңгейінде су 100 °C-та қайнайды","L(су) = 2,3·10⁶ Дж/кг"],"qs":[{"t":"Асхаттың қазанындағы су неше градуста қайнап тұр?","f":[{"l":"Лагерьде су","u":"°C-та қайнайды","a":90},{"l":"Бұл үйдегіден","u":"°C төмен","a":10}],"hint":"Кестеден 3000 м жолын тап.","ok":"3000 м биіктікте су шамамен 90 °C-та қайнайды, яғни үйдегіден 10 °C төмен. Биікте атмосфералық қысым аз."},{"t":"3500 м биіктікте су шамамен неше градуста қайнайды?","f":[{"l":"t ≈","u":"°C","a":88.5,"tol":0.6}],"hint":"3000 м мен 4000 м мәндерінің ортасын ал.","ok":"90 мен 87-нің ортасы: шамамен 88–89 °C."},{"t":"Асхат отты күшейткенде не болды?","c":["Су ыстығырақ болып, ет тезірек пісті","Судың температурасы өзгермеді, ол тек тезірек буланды","Су суып қалды"],"a":1,"hint":"Қайнап тұрған сұйықтың температурасы қалай өзгереді?","ok":"Қайнау кезінде температура тұрақты. Қосымша жылу Q = Lm бойынша суды буға айналдыруға кетеді, сондықтан су азайып қалды."},{"t":"Қақпағы бұралатын қазан мәселені қалай шешеді?","c":["Ішіндегі қысым артады, су жоғарырақ температурада қайнайды","От күшейеді","Су азаяды"],"a":0,"hint":"Қақпақ буды шығармайды. Қысым қалай өзгереді?","ok":"Бу шықпайды, қысым артады, су шамамен 120 °C-та қайнайды. Ет үйдегіден де тез піседі."}],"answer":"Биікте су 90 °C-та қайнайды. Отты емес, қысымды арттыру керек","talk":[["Биік тауда жұмыртқа пісіруге неге көбірек уақыт кетеді?","Су 100 °C-қа жетпей қайнайды, ал тағам төмен температурада баяу піседі."],["Үйде сорпа қайнап шыққан соң газды неге бәсеңдету керек?","Температура бәрібір 100 °C-тан аспайды. Күшті от суды тек тезірек буландырады, газ босқа жанады."],["Қысымды қазанның клапаны не үшін керек?","Қысым тым артып кетпеуі үшін артық буды шығарады. Бұл қауіпсіздік үшін қажет."]]},{"n":6,"para":"§7, §8, §12","title":"Дастан детектив","sub":"Суды кім ішті?","hook":"Шәйнектегі су азайып қалған. Дастан қарындасын жазықсыз айыптап тұр. Шын «ұрыны» тауып, үйдің қандай қауіптен аман қалғанын дәлелде.","hookLines":["Шәйнектегі су азайып қалған.","Дастан қарындасынан көріп тұр..."],"lead":"Шәйнектегі су азайып қалған, Дастан қарындасынан көріп тұр. <strong>Су қайда кетті және үй қандай қауіптен аман қалды?</strong>","predict":{"q":"Жарты литр су қайда кетті?","opts":["Аяла ішті","Төгіліп қалды","Буға айналды"],"ok":2},"data":[{"k":"v1","sc":1,"title":"Басында құйылған су","val":"1,5 л","need":1},{"k":"tw","sc":1,"title":"Шүмектегі су","val":"20 °C","need":1},{"k":"score","sc":1,"title":"Ойындағы ұпай","val":"12 450","need":0},{"k":"c1","sc":2,"title":"Шәйнек қайнаған уақыт","val":"07:30","need":1},{"k":"c2","sc":3,"title":"Дастан байқаған уақыт","val":"07:50","need":1},{"k":"v2","sc":3,"title":"Шәйнекте қалған су","val":"1,0 л","need":1}],"ref":["c(су) = 4200 Дж/(кг·°C)","L(су) = 2,3·10⁶ Дж/кг","q(табиғи газ) = 4,4·10⁷ Дж/кг","1 л су = 1 кг"],"qs":[{"t":"Суды қайнағанға дейін қыздыруға қанша жылу кетті?","f":[{"l":"Q₁ =","u":"Дж","a":504000}],"hint":"Q = c·m·Δt, m = 1,5 кг, Δt = 100 − 20.","ok":"Q₁ = 4200 · 1,5 · 80 = 504 000 Дж."},{"t":"Қанша су буланды және оған қанша жылу кетті?","f":[{"l":"m =","u":"кг","a":0.5},{"l":"Q₂ =","u":"Дж","a":1150000}],"hint":"m = 1,5 − 1,0. Q = L·m.","ok":"m = 0,5 кг. Q₂ = 2,3·10⁶ · 0,5 = 1 150 000 Дж. Бұл қыздыруға кеткен жылудан 2,3 есе көп."},{"t":"Осы бос булануға кем дегенде неше грамм газ жанды?","f":[{"l":"m ≈","u":"г","a":26,"tol":0.7}],"hint":"m = Q₂ : q. Жауапты граммға айналдыр.","ok":"1 150 000 : 4,4·10⁷ ≈ 0,026 кг = 26 г. Жылудың бір бөлігі ауаға кететіндіктен, шын шығын бұдан көп."},{"t":"Су осы қарқынмен булана берсе, шәйнек қашан құрғап қалар еді?","c":["08:10","08:30","09:00"],"a":1,"hint":"20 минутта 0,5 кг буланды. Шәйнекте 1,0 кг қалды.","ok":"Қалған 1,0 кг суға 40 минут керек: 07:50 + 40 мин = 08:30."}],"answer":"Суды бу «ішті». 08:30-да шәйнек құрғап, күйе бастар еді","talk":[["Терезе неге терледі?","Ыстық бу суық әйнекке тиіп, конденсацияланды: қайтадан су тамшыларына айналды. Бұл кезде жылу бөлінеді."],["Құрғап қалған шәйнек несімен қауіпті?","Сусыз шәйнек қатты қызып, күйеді, өрт шығуы мүмкін. Су тасып төгіліп, жалынды өшірсе, газ бөлмеге жиналады."],["100 °C бу 100 °C судан неге қаттырақ күйдіреді?","Бу теріде конденсацияланғанда әр килограмынан қосымша 2,3·10⁶ Дж жылу бөлінеді."]]}];
+
+/* ================= renderer ================= */
+const renderer=new W.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=W.PCFSoftShadowMap;
+renderer.outputEncoding=W.sRGBEncoding;
+const scene=new W.Scene();scene.background=new W.Color('#cdd8f7');
+const cam=new W.PerspectiveCamera(38,16/9,.1,90);
+scene.add(new W.HemisphereLight(0xffffff,0xb9a58a,.52));
+const sun=new W.DirectionalLight(0xfff0d8,.62);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-9,right:9,top:7,bottom:-5,near:.5,far:26});sun.shadow.bias=-.0006;sun.shadow.radius=3;scene.add(sun,sun.target);
+const fill=new W.DirectionalLight(0xbdd2ff,.14);fill.position.set(-5,3,2);scene.add(fill);
+function aimSun(x){sun.position.set(x+3.5,6.5,5.5);sun.target.position.set(x,0,0);sun.target.updateMatrixWorld();}
+
+/* ================= building helpers ================= */
+let ROOT=scene, BUILD=null;
+const mat=(c,o)=>new W.MeshStandardMaterial(Object.assign({color:c,roughness:.78,metalness:0},o||{}));
+const flat=(c,o)=>new W.MeshBasicMaterial(Object.assign({color:c},o||{}));
+function add(m,x,y,z,p){m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;(p||ROOT).add(m);return m;}
+const box=(w,h,d,m,x,y,z,p)=>add(new W.Mesh(new W.BoxGeometry(w,h,d),m),x,y,z,p);
+const cyl=(rt,rb,h,m,x,y,z,p,s)=>add(new W.Mesh(new W.CylinderGeometry(rt,rb,h,s||28),m),x,y,z,p);
+const cone=(r,h,m,x,y,z,p,s)=>add(new W.Mesh(new W.ConeGeometry(r,h,s||24),m),x,y,z,p);
+const sph=(r,m,x,y,z,p)=>add(new W.Mesh(new W.SphereGeometry(r,28,20),m),x,y,z,p);
+const hemi=(r,m,x,y,z,p)=>add(new W.Mesh(new W.SphereGeometry(r,28,16,0,Math.PI*2,0,Math.PI/2),m),x,y,z,p);
+const torus=(r,t,arc,m,x,y,z,p)=>add(new W.Mesh(new W.TorusGeometry(r,t,10,28,arc||Math.PI*2),m),x,y,z,p);
+function plane(w,h,m,x,y,z,p){const q=new W.Mesh(new W.PlaneGeometry(w,h),m);q.position.set(x,y,z);(p||ROOT).add(q);return q;}
+function grp(x,y,z,p){const g=new W.Group();g.position.set(x||0,y||0,z||0);(p||ROOT).add(g);return g;}
+function ctex(w,h,draw){
+  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+  const t=new W.CanvasTexture(c);t.encoding=W.sRGBEncoding;t.anisotropy=4;
+  const api={t,redraw(){draw(x,w,h);t.needsUpdate=true;}};api.redraw();return api;
+}
+const basic=t=>new W.MeshBasicMaterial({map:t});
+function rr(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath();}
+/* a flat sign with lines of text: [text,size,y,colour] */
+function sign(wm,hm,bg,lines,x,y,z,p,border){
+  const pw=512,ph=Math.round(512*hm/wm);
+  const t=ctex(pw,ph,c=>{c.fillStyle=bg;c.fillRect(0,0,pw,ph);if(border){c.strokeStyle=border;c.lineWidth=14;c.strokeRect(7,7,pw-14,ph-14);}
+    c.textAlign='center';lines.forEach(l=>{c.fillStyle=l[3]||INK;c.font=`bold ${l[1]}px Arial`;c.fillText(l[0],pw/2,l[2]);});});
+  const q=plane(wm,hm,basic(t.t),x,y,z,p);q.material.side=W.DoubleSide;return q;
+}
+/* a dark display with green digits; text comes from get() */
+function disp(wm,hm,get,fs,x,y,z,p,label){
+  const pw=512,ph=Math.round(512*hm/wm);
+  const t=ctex(pw,ph,c=>{c.fillStyle='#0c1230';c.fillRect(0,0,pw,ph);c.textAlign='center';
+    if(label){c.fillStyle='#fff';c.font='bold 34px Arial';c.fillText(label,pw/2,50);}
+    c.fillStyle='#b8ff6a';c.font=`bold ${fs}px monospace`;c.textBaseline='middle';c.fillText(get(),pw/2,ph/2+(label?26:6));c.textBaseline='alphabetic';});
+  const g=grp(x,y,z,p);box(wm+.12,hm+.1,.08,mat(INK),0,0,-.045,g);plane(wm,hm,basic(t.t),0,0,0,g);return{g,redraw:t.redraw};
+}
+const puffTx=ctex(64,64,x=>{const g=x.createRadialGradient(32,32,2,32,32,30);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);});
+function makeSteam(n,x,y,z,o){
+  o=o||{};const st={rate:0,x,y,z,puffs:[],rise:o.rise||1.1,size:o.size||1};
+  for(let i=0;i<n;i++){const s=new W.Sprite(new W.SpriteMaterial({map:puffTx.t,transparent:true,depthWrite:false,opacity:0}));s.userData={l:i/n,dx:(i%2?1:-1)*(.04+.02*(i%3))};ROOT.add(s);st.puffs.push(s);}
+  BUILD.steams.push(st);return st;
+}
+function updSteam(st,dt){st.puffs.forEach(s=>{const u=s.userData;u.l+=dt*.42;if(u.l>1)u.l-=1;const l=u.l;s.position.set(st.x+u.dx*l*3*st.size,st.y+l*st.rise,st.z);const sc=(.14+l*.5)*st.size;s.scale.set(sc,sc,1);s.material.opacity=Math.sin(Math.PI*l)*.75*st.rate;});}
+function makeFlame(x,y,z,s,p,blue){
+  const g=grp(x,y,z,p);const a=new W.Mesh(new W.ConeGeometry(.22,.6,14),flat(blue?'#5ab6ff':'#ff8a3c'));a.position.y=.3;g.add(a);
+  const b=new W.Mesh(new W.ConeGeometry(.12,.36,12),flat(blue?'#cfeaff':'#ffd23c'));b.position.y=.2;g.add(b);
+  g.userData.s=s;g.scale.setScalar(s);BUILD.flames.push(g);return g;
+}
+
+/* ================= scenery ================= */
+const woodTx=ctex(512,512,(x,w,h)=>{x.fillStyle='#dba56b';x.fillRect(0,0,w,h);for(let r=0;r<8;r++){x.fillStyle=r%2?'#d39a5f':'#e2ad74';x.fillRect(0,r*64,w,62);x.fillStyle='#b9824a';x.fillRect(0,r*64+62,w,2);x.fillRect((r*173)%w,r*64,2,62);x.fillRect((r*173+260)%w,r*64,2,62);}});
+woodTx.t.wrapS=woodTx.t.wrapT=W.RepeatWrapping;woodTx.t.repeat.set(4,3);
+const tileTx=ctex(128,128,x=>{x.fillStyle='#b9dfe3';x.fillRect(0,0,128,128);x.fillStyle='#daf3f4';rr(x,5,5,118,118,12);x.fill();});
+tileTx.t.wrapS=tileTx.t.wrapT=W.RepeatWrapping;tileTx.t.repeat.set(28,2.6);
+const skyTx=ctex(256,256,(x,w,h)=>{const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'#7fb6ff');g.addColorStop(.6,'#ffd3a8');g.addColorStop(1,'#ff9f80');x.fillStyle=g;x.fillRect(0,0,w,h);
+  x.fillStyle='rgba(255,246,194,.5)';x.beginPath();x.arc(160,150,62,0,7);x.fill();x.fillStyle='#ffd24d';x.beginPath();x.arc(160,150,36,0,7);x.fill();
+  x.fillStyle='#6fae8a';x.beginPath();x.moveTo(0,215);x.quadraticCurveTo(80,160,150,205);x.quadraticCurveTo(210,235,256,185);x.lineTo(256,256);x.lineTo(0,256);x.fill();});
+function kitchen(){
+  const fl=plane(14,10,new W.MeshStandardMaterial({map:woodTx.t,roughness:.85}),0,0,1.5);fl.rotation.x=-Math.PI/2;fl.receiveShadow=true;
+  const wallM=mat('#cdd8f7');box(14,3.6,.12,wallM,0,1.8,-2.46);box(.12,3.6,10,wallM,-6.4,1.8,1.5);box(.12,3.6,10,wallM,6.4,1.8,1.5);
+  plane(13.9,1.3,new W.MeshStandardMaterial({map:tileTx.t,roughness:.5}),0,1.55,-2.39);
+  const tealM=mat(TEAL),teal2=mat('#2aa79b'),topM=mat('#f4f6ff',{roughness:.5}),sunM=mat(SUN,{roughness:.5}),white=mat('#fff');
+  box(9.2,.86,.7,tealM,-1.7,.43,-2.02);box(9.3,.06,.76,topM,-1.7,.89,-2.0);
+  for(let i=0;i<3;i++){const x=-5.0+i*1.25;box(1.15,.95,.42,teal2,x,2.65,-2.2);box(.95,.75,.02,mat('#33b8ab'),x,2.65,-1.98);sph(.035,sunM,x+.4,2.32,-1.96);}
+  box(7.8,.86,1.05,tealM,0,.43,0);box(8,.07,1.2,topM,0,.895,0);
+  for(let i=0;i<5;i++){const x=-3.1+i*1.55;box(1.3,.62,.02,mat('#23998f'),x,.42,.535);box(.36,.04,.04,sunM,x,.66,.56);}
+  box(1.05,.02,.6,mat('#aab4c4',{metalness:.6,roughness:.3}),0,.935,-.06);
+  const steel=mat('#c3ccd9',{metalness:.7,roughness:.25});
+  cyl(.035,.035,.34,steel,0,1.1,-.42);cyl(.035,.035,.3,steel,0,1.27,-.29).rotation.x=Math.PI/2;sph(.036,steel,0,1.27,-.42);
+  disp(.38,.18,()=>'20 °C',150,-.5,1.08,-.33);
+  plane(1.7,1.2,basic(skyTx.t),2.35,2.2,-2.385);
+  box(1.86,.08,.1,white,2.35,2.84,-2.36);box(1.86,.08,.16,white,2.35,1.56,-2.33);box(.08,1.3,.1,white,1.46,2.2,-2.36);box(.08,1.3,.1,white,3.24,2.2,-2.36);box(.05,1.2,.06,white,2.35,2.2,-2.36);box(1.7,.05,.06,white,2.35,2.2,-2.36);
+  const curt=mat(SUN,{roughness:.9});box(.42,1.5,.06,curt,1.42,2.2,-2.28).rotation.z=.06;box(.42,1.5,.06,curt,3.28,2.2,-2.28).rotation.z=-.06;box(2.5,.05,.05,mat('#6b4a35'),2.35,2.98,-2.3);
+  const gl=new W.PointLight(0xffe2b0,.22,7);gl.position.set(2.35,2.2,-1.6);ROOT.add(gl);
+}
+function outdoor(o){
+  const g=plane(90,60,mat(o.ground,{roughness:.95}),o.x||0,0,-6);g.rotation.x=-Math.PI/2;g.receiveShadow=true;
+  (o.mts||[[-13,-20,5,6],[-6,-22,6,8],[1,-21,5,6.5],[8,-23,7,9],[16,-20,5,6]]).forEach(m=>{const c=cone(m[2],m[3],mat(o.mt||'#a9bdea'),(o.x||0)+m[0],m[3]/2,m[1],null,6);c.castShadow=false;
+    const s=cone(m[2]*.4,m[3]*.4,mat('#fff'),(o.x||0)+m[0],m[3]*.8+.02,m[1],null,6);s.castShadow=false;});
+  if(o.sun!==false)add(new W.Mesh(new W.SphereGeometry(1,24,16),flat('#ffd24d')),(o.x||0)+10,8.5,-24).castShadow=false;
+  if(o.clouds!==false)[[-7,7,-18],[3,8,-20]].forEach(c=>{[[0,0,1],[.9,.2,.8],[-.9,.1,.7],[1.7,-.1,.55]].forEach(b=>{const m=sph(b[2],flat('#fff'),(o.x||0)+c[0]+b[0],c[1]+b[1],c[2]);m.castShadow=false;m.receiveShadow=false;});});
+}
+function tree(x,z,s,c){cyl(.1*s,.13*s,1.2*s,mat('#8a5a2e'),x,.6*s,z);sph(.75*s,mat(c||'#59b36b'),x,1.75*s,z);sph(.5*s,mat(c||'#59b36b'),x-.5*s,1.4*s,z+.1);sph(.5*s,mat(c||'#59b36b'),x+.5*s,1.4*s,z-.1);}
+function pine(x,z,s){cyl(.09*s,.11*s,.5*s,mat('#8a5a2e'),x,.25*s,z);cone(.8*s,1.3*s,mat('#2e7d5b'),x,1.1*s,z,null,10);cone(.6*s,1.1*s,mat('#2e7d5b'),x,1.85*s,z,null,10);cone(.3*s,.5*s,mat('#fff'),x,2.2*s,z,null,10);}
+
+/* ================= kettles ================= */
+function makeKettle(){
+  const g=grp(),k={g,level:0};
+  const metal=mat('#dfe4ec',{metalness:.55,roughness:.28}),dk=mat('#232b4d',{roughness:.5});
+  cyl(.3,.3,.06,dk,0,.03,0,g);cyl(.2,.27,.62,metal,0,.37,0,g,36);cyl(.215,.215,.04,dk,0,.7,0,g);sph(.045,dk,0,.75,0,g);
+  cone(.075,.22,metal,-.25,.6,0,g,18).rotation.z=1.05;
+  torus(.19,.036,Math.PI,dk,.235,.37,0,g).rotation.z=-Math.PI/2;
+  k.win=ctex(96,320,(x,w,hh)=>{x.fillStyle='#eaf6ff';x.fillRect(0,0,w,hh);const H=270,y0=hh-18,wy=y0-H*k.level/1.7;x.fillStyle='#5ab6ff';x.fillRect(0,wy,w,y0-wy+18);
+    x.fillStyle=INK;x.font='bold 26px Arial';[0.5,1,1.5,1.7].forEach(v=>{const y=y0-H*v/1.7;x.fillRect(4,y-2,26,5);x.fillText(String(v).replace('.',','),36,y+9);});});
+  box(.19,.54,.012,mat('#fff'),0,.37,.238,g).rotation.x=-.112;plane(.15,.5,basic(k.win.t),0,.37,.247,g).rotation.x=-.112;
+  k.light=sph(.022,flat('#6b7385'),.2,.03,.235,g);
+  sign(.2,.05,'#fff',[['2000 Вт',92,96]],-.02,.03,.302,g);
+  k.setLevel=v=>{k.level=v;k.win.redraw();};k.on=v=>k.light.material.color.set(v?'#ffd23c':'#6b7385');
+  return k;
+}
+function makeGasKettle(){
+  const g=grp(),k={g,level:0};const red=mat('#ee3b1c',{roughness:.4}),dk=mat('#232b4d',{roughness:.5});
+  const b=sph(.34,red,0,.3,0,g);b.scale.set(1,.86,1);cyl(.13,.13,.03,dk,0,.6,0,g);sph(.04,dk,0,.64,0,g);
+  cyl(.045,.06,.3,red,.36,.42,0,g).rotation.z=-.9;cyl(.05,.05,.06,dk,.5,.53,0,g).rotation.z=-.9;
+  torus(.26,.03,Math.PI,dk,0,.56,0,g);
+  k.win=ctex(96,256,(x,w,hh)=>{x.fillStyle='#eaf6ff';x.fillRect(0,0,w,hh);const H=210,y0=hh-18,wy=y0-H*k.level/2;x.fillStyle='#5ab6ff';x.fillRect(0,wy,w,y0-wy+18);
+    x.fillStyle=INK;x.font='bold 26px Arial';[0.5,1,1.5,2].forEach(v=>{const y=y0-H*v/2;x.fillRect(4,y-2,26,5);x.fillText(String(v).replace('.',','),36,y+9);});});
+  box(.17,.4,.012,mat('#fff'),0,.3,.338,g);plane(.13,.36,basic(k.win.t),0,.3,.346,g);
+  k.setLevel=v=>{k.level=v;k.win.redraw();};return k;
+}
+
+/* ================= characters ================= */
+function makeActor(o){
+  const g=grp();g.scale.setScalar(o.scale||1);
+  const skin=mat('#f6c9a0',{roughness:.7}),top=mat(o.top),bot=mat(o.bottom||'#27315f'),hairM=mat(o.hairC||'#2a1d16',{roughness:.92}),dark=mat('#1c1a26',{roughness:.35}),wh=mat('#f1f3f8',{roughness:.9});
+  const a={g,phase:Math.random()*6,face:'smile',talk:false,scrub:false,run:false,vox:o.vox||[1.2,1],T:{},blink:2+Math.random()*3,acc:{},sit:o.sit||0};
+  if(o.dress){cyl(.2,.4,.86,top,0,.5,0,g);a.legs=[];}
+  else a.legs=[-1,1].map(s=>{const p=grp(s*.115,.56,0,g);cyl(.088,.088,.52,bot,0,-.26,0,p);const sh=sph(.1,dark,0,-.5,.05,p);sh.scale.set(1,.6,1.5);return p;});
+  const torso=sph(.27,top,0,.88,0,g);torso.scale.set(.94,1.2,.8);
+  const arm=s=>{const p=grp(s*.275,1.1,0,g);cyl(.066,.06,.4,top,0,-.2,0,p);sph(.08,skin,0,-.43,0,p);return p;};
+  a.armL=arm(-1);a.armR=arm(1);
+  const head=grp(0,1.55,0,g);a.head=head;
+  sph(.3,skin,0,0,0,head);sph(.07,skin,-.29,-.02,0,head);sph(.07,skin,.29,-.02,0,head);
+  a.eyes=[-1,1].map(s=>{const e=sph(.046,dark,s*.108,.02,.262,head);e.scale.set(1,1.25,.5);e.castShadow=false;sph(.014,flat('#fff'),s*.108+.016,.04,.288,head).castShadow=false;return e;});
+  a.brows=[-1,1].map(s=>{const b=box(.095,.02,.02,o.style==='ata'||o.style==='gran'?wh:hairM,s*.108,.125,.272,head);b.castShadow=false;return b;});
+  [-1,1].forEach(s=>{const c=new W.Mesh(new W.CircleGeometry(.05,20),flat('#ff8f7a',{transparent:true,opacity:.5}));c.position.set(s*.19,-.075,.238);c.rotation.y=s*.62;head.add(c);});
+  const mm=flat('#7a2b2b');
+  a.smile=new W.Mesh(new W.TorusGeometry(.058,.013,8,18,Math.PI),mm);a.smile.rotation.z=Math.PI;a.smile.position.set(0,-.085,.282);head.add(a.smile);
+  a.frown=new W.Mesh(new W.TorusGeometry(.05,.013,8,18,Math.PI),mm);a.frown.position.set(0,-.165,.28);head.add(a.frown);
+  a.mo=new W.Mesh(new W.SphereGeometry(.045,16,12),mm);a.mo.scale.set(1,1.2,.35);a.mo.position.set(0,-.125,.285);head.add(a.mo);
+  const st=o.style||'boy';
+  if(st==='girl'){
+    sph(.335,hairM,0,.03,-.075,head).scale.set(1.02,1.05,1);sph(.15,hairM,-.26,-.16,-.03,head);sph(.15,hairM,.26,-.16,-.03,head);sph(.13,hairM,0,.37,-.05,head);
+    const bm=mat(o.bow||HOT);[-1,1].forEach(s=>{cone(.075,.14,bm,s*.085,.5,-.03,head,14).rotation.z=s*Math.PI/2;});sph(.04,bm,0,.5,-.03,head);
+  }else if(st==='gran'){
+    add(new W.Mesh(new W.SphereGeometry(.345,32,20,Math.PI*.5+1.05,Math.PI*2-2.1),mat('#fff',{roughness:.9,side:W.DoubleSide})),0,.02,-.02,head);cyl(.2,.26,.2,wh,0,-.33,-.02,head);
+  }else if(st==='ata'){
+    hemi(.316,wh,0,.01,-.01,head).rotation.x=-.3;cyl(.2,.25,.17,mat('#27315f'),0,.3,-.03,head).rotation.x=-.1;torus(.25,.02,0,mat(SUN),0,.235,-.02,head).rotation.x=Math.PI/2-.1;
+    sph(.2,wh,0,-.22,.15,head).scale.set(1.05,.95,.55);box(.17,.035,.03,wh,0,-.05,.292,head);
+  }else{
+    hemi(.316,hairM,0,.01,-.01,head).rotation.x=-.3;
+    if(!o.hat)cone(.07,.16,hairM,.05,.34,.02,head,12).rotation.z=-.4;
+  }
+  const A=(k,f)=>{const q=grp(0,0,0,head);f(q);a.acc[k]=q;};
+  if(o.hat==='beanie')A('hat',q=>{hemi(.335,mat(o.hatC||TEAL),0,0,-.01,q).rotation.x=-.2;torus(.315,.05,0,mat('#fff'),0,.03,0,q).rotation.x=Math.PI/2-.2;sph(.08,mat('#fff'),0,.35,-.08,q);});
+  if(o.hat==='cap')A('hat',q=>{hemi(.326,mat(o.hatC||HOT),0,0,-.01,q).rotation.x=-.25;const v=cyl(.2,.2,.02,mat(o.hatC||HOT),0,.09,.27,q);v.scale.z=.8;v.rotation.x=.15;});
+  if(o.hat==='chef')A('hat',q=>{cyl(.21,.2,.2,wh,0,.36,-.02,q);sph(.16,wh,-.13,.52,-.02,q);sph(.16,wh,.13,.52,-.02,q);sph(.17,wh,0,.57,-.02,q);});
+  if(o.det)A('det',q=>{q.position.y=.09;hemi(.332,mat('#8a6243'),0,0,-.01,q).rotation.x=-.15;cyl(.43,.43,.02,mat('#6b4a35'),0,.04,0,q).rotation.x=-.15;});
+  if(o.stache)box(.17,.035,.03,hairM,0,-.05,.292,head);
+  if(o.phones)A('phones',q=>{torus(.325,.028,Math.PI,mat(INK),0,0,0,q);[-1,1].forEach(s=>{cyl(.085,.085,.07,mat(HOT),s*.325,-.02,0,q).rotation.z=Math.PI/2;});});
+  BUILD.actors.push(a);resetActor(a);return a;
+}
+const REST={lz:-.16,rz:.16,lx:0,rx:0,hy:0,hx:0};
+function setFace(a,f){
+  a.face=f;a.smile.visible=f==='smile'||f==='happy';a.frown.visible=f==='worry';a.mo.visible=f==='shock';a.mo.scale.y=1.2;
+  const es=f==='shock'?1.4:1,ey=f==='happy'?.3:1.25;a.eyeS=[es,ey*es];a.eyes.forEach(e=>e.scale.set(es,ey*es,.5));
+  a.brows.forEach((b,i)=>{const s=i?1:-1;b.position.y=f==='shock'?.175:.125;b.rotation.z=f==='worry'?-s*.38:f==='happy'?s*.1:0;});
+  a.smile.scale.setScalar(f==='happy'?1.25:1);
+}
+function pose(a,t){Object.assign(a.T,t);}
+function resetActor(a){a.T=Object.assign({},REST);a.talk=false;a.scrub=false;a.run=false;setFace(a,'smile');}
+function place(a,x,z,ry,vis){a.g.position.set(x,-a.sit,z);a.g.rotation.y=ry||0;a.g.visible=vis!==false;a.bx=x;}
+function updActor(a,dt,T){
+  const L=1-Math.exp(-dt*8),t=a.T,rn=a.run?Math.sin(T*11):0;
+  a.armL.rotation.z+=(t.lz-a.armL.rotation.z)*L;a.armR.rotation.z+=(t.rz-a.armR.rotation.z)*L;
+  const sc=a.scrub?Math.sin(T*9)*.22:0;
+  a.armL.rotation.x+=(t.lx+sc+rn*.9-a.armL.rotation.x)*L;a.armR.rotation.x+=(t.rx-sc-rn*.9-a.armR.rotation.x)*L;
+  if(a.legs.length){a.legs[0].rotation.x=-rn*.8;a.legs[1].rotation.x=rn*.8;}
+  a.head.rotation.y+=(t.hy-a.head.rotation.y)*L;a.head.rotation.x+=(t.hx-a.head.rotation.x)*L;a.head.rotation.z=Math.sin(T*.9+a.phase)*.035;
+  a.g.position.y=-a.sit+Math.sin(T*2+a.phase)*.008+(a.face==='shock'?Math.abs(Math.sin(T*7))*.03:0)+(a.run?Math.abs(Math.sin(T*11))*.06:0);
+  a.blink-=dt;const es=a.eyeS;if(a.blink<0){a.eyes.forEach(e=>e.scale.y=es[1]*.12);if(a.blink<-.12)a.blink=2.5+Math.random()*3;}else a.eyes.forEach(e=>e.scale.y=es[1]);
+  if(a.talk){a.mo.visible=true;a.smile.visible=false;a.frown.visible=false;a.mo.scale.y=.5+Math.abs(Math.sin(T*13))*1.1;a.wasTalk=true;}
+  else if(a.wasTalk){a.wasTalk=false;setFace(a,a.face);}
+}
+
+/* ================= tweens, camera ================= */
+const tweens=[];const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+function tw(dur,fn){tweens.push({t:0,dur,fn});}
+const camP=new W.Vector3(0,2.1,6.4),camL=new W.Vector3(0,1.45,-.6);let yaw=0,pitch=0,drift=0;
+function camTo(p,l,dur){const p0=camP.clone(),l0=camL.clone(),p1=new W.Vector3(p[0],p[1],p[2]),l1=new W.Vector3(l[0],l[1],l[2]),y0=yaw,pt0=pitch;
+  if(!dur){camP.copy(p1);camL.copy(l1);yaw=0;pitch=0;return;}
+  tw(dur,k=>{camP.lerpVectors(p0,p1,k);camL.lerpVectors(l0,l1,k);yaw=y0*(1-k);pitch=pt0*(1-k);});}
+const C=(p,l,d)=>camTo(p,l,d==null?1.8:d);
+let drag=null;
+canvas.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,yaw,pitch};try{canvas.setPointerCapture(e.pointerId);}catch(_){}canvas.style.cursor='grabbing';});
+canvas.addEventListener('pointermove',e=>{if(!drag)return;yaw=Math.max(-.7,Math.min(.7,drag.yaw-(e.clientX-drag.x)*.005));pitch=Math.max(-.12,Math.min(.3,drag.pitch+(e.clientY-drag.y)*.004));});
+const endDrag=()=>{drag=null;canvas.style.cursor='grab';};canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercancel',endDrag);
+
+/* ================= sound effects (used by scenes) ================= */
+let AC=null,sfxOn=true;
+function tone(f,d,type,v,when){if(!sfxOn||!AC)return;try{const t=AC.currentTime+(when||0),o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(v||.07,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02);}catch(e){}}
+const sfx={next:()=>tone(520,.09,'triangle',.05),ring:()=>{for(let i=0;i<4;i++){tone(1180,.1,'square',.03,i*.32);tone(980,.1,'square',.03,i*.32+.12);}},
+  found:()=>{tone(660,.12,'sine',.08);tone(990,.22,'sine',.08,.11);},ok:()=>{[523,659,784].forEach((f,i)=>tone(f,.2,'sine',.08,i*.11));},
+  win:()=>{[523,659,784,1047].forEach((f,i)=>tone(f,.26,'triangle',.08,i*.13));},stop:()=>{tone(440,.18,'square',.04);tone(330,.3,'square',.04,.18);},
+  bell:()=>{tone(784,.5,'sine',.09);tone(622,.7,'sine',.09,.35);},pour:()=>{for(let i=0;i<10;i++)tone(500+i*60,.08,'sine',.02,i*.12);},
+  whistle:()=>{tone(2100,.9,'sine',.03);tone(2300,.9,'sine',.02,.1);},puff:()=>{tone(180,.4,'sawtooth',.03);},no:()=>tone(170,.25,'sawtooth',.04)};
+const wake=()=>{try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}};
+['pointerdown','keydown','touchend'].forEach(ev=>document.addEventListener(ev,wake,{passive:true}));
+
+/* ================= episode registry ================= */
+const EP3=[];
+function defEp(i,build){EP3[i]={build,inst:null};}
+function getInst(i){
+  const d=EP3[i];if(d.inst)return d.inst;
+  const g=new W.Group();scene.add(g);const e={g,actors:[],steams:[],flames:[],tick:null,sunX:0};
+  ROOT=g;BUILD=e;Object.assign(e,d.build(e));ROOT=scene;BUILD=null;d.inst=e;return e;
+}
+/* ================= episodes ================= */
+const ballTx=ctex(128,64,x=>{x.fillStyle='#fff';x.fillRect(0,0,128,64);x.fillStyle=INK;[[16,16],[48,44],[80,18],[112,46],[64,6],[0,50]].forEach(p=>{x.beginPath();x.arc(p[0],p[1],9,0,7);x.fill();});});
+function ball(x,y,z,r,p){return add(new W.Mesh(new W.SphereGeometry(r,24,16),new W.MeshStandardMaterial({map:ballTx.t,roughness:.6})),x,y,z,p);}
+const WIDE=[[0,2.15,6.5],[0,1.45,-.6]];
+
+/* ---------- 1. Шәйнек жарысы ---------- */
+defEp(0,e=>{
+  kitchen();
+  let tv=180,run=false,min=0,acc=0,ring=false;
+  const timer=disp(1.38,.68,()=>'0'+Math.floor(tv/60)+':'+String(tv%60).padStart(2,'0'),150,.4,2.5,-2.3,null,'ӘЖЕ КЕЛГЕНШЕ');
+  const setT=v=>{tv=v;timer.redraw();};
+  box(.24,.6,.05,mat('#fff'),-1.3,2.3,-2.37);
+  const th=ctex(128,320,x=>{x.fillStyle='#fff';x.fillRect(0,0,128,320);x.fillStyle=HOT;x.fillRect(54,70,20,150);x.beginPath();x.arc(64,232,30,0,7);x.fill();x.fillStyle=INK;x.font='bold 40px Arial';x.textAlign='center';x.fillText('24 °C',64,50);});
+  plane(.2,.52,basic(th.t),-1.3,2.3,-2.34);
+  const doorLight=plane(1.15,2.3,flat('#fff3c2'),4.6,1.15,-2.39);
+  const fr=mat('#6b4a35');box(.1,2.4,.16,fr,3.98,1.2,-2.36);box(.1,2.4,.16,fr,5.22,1.2,-2.36);box(1.34,.1,.16,fr,4.6,2.4,-2.36);
+  const doorPivot=grp(4.04,0,-2.34);box(1.14,2.3,.06,mat('#a67a55'),.57,1.15,0,doorPivot);sph(.04,mat(SUN),1.02,1.1,.05,doorPivot);
+  const kb=box(.62,.46,.46,mat('#d79a5a'),-3.4,1.16,-.05);kb.rotation.y=.25;sign(.6,.4,'#d79a5a',[['ШӘЙНЕК',96,230,'#fff']],0,0,.232,kb);
+  const tag=sign(.42,.16,'#fff',[['12 990 тг',96,130,HOT]],.02,.36,.2,kb,INK);tag.rotation.set(-.2,0,-.12);
+  const phone=grp(.78,.93,.22);box(.2,.36,.03,mat(INK),0,.2,0,phone).rotation.x=-.32;sign(.17,.31,'#2fd08a',[['ӘЖЕ',150,400,'#fff']],0,.2,.02,phone).rotation.x=-.32;
+  [1.42,1.68].forEach(cx=>{const g=grp(cx,.93,.24);cyl(.085,.065,.17,mat('#fff'),0,.085,0,g);cyl(.07,.07,.01,mat('#8fd0ff'),0,.165,0,g);sign(.12,.06,'#fff',[['250 мл',120,170]],0,.09,.082,g);torus(.045,.012,Math.PI,mat('#fff'),.08,.085,0,g).rotation.z=-Math.PI/2;});
+  const plates=grp(.55,.935,.05);for(let i=0;i<4;i++)cyl(.17,.12,.025,mat('#fff'),0,.012+i*.028,0,plates);
+  const foam=grp(0,.96,-.02);[[-.2,0,.1,.09],[-.05,.02,.02,.11],[.12,0,.1,.08],[.02,.05,.16,.07],[.2,.01,-.05,.07]].forEach(f=>{sph(f[3],mat('#fff',{roughness:.4}),f[0],f[1],f[2],foam).castShadow=false;});
+  const kA=makeKettle(),kB=makeKettle();kA.g.position.set(-2.4,.93,.06);kB.g.position.set(2.4,.93,.06);
+  const sA=makeSteam(10,-2.74,1.61,.08),sB=makeSteam(12,2.06,1.61,.08);
+  const ai=makeActor({top:'#ff8fa3',dress:true,style:'girl',vox:[1.5,1.02]}),ali=makeActor({top:SUN,vox:[1.25,1]}),aje=makeActor({top:'#7a5ea8',dress:true,style:'gran',scale:1.18,vox:[.75,.9]});
+  const mug=grp(0,-.52,.04,ali.armR);cyl(.07,.06,.14,mat(HOT),0,0,0,mug);mug.rotation.x=1.25;
+  e.tick=(dt,T)=>{
+    if(run){acc+=dt;if(acc>=1){acc-=1;if(tv>min){setT(tv-1);tone(880,.03,'square',.012);}}}
+    phone.rotation.z=ring?Math.sin(T*46)*.07:0;phone.position.y=.93+(ring?Math.abs(Math.sin(T*23))*.02:0);
+  };
+  function world(s){
+    s=Object.assign({lvlA:0,lvlB:0,stA:0,stB:0,on:false,timer:180,run:false,min:0,end:false},s);
+    kA.setLevel(s.lvlA);kB.setLevel(s.lvlB);sA.rate=s.stA;sB.rate=s.stB;kA.on(s.on);kB.on(s.on);
+    setT(s.timer);run=s.run;min=s.min;acc=0;ring=false;doorPivot.rotation.y=0;doorLight.visible=false;
+    place(ai,s.end?-.35:-1.5,-.86);place(ali,1.3,-.86);place(aje,4.6,-3.4,-.5,false);
+    mug.visible=plates.visible=foam.visible=s.end;phone.visible=!s.end;
+  }
+  return{bg:'#cdd8f7',world,
+    hots:{time:[1.28,2.98,-2.25],room:[-1.3,2.72,-2.3],price:[-3.35,1.52,.1],ketA:[-2.4,1.86,.06],cup:[1.5,1.16,.3],tapT:[-.5,1.34,-.36],label:[2.78,1,.3]},
+    title:{state:{lvlA:1.7,stA:.6,on:true},cam:[[-1.6,1.6,2.6],[-3.3,1.25,-.2]]},
+    shots:[
+     {name:'Қоңырау',state:{},cam:WIDE,cues:[
+       {t:'Телефон шырылдады.',go(){ring=true;sfx.ring();C([.3,1.9,4.5],[.3,1.4,-.5],1.6);pose(ai,{hy:.5});pose(ali,{hy:-.4});}},
+       {vox:[.75,.9],at:[.78,1.42,.22],t:'Балаларым, үш минуттан кейін есік алдындамын. Шайларың дайын ба?'},
+       {t:'Кері санақ басталды!',go(){ring=false;[ai,ali].forEach(a=>{setFace(a,'shock');pose(a,{lz:-2.5,rz:2.5,hy:0});});run=true;min=172;C([0,2.2,5.7],[.15,1.75,-1]);}}]},
+     {name:'Су құю',state:{timer:172,run:true,min:158},cam:WIDE,cues:[
+       {t:'Үйде бірдей екі шәйнек бар. Айша өзінікін ең жоғарғы белгіге дейін толтырды.',go(){C([-1.25,1.72,3.1],[-2,1.3,-.2],1.6);setFace(ai,'happy');pose(ai,{lz:-1.25,hy:-.5});sfx.pour();tw(2.6,k=>kA.setLevel(1.7*k));}},
+       {a:ai,t:'Мен көп қайнатамын, артығы зиян емес!',go(){pose(ai,{hy:0});}},
+       {t:'Әли кесемен өлшеп, тура екі кесе су құйды.',go(){C([1.2,1.72,3.1],[1.95,1.3,-.2]);pose(ai,REST);pose(ali,{rz:1.25,hy:.5});sfx.pour();tw(1.4,k=>kB.setLevel(.5*k));}},
+       {a:ali,t:'Екі кесе жетеді. Бәс тігеміз бе?',go(){pose(ali,{hy:-.5,rz:.16});setFace(ali,'happy');}},
+       {t:'Бәс: кімдікі кеш қайнаса, сол бір апта ыдыс жуады!',go(){C(WIDE[0],WIDE[1]);pose(ali,REST);pose(ai,{hy:.4});}}]},
+     {name:'Жарыс',state:{lvlA:1.7,lvlB:.5,on:true,stA:.12,stB:.25,timer:160,run:true,min:138},cam:[[0,1.75,5.7],[0,1.35,-.4]],cues:[
+       {t:'Екеуі шәйнекті бір мезетте қосты. Уақыт өтіп барады...',go(){setFace(ai,'worry');setFace(ali,'happy');pose(ai,{hy:-.45});pose(ali,{hy:.45});tw(9,k=>{sB.rate=.25+.75*k;sA.rate=.12+.14*k;});}},
+       {t:'Шәйнектің түбіндегі затбелгіге қара!',go(){C([3,1.3,2],[2.4,1.08,.1],2);}}]}],
+    stop:{state:{lvlA:1.7,lvlB:.5,on:true,stA:.25,stB:1,timer:138},cam:[[0,2,6.2],[0,1.4,-.5]]},
+    twist:{state:{lvlA:1.7,lvlB:.15,on:true,stA:.55,timer:0,end:true},cam:WIDE,cues:[
+       {t:'Есік қоңырауы соғылды.',go(){sfx.bell();C([1.6,1.95,4.3],[3.7,1.35,-1.7]);setFace(ai,'worry');setFace(ali,'happy');pose(ali,{rx:-1.25,hy:.6});pose(ai,{hy:.7});
+         aje.g.visible=true;doorLight.visible=true;setFace(aje,'happy');tw(1.2,k=>{doorPivot.rotation.y=-1.9*k;});tw(2.2,k=>{aje.g.position.x=4.6-.2*k;aje.g.position.z=-3.4+1.65*k;});}},
+       {t:'Әлидің шайы демделіп тұр, ал Айшаның шәйнегі әлі шуылдап жатыр.',go(){C([.4,2.1,6.3],[.6,1.45,-.6],2);}},
+       {a:aje,t:'Суды көп құйған жомарттық емес, ысырап, қызым!',go(){C([2.2,1.9,3.6],[3.9,1.6,-1.5]);}},
+       {t:'Ыдысты Айша жуады!',go(){C([-.3,1.72,3],[-.3,1.2,-.5],2);pose(ai,{lx:-1.1,rx:-1.1,hy:0,hx:.25});ai.scrub=true;sfx.win();}}]}};
+});
+
+/* ---------- 2. «Ең арзан отын!» ---------- */
+defEp(1,e=>{
+  outdoor({ground:'#8fce8a'});
+  const dirt=plane(15,8,mat('#e2c79a',{roughness:.95}),4.4,.012,-.2);dirt.rotation.x=-Math.PI/2;dirt.receiveShadow=true;
+  box(3.2,2.2,2.6,mat('#fff4e0'),-8.6,1.1,-4);cone(2.7,1.4,mat('#c95a45'),-8.6,2.9,-4,null,4).rotation.y=Math.PI/4;
+  box(.8,1.5,.06,mat('#8a6243'),-7.9,.75,-2.68);plane(.9,.9,flat('#8fd0ff'),-9.3,1.3,-2.69);
+  for(let i=0;i<9;i++)box(.16,.9,.06,mat('#fff'),-6.6+i*.5,.45,-3.2);box(4.3,.08,.05,mat('#fff'),-4.6,.6,-3.17);
+  tree(-11.5,-5,1.3);tree(10.8,-5.5,1.4,'#f2a93b');tree(-2,-6,1.1,'#e8892b');
+  function stall(cx,cz,c){
+    [-1.5,1.5].forEach(dx=>[-.7,.7].forEach(dz=>cyl(.05,.05,2.6,mat('#8a6243'),cx+dx,1.3,cz+dz)));
+    const st=ctex(256,64,x=>{for(let i=0;i<8;i++){x.fillStyle=i%2?'#fff':c;x.fillRect(i*32,0,32,64);}});
+    box(3.5,.08,1.9,new W.MeshStandardMaterial({map:st.t,roughness:.8}),cx,2.62,cz).rotation.x=.08;box(3,.84,.7,mat('#c79a6b'),cx,.42,cz+.3);
+  }
+  stall(.2,-1.2,HOT);stall(5.4,-1.2,TEAL);
+  sign(1.7,1,SUN,[['ЕҢ АРЗАН',70,96],['ОТЫН!',70,172],['1 кг — 9 теңге',56,262,HOT]],1.0,1.78,-1.86,null,'#fff');
+  for(let r=0;r<3;r++)for(let i=0;i<4-r;i++){const l=cyl(.17,.17,1,mat('#d79a5a'),.2+(i-(3-r)/2)*.36,.17+r*.3,.9);l.rotation.x=Math.PI/2;cyl(.09,.09,1.01,mat('#b77a42'),.2+(i-(3-r)/2)*.36,.17+r*.3,.9).rotation.x=Math.PI/2;}
+  function coal(cx,cz,n,p){const m1=mat('#2b2f3a',{roughness:.6}),m2=mat('#3a3f4d',{roughness:.6});for(let i=0;i<n;i++){const a=i*2.4,lvl=Math.floor(i/7),rad=(.18+(i%5)*.14)*(1-lvl*.3);
+    add(new W.Mesh(new W.IcosahedronGeometry(.17+(i%3)*.03,0),i%2?m1:m2),cx+Math.cos(a)*rad,.14+lvl*.22,cz+Math.sin(a)*rad*.6,p);}}
+  coal(5.4,.55,20);
+  cyl(.03,.03,1.4,mat('#8a6243'),6.9,.7,.2);sign(.95,.56,'#fff',[['КӨМІР',96,120],['22 тг/кг',104,240,HOT]],6.9,1.62,.22,null,INK);
+  box(2.3,2.7,1.2,mat('#eef2ff'),2.8,1.35,-3.8);sign(2.3,.42,INK,[['СПОРТ',70,72,'#fff']],2.8,2.5,-3.19);plane(1.7,1.1,flat('#8fd0ff'),2.8,1.45,-3.19);
+  box(1.7,.06,.3,mat('#fff'),2.8,.95,-3.05);ball(2.45,1.28,-3.05,.3);sign(.7,.3,'#fff',[['6000 тг',110,150,HOT]],3.3,1.15,-3.0,null,INK);
+  box(2.1,.8,1.2,mat('#a67a55'),8.7,.8,.8);[-.7,.7].forEach(d=>{cyl(.33,.33,.2,mat('#232b4d'),8.7+d,.33,1.45).rotation.x=Math.PI/2;});sign(1.3,.5,'#a67a55',[['500 кг',130,150,'#fff']],8.7,.82,1.41);
+  const ata=makeActor({top:'#fff',bottom:'#3a3f55',style:'ata',scale:1.2,vox:[.7,.9]}),erl=makeActor({top:'#ff8a3c',vox:[1.25,1]}),
+        s1=makeActor({top:'#8a6243',stache:true,scale:1.2,vox:[.9,1.12]}),s2=makeActor({top:'#5a6278',scale:1.2,vox:[.85,.95]});
+  cone(.17,.36,mat(HOT),0,-.64,.02,s1.armR);
+  const moneyOn=arm=>{const m=grp(0,-.5,.05,arm);[-.3,0,.3].forEach(r=>{box(.12,.2,.01,mat('#59b36b'),0,.06,0,m).rotation.z=r;});return m;};
+  const mAta=moneyOn(ata.armR),mErl=moneyOn(erl.armR),ballH=ball(0,-.62,.14,.2,ata.armR);
+  cyl(.07,.06,.14,mat('#fff'),0,-.52,.05,s2.armR);
+  const nbTx=ctex(1024,720,(x,w,h)=>{x.fillStyle='#fbfcff';x.fillRect(0,0,w,h);x.strokeStyle='#c5d2f3';x.lineWidth=2;for(let i=0;i<18;i++){x.beginPath();x.moveTo(0,i*40);x.lineTo(w,i*40);x.stroke();}for(let i=0;i<26;i++){x.beginPath();x.moveTo(i*40,0);x.lineTo(i*40,h);x.stroke();}
+    x.fillStyle='#f29a8e';x.fillRect(70,0,4,h);x.fillStyle='#2337a8';x.textAlign='left';const F=s=>`bold ${s}px Caveat,"Segoe Print","Comic Sans MS",cursive`;
+    x.font=F(64);x.fillText('Қысқы отын есебі',96,92);x.fillRect(96,104,430,4);
+    x.font=F(46);x.fillText('Үйді бір қыс жылытуға керек жылу:',96,190);x.font=F(72);x.fillText('Q = 5,4·10¹⁰ Дж',96,272);
+    x.font=F(46);x.fillText('Үйдің ауданы — 80 м²',96,362);x.fillText('Отынның меншікті жану жылуы:',96,462);
+    x.font=F(58);x.fillText('тас көмір — 2,7·10⁷ Дж/кг',96,544);x.fillText('құрғақ ағаш — 1,0·10⁷ Дж/кг',96,626);});
+  const nb=grp(2.8,1.6,2.3);nb.rotation.x=-.2;box(2.5,1.78,.04,mat('#3f7fe0'),0,0,-.03,nb);plane(2.4,1.69,basic(nbTx.t),0,0,0,nb);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>nbTx.redraw());
+  const homeCoal=grp(-6.3,0,-1.4);coal(0,0,16,homeCoal);
+  function world(s){
+    s=Object.assign({at:'bazaar',nb:false,end:false,erlMoney:false},s);
+    place(ata,-5.2,0,.45);place(s1,-.5,-1.75);place(s2,5,-1.75);
+    if(s.at==='yard')place(erl,-3.9,0,-.45);else if(s.at==='nb')place(erl,4.6,1.9,-.5);else place(erl,2.8,1);
+    nb.visible=s.nb;nb.position.y=1.6;homeCoal.visible=s.end;ballH.visible=s.end;mAta.visible=!s.end&&!s.erlMoney&&!s.nb;mErl.visible=s.erlMoney;pose(s2,{rx:-1});
+  }
+  return{bg:'#8fd0ff',world,
+    hots:{money:[-4.7,1.12,.5],wood:[1.95,2.35,-1.8],coal:[7.45,1.95,.25],cart:[9.45,1.15,1.45],ball:[2.0,1.75,-2.95],heat:[3.55,1.86,2.36],area:[3.4,1.6,2.36],q:[3.95,1.08,2.46]},
+    title:{state:{},cam:[[.2,1.6,3.6],[-1.2,1.5,-1.5]]},
+    shots:[
+     {name:'Тапсырма',state:{at:'yard'},cam:[[-4.5,1.75,5.2],[-4.55,1.3,0]],cues:[
+       {t:'Күз. Атасы Ерланға ақша мен ескі дәптерін ұстатты.',go(){pose(ata,{rx:-1});pose(erl,{hy:-.2});}},
+       {a:ata,t:'Биыл отынды сен аласың. Жігіт болдың ғой. Бірақ осы ақша қыс бойына жетуі керек!',go(){setFace(erl,'happy');C([-4.5,1.7,4.3],[-4.6,1.4,0]);}}]},
+     {name:'Базар',state:{erlMoney:true},cam:[[2.8,2.7,9],[2.8,1.3,-1]],cues:[
+       {t:'Базар. Ағаш сатушысы дауыс зорайтқышпен айқайлап тұр.',go(){C([.5,1.75,4.6],[.4,1.5,-1.2]);pose(s1,{rx:-1.5});setFace(s1,'happy');}},
+       {a:s1,t:'Ең арзан отын! Килосы небәрі тоғыз теңге! Көмірден екі еседен артық арзан!'},
+       {t:'Жанындағы көмір сатушысы үндемей шай ішіп отыр.',go(){C([5.9,1.75,4.8],[5.7,1.3,-.8]);}},
+       {a:erl,t:'Арзанын алсам, артылған ақшаға доп сатып аламын!',go(){C([2.8,1.7,5.4],[2.8,1.4,-.8]);setFace(erl,'happy');pose(erl,{lz:-2.4,rz:2.4});}}]},
+     {name:'Дәптер',state:{at:'nb',nb:true},cam:[[2.8,1.8,5.3],[2.9,1.55,2.3]],cues:[
+       {t:'Кенет дәптер қолынан түсіп, ашылып қалды. Ішінде атасының жазуы бар.',go(){nb.position.y=3.4;tw(.9,k=>{nb.position.y=3.4-1.8*k;});setFace(erl,'shock');}},
+       {t:'Ерлан ойланып қалды... Ақшаны кімге ұстатуы керек?',go(){setFace(erl,'worry');pose(erl,{hy:-.6});}}]}],
+    stop:{state:{erlMoney:true},cam:[[2.8,2.7,9],[2.8,1.3,-1]]},
+    twist:{state:{erlMoney:true},cam:[[5.6,1.8,5.2],[5.2,1.3,-.6]],cues:[
+       {t:'Ерлан ақшаны көмір сатушысына ұстатты.',go(){place(erl,4.1,.2,.5);pose(erl,{rx:-1.1});setFace(s2,'happy');}},
+       {t:'Үйде атасы есепті көріп, артылған мың теңгеге өз қалтасынан бес мың қосты.',go(){world({at:'yard',end:true});pose(erl,REST);camTo([-4.8,1.8,5.6],[-4.9,1.3,-.3],0);pose(ata,{rx:-1});}},
+       {a:ata,t:'Допыңды ал. Басыңмен тапқан ақша бұл!',go(){setFace(ata,'happy');}},
+       {t:'Ерлан қуанып кетті. Ал базардағы дауыс зорайтқыш үнсіз қалды.',go(){setFace(erl,'happy');pose(erl,{lz:-2.5,rz:2.5});sfx.win();}}]}};
+});
+
+/* ---------- 3. Соңғы 30 грамм газ ---------- */
+defEp(2,e=>{
+  outdoor({ground:'#f4f8ff',mt:'#c9d8f2',sun:false,clouds:false});
+  [[-8,-5,1.3],[9.5,-6,1.5],[-11,-9,1.2],[6.5,-9,1],[-2.5,-7,.9],[12,-3,1.2],[-7.5,-1.5,1]].forEach(p=>pine(p[0],p[1],p[2]));
+  const cloud=grp(-12,7,-15);[[0,0,2.2],[2.2,.4,1.7],[-2.2,.2,1.6],[4,-.2,1.2],[.8,1.2,1.4]].forEach(b=>{const m=sph(b[2],flat(b[2]>1.9?'#444d75':'#5b6690'),b[0],b[1],0,cloud);m.castShadow=false;m.receiveShadow=false;});
+  const bek=makeActor({top:'#ff8a3c',hat:'beanie',hatC:TEAL,scale:1.2,vox:[.95,1]}),san=makeActor({top:'#3f7fe0',hat:'beanie',hatC:SUN,vox:[1.3,1.03]});
+  [bek,san].forEach(a=>{box(.14,.03,1.5,mat(HOT),-.12,.015,.1,a.g);box(.14,.03,1.5,mat(HOT),.12,.015,.1,a.g);});
+  box(.1,.18,.02,mat(INK),0,-.48,.07,bek.armR);
+  box(.55,.65,.32,mat(SUN),2.4,.33,-.4);box(.36,.26,.06,mat('#e0a400'),2.4,.26,-.22);disp(.5,.22,()=>'−10 °C',130,2.4,.86,-.3);
+  const st=mat('#8d98ab',{metalness:.5,roughness:.4});
+  cyl(.03,.03,1.95,st,-5.3,.97,0);cyl(.03,.03,1.95,st,-2.9,.97,0);box(2.7,.06,.06,mat(HOT),-4.1,1.9,0);
+  cyl(.012,.012,.2,st,-4.7,1.78,0);disp(.44,.22,()=>'130 г',150,-4.7,1.58,.02);cyl(.012,.012,.2,st,-4.7,1.4,0);
+  const can=grp(-4.7,.78,0);cyl(.2,.2,.5,mat('#3f7fe0'),0,.25,0,can);sph(.2,mat('#3f7fe0'),0,.5,0,can).scale.y=.35;cyl(.05,.05,.1,st,0,.6,0,can);
+  sign(.3,.26,'#fff',[['ГАЗ',150,190,HOT],['жазуын оқы',64,330]],0,.26,.202,can);
+  cyl(.012,.012,.2,st,-3.5,1.78,0);disp(.44,.22,()=>'2,0 кг',130,-3.5,1.58,.02);
+  torus(.2,.012,Math.PI,st,-3.5,1.22,0);cyl(.27,.22,.34,mat('#5a6278'),-3.5,1.05,0);sph(.26,mat('#fff'),-3.5,1.22,0).scale.y=.55;
+  const burner=grp(0,0,.9);cyl(.16,.2,.12,mat('#3f7fe0'),0,.06,0,burner);cyl(.1,.1,.06,st,0,.15,0,burner);const fl=makeFlame(0,.18,0,.45,burner,true);
+  const potB=cyl(.2,.17,.22,mat('#5a6278'),0,.5,0,burner);
+  const wm=flat('#7cc4ff');[[4.6,-2.2,.5],[5.2,-.9,.2],[5.7,.4,.35],[6.5,1.6,.6],[7.6,2.7,.75]].forEach(p=>{const q=plane(1.3,1.9,wm,p[0],.02,p[1]);q.rotation.x=-Math.PI/2;q.rotation.z=-p[2];});
+  cyl(.025,.025,1,st,5.75,.5,.7);disp(.5,.22,()=>'5 °C',150,5.75,1.1,.72);
+  cyl(.04,.04,1.6,mat('#8a6243'),4,.8,-.6);sign(1.25,.62,'#2456d6',[['БҰЛАҚ',84,110,'#fff'],['400 м ↘',96,212,SUN]],4,1.75,-.56,null,'#fff');
+  const mugB=cyl(.07,.06,.14,mat(HOT),0,-.52,.04,bek.armR),mugS=cyl(.07,.06,.14,mat(SUN),0,-.52,.04,san.armR);
+  const stM=makeSteam(6,0,.75,.9,{size:.7});
+  const flakes=[];for(let i=0;i<70;i++){const s=new W.Sprite(new W.SpriteMaterial({map:puffTx.t,transparent:true,depthWrite:false,opacity:.9}));s.scale.set(.12,.12,1);s.userData={x:(i*37%140)/10-7,z:(i*53%80)/10-3,o:(i*17%60)/10};ROOT.add(s);flakes.push(s);}
+  let snowing=false,stormX=-12;
+  e.tick=(dt,T)=>{cloud.position.x+=(stormX-cloud.position.x)*Math.min(1,dt*.5);flakes.forEach(s=>{s.visible=snowing;if(snowing){const u=s.userData;s.position.set(u.x+Math.sin(T+u.o)*.2,6-((T*1.3+u.o)%6),u.z);}});};
+  function world(s){
+    s=Object.assign({at:'talk',end:false},s);snowing=false;stormX=-12;cloud.position.x=-12;
+    if(s.at==='gear'){place(bek,-1.2,.6,-.5);place(san,-2.2,.5,-.6);}else if(s.at==='spring'){place(bek,1.5,.6,.35);place(san,2.7,.9,-.2);}else{place(bek,-.8,.1,.28);place(san,.8,.1,-.28);}
+    burner.visible=s.at==='gear'||s.end;burner.position.x=s.end?0:-4.1;fl.visible=s.end;potB.visible=s.end;stM.rate=s.end?.8:0;mugB.visible=mugS.visible=false;
+  }
+  return{bg:'#b9cdea',world,
+    hots:{storm:[-.2,1.42,.6],air:[2.86,.96,-.26],gas:[-4.32,1.74,.05],can:[-4.7,1.04,.24],snow:[-3.12,1.74,.05],spring:[6.16,1.22,.75],dist:[4.78,2.12,-.55]},
+    title:{state:{at:'gear'},cam:[[-3.6,1.4,3.2],[-6.4,1.2,-.5]]},
+    shots:[
+     {name:'Боран хабары',state:{},cam:[[0,1.75,5.4],[0,1.3,0]],cues:[
+       {t:'Қаңтар. Санжар мен ағасы Бекзат тауда шаңғы теуіп жүр. Көкжиектен қара бұлт көрінді.',go(){stormX=-6;C([0,2,6.8],[-2,2.6,-4],2.4);pose(bek,{hy:.5});pose(san,{hy:.6});}},
+       {a:bek,t:'Боран қырық минуттан кейін жетеді. Ыстық шай ішіп алып, төмен түсеміз!',go(){C([0,1.75,5.4],[0,1.3,0]);pose(bek,{rx:-1.1,hy:0});setFace(bek,'worry');pose(san,{hy:.4});}}]},
+     {name:'Өлшеу',state:{at:'gear'},cam:[[-3.6,1.65,4.6],[-3.7,1.25,0]],cues:[
+       {t:'Газ баллоны жеп-жеңіл. Санжар оны қол таразысына ілді.',go(){C([-4.4,1.5,3.2],[-4.7,1.25,0]);}},
+       {t:'Сосын қазаншаға қар толтырып, оны да өлшеді.',go(){C([-3.3,1.5,3.2],[-3.5,1.3,0]);}},
+       {a:san,t:'Су іздеп қайтеміз? Айнала толған қар ғой!',go(){C([-2.9,1.65,4.4],[-3,1.25,.1]);setFace(san,'happy');pose(san,{lz:-1.3});}}]},
+     {name:'Бәс',state:{at:'spring'},cam:[[3.8,1.95,6.8],[3.8,1.15,0]],cues:[
+       {t:'Бекзат төмендегі қатпайтын бұлақты нұсқады.',go(){pose(bek,{rz:1.35,hy:-.5});}},
+       {a:bek,t:'Қар деген жылу ұрлағыш. Газымыз жетпей қалады! Суды бұлақтан алайық.'},
+       {a:san,t:'Қар да су емес пе? Бәстесеміз: жетеді!',go(){setFace(san,'happy');pose(san,{hy:.5});}},
+       {t:'Газ екінші рет қайнатуға қалмайды. Кімдікі дұрыс?',go(){C([5.2,1.5,4.2],[5.6,1,.6]);}}]}],
+    stop:{state:{at:'spring'},cam:[[3.8,1.95,6.8],[3.8,1.15,0]]},
+    twist:{state:{end:true},cam:[[0,1.7,5.2],[0,1.1,.3]],cues:[
+       {t:'Санжар бұлаққа жүгіріп барып келді. Шай қайнады.',go(){stormX=-3;}},
+       {t:'Сол сәтте жалын пыс етіп өшті: газ таусылды.',go(){fl.visible=false;stM.rate=.2;sfx.puff();C([0,1.2,3.2],[0,.5,.9]);}},
+       {t:'Қар жауа бастады. Екеуі ыстық шайды ұрттап тұр.',go(){snowing=true;mugB.visible=mugS.visible=true;pose(bek,{rx:-1.25});pose(san,{rx:-1.25});setFace(bek,'happy');C([0,1.7,5.2],[0,1.2,.2]);}},
+       {a:san,t:'Қарды таңдағанымда қазір жылы су ішіп тұрар едік...',go(){setFace(san,'worry');}}]}};
+});
+
+/* ---------- 4. Таразы жұмбағы ---------- */
+defEp(3,e=>{
+  const X=40;
+  const tl=ctex(256,256,x=>{x.fillStyle='#c9cfe0';x.fillRect(0,0,256,256);x.strokeStyle='#aab4c4';x.lineWidth=4;[[0,0],[128,0],[0,128],[128,128]].forEach(p=>x.strokeRect(p[0],p[1],128,128));});tl.t.wrapS=tl.t.wrapT=W.RepeatWrapping;tl.t.repeat.set(6,4);
+  const fl=plane(14,10,new W.MeshStandardMaterial({map:tl.t,roughness:.8}),0,0,1.5);fl.rotation.x=-Math.PI/2;fl.receiveShadow=true;
+  const wl=mat('#cdd8f7');box(14,3.6,.12,wl,0,1.8,-2.46);box(.12,3.6,10,wl,-6.4,1.8,1.5);box(.12,3.6,10,wl,6.4,1.8,1.5);
+  for(let i=0;i<10;i++){const x=-4.95+i*1.1;box(1.02,2.2,.5,mat(i%2?'#5a9fd6':'#4f90c8'),x,1.1,-2.1);for(let k=0;k<3;k++)box(.5,.03,.02,mat('#2f6aa0'),x,1.95-k*.1,-1.84);box(.05,.2,.04,mat(SUN),x+.38,1.1,-1.83);}
+  box(2.4,.08,.42,mat('#a67a55'),-3.6,.46,.4);box(.08,.44,.36,mat('#8a6243'),-4.6,.22,.4);box(.08,.44,.36,mat('#8a6243'),-2.6,.22,.4);
+  box(1.3,.08,.95,mat('#5a6278'),0,.04,0);box(1.1,.03,.8,mat('#8d98ab'),0,.095,0);cyl(.04,.04,1.75,mat('#5a6278'),1.6,.88,-.7);
+  let mText='52,0 кг';const md=disp(1.15,.56,()=>mText,104,1.6,2.03,-.66);
+  const poster=sign(1.3,.92,'#fff',[['АДАМ ДЕНЕСІ',52,90],['c ≈ 3500',110,220,HOT],['Дж/(кг·°C)',60,310]],-2.75,1.95,-1.83,null,INK);
+  ball(-3.6,.76,.4,.26);
+  const gt=ctex(512,64,x=>{for(let i=0;i<8;i++){x.fillStyle=i%2?'#4fa862':'#59b36b';x.fillRect(i*64,0,64,64);}});gt.t.wrapS=gt.t.wrapT=W.RepeatWrapping;gt.t.repeat.set(3,1);
+  const gf=plane(60,40,new W.MeshStandardMaterial({map:gt.t,roughness:.95}),X,0,-6);gf.rotation.x=-Math.PI/2;gf.receiveShadow=true;
+  const sd=ctex(512,128,x=>{x.fillStyle='#9fb0e6';x.fillRect(0,0,512,128);x.fillStyle='rgba(255,255,255,.65)';for(let r=0;r<3;r++)for(let i=0;i<24;i++){x.beginPath();x.arc(12+i*21+(r%2)*10,24+r*40,8,0,7);x.fill();}});
+  box(30,3.4,1,new W.MeshStandardMaterial({map:sd.t}),X,1.7,-10);box(30,.012,.12,flat('#fff'),X,.014,-2.4);
+  const wm=mat('#fff');cyl(.06,.06,2.2,wm,X-1.8,1.1,-6);cyl(.06,.06,2.2,wm,X+1.8,1.1,-6);cyl(.06,.06,3.7,wm,X,2.2,-6).rotation.z=Math.PI/2;
+  const sb=ctex(512,236,(x,w,h)=>{x.fillStyle='#0c1230';x.fillRect(0,0,w,h);x.textAlign='center';x.fillStyle='#b8ff6a';x.font='bold 44px monospace';x.fillText('32 °C · ЫЛҒАЛ 40 %',w/2,78);x.fillStyle=SUN;x.font='bold 96px monospace';x.fillText('90:00',w/2,190);});
+  box(2.75,1.32,.1,mat(INK),X-3.6,2.9,-5.6);plane(2.6,1.2,basic(sb.t),X-3.6,2.9,-5.54);cyl(.05,.05,2.3,mat('#5a6278'),X-3.6,1.15,-5.6);
+  add(new W.Mesh(new W.SphereGeometry(1.2,24,16),flat('#ffd24d')),X+9,9,-24).castShadow=false;
+  box(2.2,.08,.42,mat('#a67a55'),X+3,.46,.9);box(.08,.44,.36,mat('#8a6243'),X+2.1,.22,.9);box(.08,.44,.36,mat('#8a6243'),X+3.9,.22,.9);
+  const bot=grp(X+3,.5,.9);cyl(.2,.2,.8,new W.MeshStandardMaterial({color:'#eaf6ff',transparent:true,opacity:.35,roughness:.2}),0,.4,0,bot).castShadow=false;
+  const water=cyl(.18,.18,.76,flat('#5ab6ff'),0,.39,0,bot);water.castShadow=false;cyl(.09,.09,.12,mat(HOT),0,.86,0,bot);
+  const setW=f=>{water.scale.y=f;water.position.y=.01+.38*f;};
+  const mk=ctex(128,300,x=>{x.fillStyle='#fff';x.fillRect(0,0,128,300);x.fillStyle=INK;x.font='bold 30px Arial';for(let i=1;i<=5;i++){const y=292-i*56;x.fillRect(0,y-2,24,5);x.fillText('0,'+i+' л',30,y+10);}});
+  plane(.34,.8,basic(mk.t),.42,.4,0,bot);
+  const nur=makeActor({top:SUN,vox:[1.25,1.03]}),dias=makeActor({top:'#59b36b',vox:[1.45,1.05]}),coach=makeActor({top:TEAL,bottom:'#232b4d',hat:'cap',hatC:HOT,scale:1.2,vox:[.8,.92]});
+  const bottleH=cyl(.06,.06,.22,flat('#5ab6ff'),0,-.56,.05,nur.armR);
+  function world(s){
+    s=Object.assign({at:'locker',m:'52,0 кг',poster:false,w:1,who:''},s);mText=s.m;md.redraw();poster.visible=s.poster;setW(s.w);bottleH.visible=false;
+    if(s.at==='locker'){nur.sit=-.11;place(nur,0,0);place(dias,-1.8,.35,.4,s.who==='dias');place(coach,-1.9,.4,.4,s.who==='coach');e.sunX=0;}
+    else{nur.sit=0;place(nur,X-2.5,.6,Math.PI/2);place(dias,0,0,0,false);place(coach,0,0,0,false);e.sunX=X;}
+  }
+  return{bg:'#cdd8f7',world,
+    hots:{m1:[2.3,2.42,-.6],m2:[2.3,2.42,-.6],tab:[X-2.12,3.62,-5.5],bot:[X+3.8,1.5,.95],body:[-2.0,2.5,-1.8]},
+    title:{state:{},cam:[[0,1.7,4.4],[-.1,1.6,-1]]},
+    shots:[
+     {name:'Жаттығу алдында',state:{},cam:[[.3,1.75,5.6],[.5,1.35,-.3]],cues:[
+       {t:'Шілде. Футбол жаттығуының алдында Нұрлан киім ауыстыратын бөлмедегі таразыға тұрды.',go(){pose(nur,{hy:.5});}},
+       {t:'Таразы оның массасын көрсетті.',go(){C([1.1,1.9,3.8],[1.5,1.9,-.66]);}}]},
+     {name:'Аптап',state:{at:'field'},bg:'#8fd0ff',cam:[[X,2,7.5],[X,1.2,0]],cues:[
+       {t:'Тоқсан минут аптап ыстықта жүгірді. Жейдесі су-су болды.',go(){nur.run=true;setFace(nur,'worry');tw(6,k=>{nur.g.position.x=X-2.5+3.6*k;});}},
+       {t:'Үзілісте бөтелкесінен су ішті, түбінде аздап қана қалды.',go(){nur.run=false;place(nur,X+1.9,.9,.5);setFace(nur,'happy');pose(nur,{rx:-2.2});bottleH.visible=true;C([X+2.5,1.35,3.8],[X+2.8,1,.9]);tw(2.5,k=>setW(1-.8*k));}}]},
+     {name:'Жаттығудан кейін',state:{m:'51,4 кг',poster:true,who:'dias'},cam:[[0,1.85,6.2],[0,1.35,-.3]],cues:[
+       {a:nur,t:'Охо! Алты жүз грамм арықтаппын! Бір айда шыбықтай боламын!',go(){setFace(nur,'happy');pose(nur,{lz:-2.5,rz:2.5});}},
+       {a:dias,t:'Су іштің ғой. Сонда керісінше семіруің керек еді. Таразы бұзылған!',go(){pose(nur,REST);pose(dias,{rz:1.2,hy:.4});}},
+       {t:'Кімдікі дұрыс? Жоғалған масса қайда кетті?',go(){setFace(nur,'worry');C([.6,1.9,4.6],[.8,1.7,-.5]);}}]}],
+    stop:{state:{m:'51,4 кг',poster:true,who:'dias'},cam:[[0,1.85,6.2],[0,1.35,-.3]]},
+    twist:{state:{m:'51,4 кг',poster:true,who:'coach'},cam:[[-.4,1.85,6],[-.4,1.4,-.3]],cues:[
+       {a:coach,t:'Таразы дұрыс. Сен май емес, тер жоғалттың. Ол сені бүгін ыстық өтуден құтқарды.',go(){pose(coach,{rz:1.1,hy:.4});pose(nur,{hy:-.5});}},
+       {a:coach,t:'Бір килограмм жоғалттың, бір литр су іш!',go(){bottleH.visible=true;pose(nur,{rx:-2.2,hy:0});setFace(coach,'happy');}},
+       {t:'Нұрлан суды ішіп, таразыға қайта қарады: елу екі килограмм!',go(){mText='52,0 кг';md.redraw();pose(nur,REST);setFace(nur,'happy');C([1,1.9,4],[1.4,1.85,-.66]);sfx.win();}}]}};
+});
+
+/* ---------- 5. Қайнап тұр, бірақ піспейді! ---------- */
+defEp(4,e=>{
+  outdoor({ground:'#8fce8a',mt:'#93a9dd',mts:[[-11,-15,6,8],[-3,-17,7,10.5],[6,-16,6,9],[14,-15,6,7.5]]});
+  [[-9,-8,3.2],[8,-9,3.6]].forEach(h=>{const m=sph(h[2],mat('#6fae8a'),h[0],-h[2]*.55,h[1]);m.scale.set(2.2,1,1.2);m.castShadow=false;});
+  cone(1.6,1.8,mat(SUN),4.4,.9,-3.4,null,4).rotation.y=Math.PI/4;cone(1.6,1.8,mat(HOT),7.2,.9,-2.6,null,4).rotation.y=Math.PI/4;
+  cyl(.05,.05,2.3,mat('#8a6243'),-5.6,1.15,-1.5);cyl(.05,.05,2.3,mat('#8a6243'),-3.6,1.15,-1.5);
+  sign(2.4,.86,'#a67a55',[['«ҚЫРАН» ЛАГЕРІ',46,74,'#fff'],['биіктігі 3000 м',52,146,SUN]],-4.6,2.05,-1.46,null,'#6b4a35');
+  cyl(.03,.03,1.6,mat('#8a6243'),5.6,.8,-1.5);disp(.5,.22,()=>'8 °C',150,5.6,1.7,-1.46);
+  const pole=mat('#5a6278');[0,2.1,4.2].forEach(a=>{const c=cyl(.035,.035,2.5,pole,Math.cos(a)*.52,1.13,Math.sin(a)*.52);c.rotation.z=Math.cos(a)*.44;c.rotation.x=-Math.sin(a)*.44;});
+  cyl(.012,.012,.7,pole,0,1.9,0);
+  [[.5,.3],[-.4,.35],[.1,-.5]].forEach((l,i)=>{const c=cyl(.07,.07,.9,mat(i%2?'#a67a55':'#8a5a2e'),l[0]*.5,.08,l[1]*.5);c.rotation.z=Math.PI/2;c.rotation.y=i*1.1;});
+  const fire=makeFlame(0,.1,0,1.3);
+  const pot=grp(0,1.45,0);add(new W.Mesh(new W.SphereGeometry(.55,28,16,0,Math.PI*2,Math.PI/2,Math.PI/2),mat('#2b2f3a',{side:W.DoubleSide,roughness:.6})),0,0,0,pot);torus(.55,.035,0,mat('#3d4352'),0,0,0,pot).rotation.x=Math.PI/2;
+  const water=new W.Mesh(new W.CircleGeometry(.5,28),flat('#8fd0ff'));water.rotation.x=-Math.PI/2;water.position.y=-.06;pot.add(water);
+  const stP=makeSteam(12,0,1.55,0,{size:1.5,rise:1.6});
+  const thG=grp(.7,1.5,.25);cyl(.02,.02,1,mat('#c3ccd9'),-.12,.25,0,thG).rotation.z=.5;disp(.62,.26,()=>'?? °C',130,.3,.85,0,thG);
+  cyl(.28,.3,.42,mat('#8a6243'),.9,.21,1.9);box(.42,.14,.3,mat('#fff'),.9,.49,1.9);sign(.4,.13,'#fff',[['ЕТ 2 кг',120,130,HOT]],.9,.49,2.055);
+  cyl(.3,.32,.42,mat('#8a6243'),1.75,.21,.5);
+  const pc=grp(1.75,.42,.5);cyl(.3,.3,.34,mat('#c3ccd9',{metalness:.6,roughness:.3}),0,.17,0,pc);cyl(.32,.32,.05,mat('#8d98ab',{metalness:.6,roughness:.3}),0,.36,0,pc);cyl(.035,.035,.1,mat(HOT),0,.43,0,pc);box(.86,.04,.08,mat('#232b4d'),0,.3,0,pc);sign(.34,.12,'#fff',[['≈120 °C',130,140]],0,.17,.302,pc);
+  const stC=makeSteam(6,0,1.95,0,{size:.8});
+  const tblTx=ctex(256,300,x=>{x.fillStyle='#fff';x.fillRect(0,0,256,300);x.fillStyle=INK;x.fillRect(0,0,256,50);x.fillStyle='#fff';x.font='bold 26px Arial';x.textAlign='center';x.fillText('КЕСТЕ',128,36);x.strokeStyle='#aab4c4';x.lineWidth=4;for(let i=0;i<6;i++){x.beginPath();x.moveTo(16,84+i*38);x.lineTo(240,84+i*38);x.stroke();}x.beginPath();x.moveTo(128,60);x.lineTo(128,290);x.stroke();});
+  const ash=makeActor({top:'#fff',hat:'chef',vox:[1.25,1.02]}),f1=makeActor({top:'#ff8fa3',style:'girl',bow:SUN,scale:.92,sit:.4,vox:[1.5,1.05]}),f2=makeActor({top:'#3f7fe0',scale:.92,sit:.4,vox:[1.3,1]}),
+        guide=makeActor({top:'#59b36b',bottom:'#3a3f55',hat:'cap',hatC:INK,scale:1.2,vox:[.8,.92]});
+  const sheet=plane(.5,.6,basic(tblTx.t),0,-.52,.14,guide.armR);sheet.material.side=W.DoubleSide;sheet.rotation.x=1.2;
+  cyl(.015,.015,.5,pole,0,-.66,.05,ash.armR);sph(.06,pole,0,-.92,.05,ash.armR);
+  const logsH=box(.7,.14,.14,mat('#8a5a2e'),.27,-.46,.12,ash.armL);
+  function world(s){
+    s=Object.assign({fire:1.3,steam:.5,water:1,guide:false,end:false,th:false},s);
+    place(ash,-1.6,.4,.3);place(f1,2.9,1.3,-.35);place(f2,3.9,1.1,-.45);place(guide,-3.1,.8,.4,s.guide||s.end);
+    fire.userData.s=s.fire;stP.rate=s.end?0:s.steam;water.scale.setScalar(s.water);thG.visible=s.th&&!s.end;logsH.visible=false;
+    pot.visible=!s.end;pc.position.set(s.end?0:1.75,s.end?1.2:.42,s.end?0:.5);stC.rate=s.end?.9:0;pose(guide,{rx:-1.2});
+  }
+  return{bg:'#8fd0ff',world,
+    hots:{alt:[-3.28,2.62,-1.4],meat:[1.28,.78,2.0],airT:[6.0,1.96,-1.4],tbl:[-2.5,1.3,1.5],pc:[2.25,1.02,.6]},
+    title:{state:{steam:.8},cam:[[-.6,1.5,4.8],[-1.4,1.3,0]]},
+    shots:[
+     {name:'Уәде',state:{},cam:[[.6,2.2,8.4],[.6,1.2,0]],cues:[
+       {t:'Тау лагері. Асхат бүкіл топқа уәде беріп қойды.',go(){C([-3,1.9,6.2],[-3.6,1.7,-1]);}},
+       {a:ash,t:'Үйде етті бір сағатта пісіремін. Бүгін аспаз менмін!',go(){C([-.8,1.7,4.8],[-.8,1.25,.2]);setFace(ash,'happy');pose(ash,{rz:2.4});}}]},
+     {name:'Піспейді',state:{},cam:[[.6,2,7.4],[.6,1.2,0]],cues:[
+       {t:'Бір сағат өтті. Су сақырлап қайнап тұр, ал ет тастай қатты.',go(){setFace(ash,'worry');pose(ash,{rx:-.9,hy:.5});stP.rate=.8;}},
+       {a:f1,t:'Аспаз, ет қайда?!',go(){C([2.6,1.5,4.8],[3.2,.9,1.1]);setFace(f1,'worry');setFace(f2,'worry');}},
+       {t:'Асхат отқа құшақ-құшақ отын тастады. Жалын қазанды орап кетті.',go(){C([-.3,1.6,5.2],[-.3,1.1,0]);logsH.visible=true;pose(ash,{lx:-1.2,rx:-1.2});tw(2.5,k=>{fire.userData.s=1.3+1.2*k;stP.rate=.8+.2*k;});}},
+       {t:'Бірақ ет бәрібір піспеді, ал су жартысына дейін азайып қалды.',go(){C([.2,3.2,2.4],[0,1.4,0]);tw(3,k=>water.scale.setScalar(1-.5*k));}}]},
+     {name:'Термометр',state:{fire:2.2,steam:1,water:.5,guide:true,th:true},cam:[[-.6,2.1,7.6],[-.6,1.25,0]],cues:[
+       {t:'Жол басшы қазанға термометр салды.',go(){C([.5,2.2,4.2],[.8,1.9,.2]);}},
+       {a:guide,t:'Қарашы, қайнап тұрған суың неше градус?',go(){C([-1.8,1.9,5.6],[-2,1.4,.3]);setFace(ash,'shock');pose(ash,{hy:-.6});}},
+       {t:'Сосын рюкзагынан кесте мен қақпағы бұралатын ерекше қазан шығарды.',go(){C([.4,1.7,5.6],[.3,1.1,.5]);}}]}],
+    stop:{state:{fire:2.2,steam:1,water:.5,guide:true,th:true},cam:[[.4,2.2,8.2],[.4,1.2,0]]},
+    twist:{state:{end:true,fire:1.2},cam:[[0,1.7,4.8],[0,1.1,0]],cues:[
+       {t:'Етті қысымды қазанға ауыстырды. Клапаны ысқырып тұр.',go(){sfx.whistle();}},
+       {t:'Қырық минуттан кейін жұмсақ ет дайын болды. Достары қол соқты!',go(){C([.8,2.1,7.6],[.8,1.1,0]);[f1,f2].forEach(a=>{setFace(a,'happy');pose(a,{lz:-2.4,rz:2.4});});}},
+       {a:ash,t:'Тауда аспазға от емес, физика керек!',go(){C([-1,1.7,4.8],[-1.1,1.3,.2]);setFace(ash,'happy');pose(ash,{rz:2.4});sfx.win();}}]}};
+});
+
+/* ---------- 6. Дастан детектив ---------- */
+defEp(5,e=>{
+  kitchen();
+  box(1.4,.07,.85,mat('#232b4d',{roughness:.4}),2.4,.955,0);torus(.2,.025,0,mat('#5a6278'),2.4,1.01,.02).rotation.x=Math.PI/2;
+  const fls=[];for(let i=0;i<8;i++){const a=i/8*6.283;const f=cone(.035,.1,flat('#5ab6ff'),2.4+Math.cos(a)*.2,1.05,.02+Math.sin(a)*.2,null,8);f.castShadow=false;fls.push(f);}
+  [-.45,-.15,.15,.45].forEach(d=>{cyl(.06,.06,.05,mat('#232b4d'),2.4+d,.62,.56).rotation.x=Math.PI/2;});
+  const k=makeGasKettle();k.g.position.set(2.4,1.04,.02);k.g.scale.setScalar(1.15);
+  const stK=makeSteam(12,3,1.7,.02,{size:1.1});
+  let hh=7,mn=30;
+  const ck=ctex(256,256,x=>{x.clearRect(0,0,256,256);x.fillStyle=INK;x.beginPath();x.arc(128,128,126,0,7);x.fill();x.fillStyle='#fff';x.beginPath();x.arc(128,128,112,0,7);x.fill();
+    x.fillStyle=INK;x.font='bold 26px Arial';x.textAlign='center';x.textBaseline='middle';for(let i=1;i<=12;i++){const a=i*Math.PI/6;x.fillText(i,128+Math.sin(a)*88,128-Math.cos(a)*88);}
+    const hand=(ang,len,wd,c)=>{x.strokeStyle=c;x.lineWidth=wd;x.lineCap='round';x.beginPath();x.moveTo(128,128);x.lineTo(128+Math.sin(ang)*len,128-Math.cos(ang)*len);x.stroke();};
+    hand((hh%12+mn/60)*Math.PI/6,50,10,INK);hand(mn*Math.PI/30,80,6,HOT);x.fillStyle=INK;x.beginPath();x.arc(128,128,8,0,7);x.fill();});
+  const ckM=plane(.95,.95,new W.MeshBasicMaterial({map:ck.t,transparent:true}),.4,2.5,-2.38);
+  const alarm=disp(1.38,.68,()=>'05:00',150,.4,2.5,-2.3,null,'ОЯТҚЫШ: ШӘЙНЕК');
+  const fog=plane(1.7,1.2,flat('#fff',{transparent:true,opacity:.5}),2.35,2.2,-2.37);const drops=[];for(let i=0;i<7;i++){const d=sph(.028,flat('#8fd0ff'),1.75+i*.2,2.2,-2.35);d.castShadow=false;d.userData.o=i*.37;drops.push(d);}
+  const tb=grp(-3.2,.93,.1);box(.72,.48,.04,mat(INK),0,.26,0,tb).rotation.x=-.3;sign(.64,.4,'#2fd08a',[['ҰПАЙ',70,110,'#fff'],['12 450',120,250,'#fff']],0,.26,.026,tb).rotation.x=-.3;
+  const pad=box(.36,.1,.2,mat('#232b4d'),-1.5,.98,.3);
+  const das=makeActor({top:'#9fd3ff',phones:true,det:true,vox:[1.25,1.02]}),aya=makeActor({top:'#ff8fa3',dress:true,style:'girl',bow:SUN,scale:.8,vox:[1.6,1.05]});
+  const mag=grp(0,-.5,.08,das.armR);torus(.11,.02,0,mat(INK),0,-.14,0,mag);cyl(.018,.018,.16,mat('#8a6243'),0,0,0,mag);
+  const mugA=cyl(.08,.07,.15,mat(SUN),-.5,1.0,.35);const stA=makeSteam(4,-.5,1.1,.35,{size:.5,rise:.6});
+  let fogOn=false;
+  e.tick=(dt,T)=>{fls.forEach((f,i)=>{f.scale.y=.8+Math.abs(Math.sin(T*14+i))*.5;});drops.forEach(d=>{d.visible=fogOn;d.position.y=2.75-((T*.12+d.userData.o)%1)*1.05;});};
+  function world(s){
+    s=Object.assign({lvl:1.5,h:7,m:10,clock:false,fog:false,st:0,aya:false,det:false,end:false,at:''},s);
+    k.setLevel(s.lvl);hh=s.h;mn=s.m;ck.redraw();ckM.visible=s.clock&&!s.end;alarm.g.visible=s.end;fog.visible=fogOn=s.fog;stK.rate=s.st;
+    place(das,s.at==='in'?.9:-1.5,-.86);place(aya,-.5,-.86,0,s.aya);das.acc.phones.visible=!s.det&&s.at!=='in';das.acc.det.visible=s.det;mag.visible=s.det;
+    mugA.visible=s.end;stA.rate=s.end?.6:0;pad.visible=s.at!=='in';fls.forEach(f=>{f.visible=!s.end;});
+  }
+  return{bg:'#cdd8f7',world,
+    hots:{v1:[2.4,2.02,.05],v2:[2.4,2.02,.05],tw:[-.5,1.34,-.36],score:[-2.7,1.52,.2],c1:[1.02,3.02,-2.3],c2:[1.02,3.02,-2.3]},
+    title:{state:{st:.7,lvl:1},cam:[[1.4,1.6,3.6],[1.2,1.35,-.2]]},
+    shots:[
+     {name:'Шәйнек газда',state:{},cam:WIDE,cues:[
+       {t:'Демалыс таңы. Дастан шәйнекке су құйып, газға қойды.',go(){C([1.7,1.65,3.6],[2.2,1.3,0]);}},
+       {t:'Сосын құлаққап киіп, ойынға кірісіп кетті.',go(){C([-1.9,1.7,3.8],[-2,1.3,-.3]);setFace(das,'happy');pose(das,{lx:-.9,rx:-.9});}}]},
+     {name:'Ысқырық',state:{clock:true,h:7,m:30,st:1,fog:true,lvl:1.45},cam:WIDE,cues:[
+       {t:'Шәйнек қайнап, ысқыра бастады. Сағат жеті отыз. Дастан естіген жоқ.',go(){sfx.whistle();C([1.3,2,4.6],[1.4,1.8,-1]);setFace(das,'happy');pose(das,{lx:-.9,rx:-.9});}},
+       {t:'Бу терезеге қонып, әйнектен тамшы ағып жатыр.',go(){C([2,2.1,1.6],[2.35,2.2,-2.3]);}}]},
+     {name:'Су қайда?',state:{clock:true,h:7,m:50,st:.5,fog:true,lvl:1,aya:true,at:'in'},cam:[[.6,2.1,6],[.6,1.45,-.6]],cues:[
+       {t:'Жиырма минуттан кейін Дастан ас үйге кіріп, шәйнекке қарады: су азайып қалған!',go(){setFace(das,'shock');pose(das,{hy:.7});C([1.9,1.7,3.8],[2.2,1.35,0]);}},
+       {a:das,t:'Аяла! Шайымды сен ішіп қойдың ба?!',go(){C([.3,1.8,4.8],[.3,1.35,-.5]);pose(das,{hy:-.7,lz:-1.2});setFace(das,'worry');}},
+       {a:aya,t:'Мен ас үйге кірген де жоқпын!',go(){setFace(aya,'worry');}},
+       {t:'Дастан із кесуші болып, іздерді тізіп шықты: терлеген терезе, ысқырған шәйнек, жанып тұрған газ...',go(){das.acc.det.visible=true;mag.visible=true;pose(das,{rx:-1.3,hy:.3,lz:-.16});C([.6,2.1,6],[.8,1.5,-.8]);}}]}],
+    stop:{state:{clock:true,h:7,m:50,st:.5,fog:true,lvl:1,aya:true,at:'in',det:true},cam:[[.6,2.1,6],[.6,1.45,-.6]]},
+    twist:{state:{h:7,m:50,fog:true,lvl:1,aya:true,at:'in',det:true,end:true},cam:[[1.6,2,3.4],[2.3,2.1,-2.3]],cues:[
+       {a:das,t:'Ұры табылды: бу! Ал кінәлі мен екенмін...',go(){pose(das,{rz:1.3,hy:.6,rx:0});}},
+       {t:'Дастан Аяладан кешірім сұрап, оған бірінші болып шай құйып берді.',go(){C([.2,1.8,4.6],[.2,1.3,-.5]);pose(das,{rz:.16,hy:-.6});setFace(aya,'happy');setFace(das,'happy');}},
+       {t:'Сосын телефонына оятқыш қойды: шәйнек, бес минут.',go(){C([.4,2.2,4],[.4,2.4,-2.3]);sfx.win();}}]}};
+});
+
+/* ================= voice ================= */
+const V={on:true,kk:null,ru:null,ok:'speechSynthesis' in window};
+function pickVoices(){if(!V.ok)return;const vs=speechSynthesis.getVoices();V.kk=vs.find(v=>/^kk/i.test(v.lang))||null;V.ru=vs.find(v=>/^ru/i.test(v.lang))||null;voiceLabel();}
+function voiceLabel(){const b=$('btnSound');b.setAttribute('aria-pressed',V.on);
+  b.textContent=!V.on?'Дауыс: өшірулі':V.kk?'Дауыс: қазақша':V.ru?'Дауыс: орысша дауыспен':'Дауыс: құрылғыда жоқ';}
+if(V.ok){pickVoices();speechSynthesis.onvoiceschanged=pickVoices;}
+const TR={'ә':'а','ғ':'г','қ':'к','ң':'н','ө':'о','ұ':'у','ү':'у','һ':'х','і':'ы','Ә':'А','Ғ':'Г','Қ':'К','Ң':'Н','Ө':'О','Ұ':'У','Ү':'У','Һ':'Х','І':'Ы'};
+const translit=t=>t.replace(/[әғқңөұүһіӘҒҚҢӨҰҮҺІ]/g,c=>TR[c]);
+function speak(text,vox){
+  return new Promise(res=>{
+    let done=false,tm;const fin=()=>{if(!done){done=true;clearTimeout(tm);res();}};
+    const est=900+text.length*62,v=V.on&&V.ok&&(V.kk||V.ru);
+    if(!v){tm=setTimeout(fin,est);return;}
+    try{const u=new SpeechSynthesisUtterance(V.kk?text:translit(text));u.voice=v;u.lang=v.lang;u.pitch=vox[0];u.rate=vox[1];u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);tm=setTimeout(fin,est*2.2+3000);}
+    catch(e){tm=setTimeout(fin,est);}
+  });
+}
+const hush=()=>{try{if(V.ok)speechSynthesis.cancel();}catch(e){}};
+
+/* ================= player ================= */
+const STS=DATA.map(()=>({found:new Set(),pred:null,okq:new Set(),pick:{},solved:false,open:false}));
+let epi=0,E=DATA[0],ST=STS[0],INST=null,SH=[],cur=0,token=0,auto=false,I_STOP=4,I_TWIST=5;
+const setCap=t=>{$('cap').textContent=t;};
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const bub=$('bub');let bubAt=null;
+let toastT;function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2800);}
+function toTask(){if(isCine())setCine(false);$('task').scrollIntoView({behavior:'smooth',block:'start'});}
+async function play(i,quiet){
+  const my=++token;hush();bub.hidden=true;bubAt=null;
+  const s=SH[i];cur=i;
+  tweens.length=0;INST.actors.forEach(resetActor);INST.steams.forEach(st=>{st.rate=0;});
+  INST.world(Object.assign({},s.state));scene.background.set(s.bg||INST.bg);aimSun(INST.sunX||0);
+  camTo(s.cam[0],s.cam[1],0);drift=s.title||s.stop?1:0;
+  stage.classList.toggle('paused',!!s.stop);$('t3d').hidden=!s.title;$('s3d').hidden=!s.stop;
+  $('tag').textContent=i===0?`${E.n}-оқиға · 3D`:`${E.n}-оқиға · ${s.name}`;
+  $('btnPrev').disabled=i===0;
+  $('btnNext').textContent=i===0?'Бастау ▸':i===I_STOP?(ST.solved||ST.open?'Түйінді көру ▸':'Есепке өту ▾'):i===I_TWIST?(epi<DATA.length-1?'Келесі оқиға ▸':'Басына ▸'):'Келесі ▸';
+  [...$('dots').children].forEach((d,k)=>{d.classList.toggle('on',k===i);d.setAttribute('aria-current',k===i?'true':'false');d.classList.toggle('lock',k===I_TWIST&&!ST.solved&&!ST.open);});
+  renderHots();
+  if(!quiet&&s.stop)sfx.stop();
+  for(const c of s.cues){
+    if(my!==token)return;
+    if(c.go)c.go();
+    setCap(c.t);
+    const anchor=c.at||c.a||null;
+    if(anchor){bubAt=anchor;bub.textContent=c.t;bub.hidden=false;}
+    if(c.a)c.a.talk=true;
+    if(quiet)await wait(60);else await speak(c.t,c.vox||(c.a?c.a.vox:[1,.95]));
+    if(c.a)c.a.talk=false;
+    if(my!==token)return;
+    bub.hidden=true;bubAt=null;
+    await wait(280);
+  }
+  if(my===token&&auto){if(i<I_STOP){await wait(700);if(my===token&&auto)play(i+1);}else setAuto(false);}
+}
+function go(i){
+  i=Math.max(0,Math.min(SH.length-1,i));
+  if(i===I_TWIST&&!ST.solved&&!ST.open){toast('Түйін есеп шыққан соң ашылады');toTask();return;}
+  play(i);
+}
+function next(){
+  if(cur===I_STOP){if(ST.solved||ST.open)go(I_TWIST);else toTask();return;}
+  if(cur===I_TWIST){loadEp((epi+1)%DATA.length);stage.scrollIntoView({behavior:'smooth',block:'nearest'});return;}
+  sfx.next();go(cur+1);
+}
+function setAuto(v){auto=v;$('btnAuto').setAttribute('aria-pressed',v);$('btnAuto').textContent=v?'❚❚ Тоқтату':'▶ Өзі ойнасын';if(v)go(cur>=I_STOP||cur===0?1:cur);}
+function loadEp(i,quiet){
+  auto=false;$('btnAuto').setAttribute('aria-pressed',false);$('btnAuto').textContent='▶ Өзі ойнасын';
+  epi=i;E=DATA[i];ST=STS[i];
+  EP3.forEach(d=>{if(d.inst)d.inst.g.visible=false;});
+  INST=getInst(i);INST.g.visible=true;
+  SH=[{name:'Басы',state:INST.title.state,cam:INST.title.cam,title:true,cues:[{t:E.hook}]},...INST.shots,
+      {name:'Тоқта!',state:INST.stop.state,cam:INST.stop.cam,stop:true,cues:[{t:'Тоқта! '+E.predict.q+' Болжам жаса, дерек жина, есепті шығар. Оқиғаның түйіні есеп шыққан соң ашылады.'}]},
+      Object.assign({name:'Түйін'},INST.twist)];
+  I_STOP=SH.length-2;I_TWIST=SH.length-1;
+  $('t3Tag').textContent=`${E.n}-оқиға · ${E.para} · 3D`;$('t3Title').textContent=E.title;$('t3Sub').textContent=E.sub;$('t3Hook').textContent=E.hookLines.join(' ');$('s3Q').textContent=E.predict.q;
+  $('dots').innerHTML=SH.map(s=>`<button class="dot" type="button" aria-label="${s.name}"></button>`).join('');
+  [...$('dots').children].forEach((d,k)=>d.addEventListener('click',()=>{sfx.next();go(k);}));
+  [...$('eps').children].forEach((b,k)=>{b.setAttribute('aria-current',k===i?'true':'false');b.classList.toggle('done',STS[k].solved);});
+  buildHots();renderTask();renderNotebook();play(0,quiet);
+  try{if(location.hash!=='#ep-'+(i+1))location.hash='ep-'+(i+1);}catch(e){}
+}
+
+/* ================= overlay: hotspots, bubble ================= */
+let hots=[];
+function buildHots(){
+  hots.forEach(h=>h.b.remove());hots=[];
+  E.data.forEach(d=>{const at=INST.hots[d.k];if(!at)return;const b=document.createElement('button');b.type='button';b.className='hs';b.setAttribute('aria-label',d.title);b.hidden=true;
+    b.innerHTML='<svg viewBox="-16 -16 32 32" aria-hidden="true"><g class="f" fill="none" stroke="#1b2550" stroke-width="4" stroke-linecap="round"><circle cx="-3" cy="-3" r="7"/><path d="M3,3 L10,10"/></g><path class="c" d="M-9,0 L-3,7 L10,-7" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    b.addEventListener('click',()=>hit(d));ov.appendChild(b);hots.push({b,d,v:new W.Vector3(at[0],at[1],at[2])});});
+}
+function renderHots(){hots.forEach(h=>{h.on=h.d.sc===cur;h.b.classList.toggle('found',ST.found.has(h.d.k));if(!h.on)h.b.hidden=true;});}
+const pv=new W.Vector3(),hv=new W.Vector3();
+function project(v){pv.copy(v).project(cam);return{x:(pv.x*.5+.5)*stage.clientWidth,y:(-pv.y*.5+.5)*stage.clientHeight,ok:pv.z<1&&Math.abs(pv.x)<.96&&Math.abs(pv.y)<.94};}
+function updOverlay(){
+  hots.forEach(h=>{if(!h.on)return;const p=project(h.v);h.b.hidden=!p.ok;if(p.ok){h.b.style.left=p.x+'px';h.b.style.top=p.y+'px';}});
+  if(bubAt){
+    if(Array.isArray(bubAt))hv.set(bubAt[0],bubAt[1],bubAt[2]);else{bubAt.head.getWorldPosition(hv);hv.y+=.5*bubAt.g.scale.y;}
+    const p=project(hv),w=stage.clientWidth;bub.style.left=Math.max(w*.2,Math.min(w*.8,p.x))+'px';bub.style.top=Math.max(stage.clientHeight*.28,p.y)+'px';
+  }
+}
+
+/* ================= notebook, zoom ================= */
+function renderNotebook(newKey){
+  $('nbList').innerHTML=E.data.map(d=>ST.found.has(d.k)
+    ?`<li class="${d.k===newKey?'new':''}"><span class="k">${d.title}</span><span class="v">${d.val}</span></li>`
+    :`<li class="empty"><span class="k">${d.title}</span><span class="v"><button type="button" data-go="${d.sc}">? ${d.sc}-көріністен ізде</button></span></li>`).join('');
+  $('nbCount').textContent=`Табылғаны: ${ST.found.size} / ${E.data.length}`;renderHots();
+}
+$('nbList').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){go(+b.dataset.go);stage.scrollIntoView({behavior:'smooth',block:'nearest'});}});
+let lastFocus=null;
+function openZoom(z){$('zoomTitle').textContent=z.title;$('zoomBody').innerHTML=z.html;lastFocus=document.activeElement;$('zoom').hidden=false;$('zoomClose').focus();}
+function closeZoom(){$('zoom').hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus();}
+$('zoomClose').addEventListener('click',closeZoom);$('zoom').addEventListener('click',e=>{if(e.target===$('zoom'))closeZoom();});
+function hit(d){const isNew=!ST.found.has(d.k);ST.found.add(d.k);renderNotebook(isNew?d.k:null);if(isNew)sfx.found();
+  if(d.zoom)openZoom(d.zoom);else toast(`${isNew?'Дәптерге жазылды. ':''}${d.title}: ${d.val}`);}
+
+/* ================= task ================= */
+const num=v=>{const x=parseFloat(String(v).replace(/[\s ]/g,'').replace(',','.'));return isNaN(x)?null:x;};
+const near=(v,a,tol)=>v!==null&&Math.abs(v-a)<=(tol!=null?tol:Math.max(.006,Math.abs(a)*.006));
+function renderTask(){
+  const e=E,s=ST,chipsHtml=(arr,cls,sel)=>arr.map((t,i)=>`<button type="button" class="chip ${cls}" data-i="${i}" aria-pressed="${sel(i)}">${t}</button>`).join('');
+  let h=`<h2 id="taskTitle">${e.n}-оқиға. ${e.title.replace(/,$/,'')}: есеп</h2><p class="lead">${e.lead}</p>
+  <div class="step wide predict" id="stP"><h3><span class="n">?</span>Болжам: ${e.predict.q}</h3><p>Есептемей тұрып таңда. Кейін есеп болжамыңды тексереді.</p><div class="chips" id="pred">${chipsHtml(e.predict.opts,'pr',i=>s.pred===i)}</div></div>
+  <div class="ref"><b>Анықтама:</b>${e.ref.map(r=>`<span>${r}</span>`).join('')}</div>
+  <div class="steps"><div class="step wide" id="st0"><h3><span class="n">1</span>Қажетті деректерді таңда</h3><p>Мультфильмдегі деректердің бәрі бірдей керек емес. Есепке қажеттерін ғана белгіле.</p>
+  <div class="chips" id="chips">${chipsHtml(e.data.map(d=>d.chip||d.val),'dc',()=>false)}</div><div class="tools"><button class="btn small" type="button" data-chk="chips">Тексеру</button><span class="fb" id="fb0" role="status"></span></div></div>`;
+  e.qs.forEach((q,i)=>{
+    const ok=s.okq.has(i);
+    h+=`<div class="step${q.c||q.f.length>2?' wide':''}${ok?' done':''}" id="st${i+1}"><h3><span class="n">${i+2}</span>${q.t}</h3>`;
+    if(q.c)h+=`<div class="chips" data-qc="${i}">${chipsHtml(q.c,'qc',k=>s.pick[i]===k)}</div>`;
+    else h+=`<div class="rows">${q.f.map((f,j)=>`<div class="row"><label for="q${i}_${j}">${f.l}</label><input id="q${i}_${j}" inputmode="decimal" autocomplete="off"> ${f.u}</div>`).join('')}</div>`;
+    h+=`<div class="tools"><button class="btn small" type="button" data-chk="${i}">Тексеру</button><span class="fb${ok?' ok':''}" id="fb${i+1}" role="status">${ok?'Дұрыс! '+q.ok:''}</span></div></div>`;
+  });
+  h+=`</div><div class="answer" id="answer" hidden></div>
+  <div class="tools"><button class="btn small" type="button" id="btnSol" aria-expanded="false">Шешімін көрсету</button><button class="btn small" type="button" id="btnReset">Жауаптарды тазалау</button><button class="btn small" type="button" id="btnOpen">Мұғалімге: түйінді бірден ашу</button></div>
+  <div class="solution" id="solution" hidden><h3>Шешуі</h3>${e.qs.map((q,i)=>`<p><b>${i+2}.</b> ${q.ok}</p>`).join('')}${e.note?`<p style="color:var(--muted)">Ескерту: ${e.note}</p>`:''}<h3 style="margin-top:10px">Жауабы: ${e.answer}</h3></div>
+  <h2 class="section">Ойлан, талқыла</h2><div class="talk">${e.talk.map(t=>`<details><summary>${t[0]}</summary><p>${t[1]}</p></details>`).join('')}</div>`;
+  $('task').innerHTML=h;if(s.solved)showAnswer(false);
+}
+function fb(n,ok,text){const el=$('fb'+n);el.textContent=text;el.className='fb '+(ok?'ok':'no');$('st'+n).classList.toggle('done',ok);}
+function showAnswer(fresh){
+  const a=$('answer'),v=ST.pred==null?'':ST.pred===E.predict.ok?'Болжамың дұрыс шықты!':'Есеп болжамыңды жоққа шығарды. Ғылымда осылай болады: есептеп көрмей, сенуге болмайды.';
+  a.innerHTML=`Жауабы: ${E.answer}${v?`<span class="verdict">${v}</span>`:''}<div class="tools" style="margin-top:10px"><button class="btn primary" type="button" id="btnTwist">Түйінді көру ▸</button></div>`;a.hidden=false;
+  [...$('eps').children][epi].classList.add('done');
+  if(cur===I_STOP)$('btnNext').textContent='Түйінді көру ▸';[...$('dots').children].forEach(d=>d.classList.remove('lock'));
+  if(fresh){sfx.win();a.scrollIntoView({behavior:'smooth',block:'nearest'});}
+}
+$('task').addEventListener('click',ev=>{
+  const e=E,s=ST,t=ev.target,ch=t.closest('.chip');
+  if(ch){
+    if(ch.classList.contains('dc')){ch.setAttribute('aria-pressed',ch.getAttribute('aria-pressed')!=='true');return;}
+    [...ch.parentNode.children].forEach(b=>b.setAttribute('aria-pressed',b===ch));
+    if(ch.classList.contains('pr')){s.pred=+ch.dataset.i;if(s.solved)showAnswer(false);}else s.pick[+ch.parentNode.dataset.qc]=+ch.dataset.i;return;
+  }
+  if(t.dataset.chk==='chips'){const ok=[...$('chips').children].every((b,i)=>(b.getAttribute('aria-pressed')==='true')===!!e.data[i].need);
+    fb(0,ok,ok?'Дұрыс! Қалғандары — артық дерек.':'Әлі дәл емес. Әр дерекке «бұл сан қай формулаға керек?» деп сұрақ қой.');ok?sfx.ok():sfx.no();return;}
+  if(t.dataset.chk!=null){
+    const i=+t.dataset.chk,q=e.qs[i];let ok;
+    if(q.c)ok=s.pick[i]===q.a;else{ok=true;q.f.forEach((f,j)=>{const inp=$('q'+i+'_'+j),g=near(num(inp.value),f.a,f.tol);inp.classList.toggle('good',g);inp.classList.toggle('wrong',!g);if(!g)ok=false;});}
+    fb(i+1,ok,ok?'Дұрыс! '+q.ok:'Әлі дәл емес. '+q.hint);
+    if(ok){s.okq.add(i);sfx.ok();if(!s.solved&&s.okq.size===e.qs.length){s.solved=true;showAnswer(true);}}else{s.okq.delete(i);sfx.no();}return;
+  }
+  if(t.id==='btnSol'){const b=$('solution');b.hidden=!b.hidden;t.setAttribute('aria-expanded',!b.hidden);t.textContent=b.hidden?'Шешімін көрсету':'Шешімін жасыру';return;}
+  if(t.id==='btnReset'){Object.assign(ST,{pred:null,okq:new Set(),pick:{},solved:false});[...$('eps').children][epi].classList.remove('done');renderTask();play(cur,true);return;}
+  if(t.id==='btnOpen'){ST.open=true;go(I_TWIST);stage.scrollIntoView({behavior:'smooth',block:'nearest'});return;}
+  if(t.id==='btnTwist'){go(I_TWIST);stage.scrollIntoView({behavior:'smooth',block:'nearest'});}
+});
+
+/* ================= controls ================= */
+$('eps').innerHTML=DATA.map(e=>`<button class="ep-tab" type="button"><span class="num">${e.n}</span><span>${e.title.replace(/,$/,'')}<small>${e.para} · ${e.sub}</small></span></button>`).join('');
+[...$('eps').children].forEach((b,k)=>b.addEventListener('click',()=>{sfx.next();loadEp(k);}));
+$('btnNext').addEventListener('click',next);$('btnPrev').addEventListener('click',()=>{sfx.next();go(cur-1);});
+$('btnAuto').addEventListener('click',()=>setAuto(!auto));$('btnToTask').addEventListener('click',toTask);
+$('btnSound').addEventListener('click',()=>{V.on=!V.on;sfxOn=V.on;if(!V.on)hush();voiceLabel();if(V.on&&!V.kk&&!V.ru)toast('Бұл құрылғыда қазақша не орысша дауыс табылмады. Мәтін экранда көрсетіледі.');});
+const theatre=document.querySelector('.theatre');const isCine=()=>theatre.classList.contains('fs');
+function setCine(on){
+  theatre.classList.toggle('fs',on);document.body.classList.toggle('fs-lock',on);$('btnCine').setAttribute('aria-pressed',on);$('btnCine').textContent=on?'✕ Шығу':'⛶ Толық экран';$('cap').parentNode.classList.remove('min');
+  if(on){try{const el=document.documentElement,rq=el.requestFullscreen||el.webkitRequestFullscreen,p=rq&&rq.call(el);if(p&&p.then)p.then(()=>{try{const o=screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape');if(o&&o.catch)o.catch(()=>{});}catch(e){}}).catch(()=>{});}catch(e){}}
+  else{try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();}catch(e){}}
+  setTimeout(resize,60);
+}
+$('btnCine').addEventListener('click',()=>setCine(!isCine()));$('btnFull').addEventListener('click',()=>setCine(!isCine()));
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&isCine())setCine(false);});
+$('cap').parentNode.addEventListener('click',()=>{if(isCine())$('cap').parentNode.classList.toggle('min');});
+document.addEventListener('keydown',e=>{
+  if(!$('zoom').hidden){if(e.key==='Escape')closeZoom();return;}
+  if(e.key==='Escape'&&isCine()){setCine(false);return;}
+  if(/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))return;
+  if(e.key==='f'||e.key==='F'){setCine(!isCine());return;}
+  if(/BUTTON|SUMMARY/.test(document.activeElement.tagName))return;
+  if(e.key==='ArrowRight'){e.preventDefault();next();}
+  if(e.key==='ArrowLeft'){e.preventDefault();go(cur-1);}
+});
+window.addEventListener('pagehide',hush);
+window.addEventListener('hashchange',()=>{const m=/^#ep-(\d)$/.exec(location.hash);if(m){const k=+m[1]-1;if(k>=0&&k<DATA.length&&k!==epi)loadEp(k);}});
+
+/* ================= frame loop ================= */
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();stage.style.setProperty('--u',(w/100)+'px');}
+if(window.ResizeObserver)new ResizeObserver(resize).observe(stage);window.addEventListener('resize',resize);resize();
+const off=new W.Vector3(),UP=new W.Vector3(0,1,0),clock=new W.Clock();let T=0;
+function frame(){
+  const dt=Math.min(.05,clock.getDelta());T+=dt;
+  for(let i=tweens.length-1;i>=0;i--){const t=tweens[i];t.t+=dt;const k=Math.min(1,t.t/t.dur);t.fn(ease(k));if(k>=1)tweens.splice(i,1);}
+  if(INST){
+    if(INST.tick)INST.tick(dt,T);
+    INST.actors.forEach(a=>updActor(a,dt,T));INST.steams.forEach(st=>updSteam(st,dt));
+    INST.flames.forEach((f,i)=>{const s=f.userData.s;f.scale.set(s*(.93+Math.sin(T*17+i)*.07),Math.min(s,1.25)*(1+Math.abs(Math.sin(T*13+i))*.16),s);});
+  }
+  off.subVectors(camP,camL);off.applyAxisAngle(UP,yaw+(drift?Math.sin(T*.25)*.13:0));off.y+=pitch*off.length();
+  cam.position.copy(camL).add(off);cam.lookAt(camL);
+  renderer.render(scene,cam);updOverlay();
+  requestAnimationFrame(frame);
+}
+
+/* ================= boot ================= */
+voiceLabel();
+let k0=0;const m0=/^#ep-(\d)$/.exec(location.hash||'');if(m0&&+m0[1]>=1&&+m0[1]<=DATA.length)k0=+m0[1]-1;
+loadEp(k0,true);frame();
+if(location.protocol==='file:')window.__dbg3={go,loadEp,STS,DATA,get SH(){return SH;}};
+})();
+
+</script>
+</body>
+</html>
