@@ -246,6 +246,44 @@ h2.section{font:800 18px/1.2 var(--display);margin:6px 0 0}
 @keyframes drip{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(46px);opacity:0}}
 @media (prefers-reduced-motion:reduce){.snow,.flick,.spin,.drip{animation:none}.drip{opacity:1}}
 .stage,.caption,.controls{width:min(100%,max(300px,calc((100vh - 322px) * 1.7778)))}
+body.fs-lock{overflow:hidden}
+.theatre.fs{position:fixed;inset:0;z-index:15;background:#0f1533;padding:8px 10px;justify-content:center;gap:8px}
+.theatre.fs .stage,.theatre.fs .caption,.theatre.fs .controls{width:min(100%,calc((100vh - 178px) * 1.7778))}
+.theatre.fs .stage{box-shadow:none;border-color:#3a4686}
+.theatre.fs .caption{min-height:58px;cursor:pointer}
+.theatre.fs .dot{border-color:#fff}
+.theatre.fs .dot.seen{background:#fff}
+.theatre.fs .btn{box-shadow:0 3px 0 #000}
+@media (max-height:560px){
+  .theatre.fs{padding:4px 8px;gap:4px;justify-content:flex-start}
+  .theatre.fs .stage{width:min(100%,calc((100vh - 56px) * 1.7778));border-width:2px;border-radius:12px}
+  .theatre.fs .controls{width:100%;flex-wrap:nowrap;justify-content:space-between}
+  .theatre.fs .btn{padding:8px 10px;font-size:13px;border-width:2px}
+  .theatre.fs .dots{flex-wrap:nowrap;gap:4px}
+  .theatre.fs .dot{width:12px;height:12px;border-width:2px}
+  .theatre.fs .caption{position:absolute;left:50%;transform:translateX(-50%);bottom:54px;width:min(94%,860px);min-height:0;padding:5px 12px;border-width:2px;opacity:.95}
+  .theatre.fs .caption p{font-size:14px;line-height:1.3}
+  .theatre.fs .caption.min{width:auto}
+  .theatre.fs .caption.min p{display:none}
+  .theatre.fs .caption.min::after{content:"Мәтін ▴";font:700 13px/1.2 var(--body)}
+  .theatre.fs .scene-tag{font-size:11px;padding:2px 8px;border-width:2px}
+}
+/* phone held upright: turn the cartoon sideways so it fills the screen */
+@media (orientation:portrait) and (max-width:640px){
+  .theatre.fs{inset:auto;top:0;left:100vw;width:100vh;width:100dvh;height:100vw;transform-origin:0 0;transform:rotate(90deg)}
+  .theatre.fs{padding:4px 8px;gap:4px;justify-content:flex-start}
+  .theatre.fs .stage{width:min(100%,calc((100vw - 56px) * 1.7778));border-width:2px;border-radius:12px}
+  .theatre.fs .controls{width:100%;flex-wrap:nowrap;justify-content:space-between}
+  .theatre.fs .btn{padding:8px 10px;font-size:13px;border-width:2px}
+  .theatre.fs .dots{flex-wrap:nowrap;gap:4px}
+  .theatre.fs .dot{width:12px;height:12px;border-width:2px}
+  .theatre.fs .caption{position:absolute;left:50%;transform:translateX(-50%);bottom:54px;width:min(94%,860px);min-height:0;padding:5px 12px;border-width:2px;opacity:.95}
+  .theatre.fs .caption p{font-size:14px;line-height:1.3}
+  .theatre.fs .caption.min{width:auto}
+  .theatre.fs .caption.min p{display:none}
+  .theatre.fs .caption.min::after{content:"Мәтін ▴";font:700 13px/1.2 var(--body)}
+  .theatre.fs .scene-tag{font-size:11px;padding:2px 8px;border-width:2px}
+}
 </style>
 </head>
 <body>
@@ -276,10 +314,18 @@ h2.section{font:800 18px/1.2 var(--display);margin:6px 0 0}
         <button class="btn" id="btnPrev" type="button">◂ Артқа</button>
         <div class="dots" id="dots"></div>
         <div class="ctl-group">
+          <button class="btn" id="btnCine" type="button" aria-pressed="false">⛶ Толық экран</button>
           <button class="btn sun" id="btnAuto" type="button" aria-pressed="false">▶ Өзі ойнасын</button>
           <button class="btn primary" id="btnNext" type="button">Бастау ▸</button>
         </div>
       </div>
+<div class="zoom" id="zoom" hidden role="dialog" aria-modal="true" aria-labelledby="zoomTitle">
+  <div class="zoom-card">
+    <h2 id="zoomTitle"></h2>
+    <div id="zoomBody"></div>
+    <button class="btn primary" id="zoomClose" type="button">Жабу</button>
+  </div>
+</div>
     </section>
     <aside class="notebook" aria-label="Дерек дәптері">
       <h2>Дерек дәптері</h2>
@@ -291,13 +337,6 @@ h2.section{font:800 18px/1.2 var(--display);margin:6px 0 0}
   </main>
   <section class="task" id="task" aria-labelledby="taskTitle"></section>
   <p class="foot">Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі</p>
-</div>
-<div class="zoom" id="zoom" hidden role="dialog" aria-modal="true" aria-labelledby="zoomTitle">
-  <div class="zoom-card">
-    <h2 id="zoomTitle"></h2>
-    <div id="zoomBody"></div>
-    <button class="btn primary" id="zoomClose" type="button">Жабу</button>
-  </div>
 </div>
 <script>
 (() => {
@@ -1040,7 +1079,7 @@ function clearTimers(){timers.forEach(clearTimeout);timers=[];clearInterval(cdT)
 const setCap=t=>{$('cap').textContent=t;};
 let toastT;
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2800);}
-function toTask(){$('task').scrollIntoView({behavior:'smooth',block:'start'});}
+function toTask(){if(isCine())setCine(false);$('task').scrollIntoView({behavior:'smooth',block:'start'});}
 function show(i,fade=true){
   i=Math.max(0,Math.min(scenes.length-1,i));
   if(i===iTwist()&&!S().solved&&!S().open){toast('Түйін есеп шыққан соң ашылады');toTask();return;}
@@ -1086,9 +1125,29 @@ $('btnPrev').addEventListener('click',()=>{sfx.next();show(cur-1);});
 $('btnAuto').addEventListener('click',()=>setAuto(!auto));
 $('btnToTask').addEventListener('click',toTask);
 $('btnSound').addEventListener('click',()=>{sound=!sound;$('btnSound').setAttribute('aria-pressed',sound);$('btnSound').textContent=sound?'Дыбыс: қосулы':'Дыбыс: өшірулі';});
-$('btnFull').addEventListener('click',()=>{try{if(document.fullscreenElement){document.exitFullscreen();}else{const p=document.documentElement.requestFullscreen();if(p&&p.catch)p.catch(()=>toast('Бұл терезеде толық экран ашылмады'));}}catch(e){toast('Бұл терезеде толық экран ашылмады');}});
+/* cinema mode: the cartoon alone fills the screen; real fullscreen and landscape lock are added where the browser allows */
+const theatre=document.querySelector('.theatre');
+const isCine=()=>theatre.classList.contains('fs');
+function setCine(on){
+  theatre.classList.toggle('fs',on);document.body.classList.toggle('fs-lock',on);
+  $('btnCine').setAttribute('aria-pressed',on);$('btnCine').textContent=on?'✕ Шығу':'⛶ Толық экран';
+  $('cap').parentNode.classList.remove('min');
+  if(on){
+    try{const el=document.documentElement,rq=el.requestFullscreen||el.webkitRequestFullscreen;const p=rq&&rq.call(el);
+      if(p&&p.then)p.then(()=>{try{const o=screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape');if(o&&o.catch)o.catch(()=>{});}catch(e){}}).catch(()=>{});}catch(e){}
+  }else{
+    try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}
+    try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();}catch(e){}
+  }
+}
+$('btnCine').addEventListener('click',()=>setCine(!isCine()));
+$('btnFull').addEventListener('click',()=>setCine(!isCine()));
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&isCine())setCine(false);});
+$('cap').parentNode.addEventListener('click',()=>{if(isCine())$('cap').parentNode.classList.toggle('min');});
 document.addEventListener('keydown',e=>{
   if(!$('zoom').hidden){if(e.key==='Escape')closeZoom();return;}
+  if(e.key==='Escape'&&isCine()){setCine(false);return;}
+  if(e.key==='f'||e.key==='F'){if(!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){setCine(!isCine());return;}}
   if(/INPUT|SELECT|TEXTAREA|BUTTON|SUMMARY/.test(document.activeElement.tagName))return;
   if(e.key==='ArrowRight'){e.preventDefault();next();}
   if(e.key==='ArrowLeft'){e.preventDefault();show(cur-1);}
