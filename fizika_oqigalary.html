@@ -284,6 +284,40 @@ body.fs-lock{overflow:hidden}
   .theatre.fs .caption.min::after{content:"Мәтін ▴";font:700 13px/1.2 var(--body)}
   .theatre.fs .scene-tag{font-size:11px;padding:2px 8px;border-width:2px}
 }
+/* writing space: squared paper, blue "ink", baseline of each line on a grid line */
+.work{--ln:32px;display:flex;flex-direction:column;gap:6px}
+.wk-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.wk-bar>b,.wk-ans{font:700 15px/1.2 var(--body);color:var(--ink)}
+.wk-ans{margin-top:4px}
+.wk-tools{display:flex;gap:6px;flex-wrap:wrap}
+.wk-btn{font:600 13px/1 var(--body);border:2px solid var(--ink);background:#fff;color:var(--ink);border-radius:999px;padding:6px 10px;cursor:pointer;min-height:32px}
+.wk-btn[aria-pressed=true]{background:var(--teal);border-color:var(--teal);color:#fff}
+.wk-btn.arm{background:var(--bad);border-color:var(--bad);color:#fff}
+.wk-btn:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.paper{position:relative;display:grid;grid-template-columns:minmax(124px,34%) minmax(0,1fr);
+  height:calc((var(--rows) + 1) * var(--ln) + 4px);
+  background:linear-gradient(var(--rule) 1px,transparent 1px) 0 6px/100% 16px,
+             linear-gradient(90deg,var(--rule) 1px,transparent 1px) 0 0/16px 100%,var(--paper);
+  border:2px solid var(--ink);border-radius:12px;overflow:hidden}
+.paper.one{grid-template-columns:minmax(0,1fr)}
+.wk-given,.wk-sol{display:flex;flex-direction:column;min-width:0;min-height:0;padding:0 10px}
+.wk-given{border-right:2px solid var(--ink)}
+.paper label{flex:none;height:var(--ln);font:700 14px/var(--ln) var(--body);color:var(--muted)}
+.paper textarea,.paper input{display:block;width:100%;min-width:0;border:0;margin:0;padding:0;background:transparent;resize:none;outline:none;
+  font:500 16px/var(--ln) var(--body);color:#1d3fa6;border-radius:0;box-shadow:none}
+.paper textarea{flex:1;min-height:0;overflow:auto}
+.paper textarea:focus,.paper input:focus{background:rgba(255,197,51,.10)}
+.tkrow{flex:none;display:flex;align-items:center;gap:6px;height:var(--ln);margin:0 -10px;padding:0 10px;border-top:2px solid var(--ink)}
+.tkrow label{flex:none}
+.tkrow input{height:var(--ln)}
+.paper canvas.ink{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.paper.pen canvas.ink{pointer-events:auto;touch-action:none;cursor:crosshair}
+.paper.pen{border-color:var(--teal);box-shadow:0 0 0 3px rgba(31,143,138,.25)}
+@media (max-width:600px){
+  .paper:not(.one){grid-template-columns:minmax(0,1fr);grid-template-rows:calc(4 * var(--ln)) calc((var(--rows) + 1) * var(--ln));height:auto}
+  .paper:not(.one) .wk-given{border-right:0;border-bottom:2px solid var(--ink)}
+}
+@media print{.wk-tools{display:none}.paper{break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -564,6 +598,53 @@ const DEFS=`<defs>
 <radialGradient id="gSun"><stop offset="0" stop-color="#fff9d6"/><stop offset="1" stop-color="#ffc533"/></radialGradient>
 <pattern id="pTile" width="90" height="90" patternUnits="userSpaceOnUse"><rect width="90" height="90" fill="#bfe3e6"/><rect x="3" y="3" width="84" height="84" rx="8" fill="#d8f2f3"/></pattern>
 </defs>`;
+/* ================= writing space under each question =================
+   Squared paper with "Берілгені | Шешуі" (or one "Дәлелі" column for choice questions).
+   Height = the lines the worked solution needs + 2 spare lines. Pupils can type, or switch
+   on the pen and write with a finger, stylus or mouse. Kept per episode in st.work. */
+const WROWS={ /* by episode number; >0 = Берілгені|Шешуі lines, <0 = one "Дәлелі" column */
+  1:[6,5,-4,4], 2:[5,5,-4,5], 3:[5,9,4,-4], 4:[4,4,4,5], 5:[4,4,-4,-4], 6:[4,5,4,5]};
+function Workspace(root,getSt,getN){
+  const INK='#1d3fa6';let cur=null;
+  const wk=i=>{const s=getSt();s.work=s.work||{};return s.work[i]||(s.work[i]={g:'',k:'',s:'',ink:[]});};
+  function html(i){
+    const r=(WROWS[getN()]||[])[i]||5,one=r<0,n=Math.abs(r);
+    const tools=`<span class="wk-tools"><button type="button" class="wk-btn" data-wk="pen" aria-pressed="false">✎ Қаламмен</button><button type="button" class="wk-btn" data-wk="undo" title="Соңғы сызықты өшіру">↶ Қайтару</button><button type="button" class="wk-btn" data-wk="clr">Тазалау</button></span>`;
+    const body=one
+      ?`<div class="wk-sol"><label for="w${i}s">Дәлелі:</label><textarea id="w${i}s" data-f="s" spellcheck="false" aria-label="Дәлелі"></textarea></div>`
+      :`<div class="wk-given"><label for="w${i}g">Берілгені:</label><textarea id="w${i}g" data-f="g" spellcheck="false"></textarea><div class="tkrow"><label for="w${i}k">Т/к:</label><input id="w${i}k" data-f="k" autocomplete="off" spellcheck="false"></div></div>
+        <div class="wk-sol"><label for="w${i}s">Шешуі:</label><textarea id="w${i}s" data-f="s" spellcheck="false"></textarea></div>`;
+    return `<div class="work" data-w="${i}" style="--rows:${n}"><div class="wk-bar"><b>Шығарылуы</b>${tools}</div><div class="paper${one?' one':''}">${body}<canvas class="ink" aria-hidden="true"></canvas></div><b class="wk-ans">Жауабы:</b></div>`;
+  }
+  function size(cv){const p=cv.parentNode,w=p.clientWidth,h=p.clientHeight,d=Math.min(2,window.devicePixelRatio||1);
+    const W=Math.round(w*d),H=Math.round(h*d);if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}
+    const c=cv.getContext('2d');c.setTransform(d,0,0,d,0,0);c.strokeStyle=INK;c.lineWidth=2.2;c.lineCap='round';c.lineJoin='round';return c;}
+  function draw(cv,ink){const c=size(cv);c.clearRect(0,0,cv.width,cv.height);
+    for(const s of ink){c.beginPath();c.moveTo(s[0],s[1]);if(s.length===2)c.lineTo(s[0]+.1,s[1]+.1);for(let k=2;k<s.length;k+=2)c.lineTo(s[k],s[k+1]);c.stroke();}}
+  function redraw(){root().querySelectorAll('.work').forEach(el=>draw(el.querySelector('canvas'),wk(+el.dataset.w).ink));}
+  function fill(){root().querySelectorAll('.work').forEach(el=>{const w=wk(+el.dataset.w);el.querySelectorAll('[data-f]').forEach(t=>{t.value=w[t.dataset.f]||'';});});requestAnimationFrame(redraw);}
+  const R=root();
+  R.addEventListener('input',ev=>{const t=ev.target,el=t.closest&&t.closest('.work');if(el&&t.dataset.f)wk(+el.dataset.w)[t.dataset.f]=t.value;});
+  R.addEventListener('click',ev=>{const b=ev.target.closest&&ev.target.closest('.wk-btn');if(!b)return;
+    const el=b.closest('.work'),i=+el.dataset.w,w=wk(i),p=el.querySelector('.paper'),cv=el.querySelector('canvas');
+    if(b.dataset.wk==='pen'){const on=!p.classList.contains('pen');p.classList.toggle('pen',on);b.setAttribute('aria-pressed',on);b.textContent=on?'✎ Қалам қосулы':'✎ Қаламмен';}
+    else if(b.dataset.wk==='undo'){w.ink.pop();draw(cv,w.ink);}
+    else if(b.dataset.wk==='clr'){
+      if(!b.classList.contains('arm')){b.classList.add('arm');b.textContent='Растау: тазалау';clearTimeout(b._t);b._t=setTimeout(()=>{b.classList.remove('arm');b.textContent='Тазалау';},2600);return;}
+      clearTimeout(b._t);b.classList.remove('arm');b.textContent='Тазалау';w.g=w.k=w.s='';w.ink=[];el.querySelectorAll('[data-f]').forEach(t=>{t.value='';});draw(cv,w.ink);}
+  });
+  R.addEventListener('pointerdown',ev=>{const cv=ev.target.closest&&ev.target.closest('canvas.ink');if(!cv||!cv.parentNode.classList.contains('pen'))return;
+    const i=+cv.closest('.work').dataset.w,r=cv.getBoundingClientRect(),s=[ev.clientX-r.left,ev.clientY-r.top];
+    wk(i).ink.push(s);cur={cv,s,r,c:size(cv),id:ev.pointerId};try{cv.setPointerCapture(ev.pointerId);}catch(e){}
+    cur.c.beginPath();cur.c.moveTo(s[0],s[1]);cur.c.lineTo(s[0]+.1,s[1]+.1);cur.c.stroke();ev.preventDefault();});
+  R.addEventListener('pointermove',ev=>{if(!cur||ev.pointerId!==cur.id)return;const {c,s,r}=cur,list=ev.getCoalescedEvents?ev.getCoalescedEvents():[ev];
+    c.beginPath();c.moveTo(s[s.length-2],s[s.length-1]);for(const e of (list.length?list:[ev])){const x=e.clientX-r.left,y=e.clientY-r.top;s.push(x,y);c.lineTo(x,y);}c.stroke();ev.preventDefault();});
+  const up=ev=>{if(cur&&ev.pointerId===cur.id)cur=null;};
+  R.addEventListener('pointerup',up);R.addEventListener('pointercancel',up);
+  if(window.ResizeObserver)new ResizeObserver(()=>redraw()).observe(R);else window.addEventListener('resize',redraw);
+  return {html,fill,redraw};
+}
+
 /* ================= extra drawing helpers ================= */
 const HOTC='#ff5533', SUN='#ffc533', TEAL='#1f8f8a';
 let uid=0; const nid=()=>'cw'+(++uid);
@@ -1181,6 +1262,7 @@ svg.addEventListener('keydown',e=>{const h=e.target.closest('.hot');if(h&&(e.key
 /* ================= task ================= */
 const num=v=>{const x=parseFloat(String(v).replace(/[\s ]/g,'').replace(',','.'));return isNaN(x)?null:x;};
 const near=(v,a,tol)=>v!==null&&Math.abs(v-a)<=(tol!=null?tol:Math.max(.006,Math.abs(a)*.006));
+const WS=Workspace(()=>$('task'),S,()=>EP.n);
 function renderTask(){
   const e=EP,s=S();
   const chipsHtml=(arr,cls,sel)=>arr.map((t,i)=>`<button type="button" class="chip ${cls}" data-i="${i}" aria-pressed="${sel(i)}">${t}</button>`).join('');
@@ -1191,7 +1273,7 @@ function renderTask(){
   <div class="chips" id="chips">${chipsHtml(e.data.map(d=>d.chip||d.val),'dc',()=>false)}</div><div class="tools"><button class="btn small" type="button" data-chk="chips">Тексеру</button><span class="fb" id="fb0" role="status"></span></div></div>`;
   e.qs.forEach((q,i)=>{
     const wide=q.c||q.f.length>2;
-    h+=`<div class="step${wide?' wide':''}${s.okq.has(i)?' done':''}" id="st${i+1}"><h3><span class="n">${i+2}</span>${q.t}</h3>`;
+    h+=`<div class="step${wide?' wide':''}${s.okq.has(i)?' done':''}" id="st${i+1}"><h3><span class="n">${i+2}</span>${q.t}</h3>`+WS.html(i);
     if(q.c)h+=`<div class="chips" data-qc="${i}">${chipsHtml(q.c,'qc',k=>s.pick[i]===k)}</div>`;
     else h+=`<div class="rows">${q.f.map((f,j)=>`<div class="row"><label for="q${i}_${j}">${f.l}</label><input id="q${i}_${j}" inputmode="decimal" autocomplete="off" value="${s.vals[i+'_'+j]||''}"> ${f.u}</div>`).join('')}</div>`;
     h+=`<div class="tools"><button class="btn small" type="button" data-chk="${i}">Тексеру</button><span class="fb${s.okq.has(i)?' ok':''}" id="fb${i+1}" role="status">${s.okq.has(i)?'Дұрыс! '+q.ok:''}</span></div></div>`;
@@ -1200,7 +1282,7 @@ function renderTask(){
   <div class="tools"><button class="btn small" type="button" id="btnSol" aria-expanded="false">Шешімін көрсету</button><button class="btn small" type="button" id="btnReset">Жауаптарды тазалау</button><button class="btn small" type="button" id="btnOpen">Мұғалімге: түйінді бірден ашу</button></div>
   <div class="solution" id="solution" hidden><h3>Шешуі</h3>${e.qs.map((q,i)=>`<p><b>${i+2}.</b> ${q.ok}</p>`).join('')}${e.note?`<p style="color:var(--muted)">Ескерту: ${e.note}</p>`:''}<h3 style="margin-top:10px">Жауабы: ${e.answer}</h3></div>
   <h2 class="section">Ойлан, талқыла</h2><div class="talk">${e.talk.map(t=>`<details><summary>${t[0]}</summary><p>${t[1]}</p></details>`).join('')}</div>`;
-  $('task').innerHTML=h;
+  $('task').innerHTML=h;WS.fill();
   if(s.solved)showAnswer(false);
 }
 function fb(n,ok,text){const el=$('fb'+n);el.textContent=text;el.className='fb '+(ok?'ok':'no');$('st'+n).classList.toggle('done',ok);}
