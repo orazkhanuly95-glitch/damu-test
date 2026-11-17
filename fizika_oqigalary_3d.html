@@ -284,6 +284,8 @@ body.fs-lock{overflow:hidden}
   .theatre.fs .caption.min::after{content:"Мәтін ▴";font:700 13px/1.2 var(--body)}
   .theatre.fs .scene-tag{font-size:11px;padding:2px 8px;border-width:2px}
 }
+
+.brand p.by{margin:3px 0 0;font:600 13px/1.3 var(--body);color:var(--ink)}
 .stage{--u:9px;background:#cdd8f7}
 .stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
 .stage.paused canvas{filter:saturate(.3) brightness(.5)}
@@ -318,6 +320,8 @@ body.fs-lock{overflow:hidden}
   .controls .ctl-group .btn{padding:9px 12px;font-size:14px;flex:1 1 auto;min-width:0;white-space:nowrap}
   .t3d small{display:none}
 }
+
+.brand p.by{margin:3px 0 0;font:600 13px/1.3 var(--body);color:var(--ink)}
 /* writing space: squared paper, blue "ink", baseline of each line on a grid line */
 .work{--ln:32px;display:flex;flex-direction:column;gap:6px}
 .wk-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
@@ -362,6 +366,7 @@ body.fs-lock{overflow:hidden}
       <div>
         <h1>Физика оқиғалары 3D</h1>
         <p>Функционалдық сауаттылық · 8-сынып, §7–§12 · дауысты 6 мультфильм</p>
+        <p class="by">Ысмайл Рамазан Оразханұлы · Қаратай Тұрысов атындағы №53 мектеп-гимназиясы</p>
       </div>
     </div>
     <div class="top-actions">
@@ -375,7 +380,7 @@ body.fs-lock{overflow:hidden}
       <div class="stage" id="stage">
         <canvas id="gl" role="img" aria-label="Физика оқиғасы туралы 3D мультфильм"></canvas>
         <div class="ov" id="ov">
-          <div class="t3d" id="t3d"><span class="tag" id="t3Tag"></span><h2><b id="t3Title" style="font-weight:inherit"></b><span id="t3Sub"></span></h2><p id="t3Hook"></p><small>Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі</small></div>
+          <div class="t3d" id="t3d"><span class="tag" id="t3Tag"></span><h2><b id="t3Title" style="font-weight:inherit"></b><span id="t3Sub"></span></h2><p id="t3Hook"></p><small>Авторы: Ысмайл Рамазан Оразханұлы<br>Қаратай Тұрысов атындағы №53 мектеп-гимназиясы</small></div>
           <div class="s3d" id="s3d" hidden><div class="pz"><i></i><i></i></div><b>ТОҚТА!</b><em id="s3Q"></em><div class="row3"><span>1. Болжам жаса</span><span>2. Дерек жина</span><span>3. Есепті шығар</span></div><small>Оқиғаның түйіні есеп шыққан соң ашылады</small></div>
           <div class="bub" id="bub" hidden></div>
         </div>
@@ -409,7 +414,7 @@ body.fs-lock{overflow:hidden}
     </aside>
   </main>
   <section class="task" id="task" aria-labelledby="taskTitle"></section>
-  <p class="foot">Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі<br>Дауыс: ElevenLabs (Eleven v4). 2-оқиғаның баяндаушысы: ISSAI KazakhTTS2 деректеріне үйретілген Piper моделі (CC BY 4.0)</p>
+  <p class="foot">Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі, Қаратай Тұрысов атындағы №53 мектеп-гимназиясы<br>Дауыс: ElevenLabs (Eleven v4). 2-оқиғаның баяндаушысы: ISSAI KazakhTTS2 деректеріне үйретілген Piper моделі (CC BY 4.0)</p>
 </div>
 <script src="vendor/three-r128.min.js"></script>
 <script>

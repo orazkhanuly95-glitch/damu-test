@@ -284,6 +284,8 @@ body.fs-lock{overflow:hidden}
   .theatre.fs .caption.min::after{content:"Мәтін ▴";font:700 13px/1.2 var(--body)}
   .theatre.fs .scene-tag{font-size:11px;padding:2px 8px;border-width:2px}
 }
+
+.brand p.by{margin:3px 0 0;font:600 13px/1.3 var(--body);color:var(--ink)}
 .stage{--u:9px;background:#cdd8f7}
 .stage canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
 .stage.paused canvas{filter:saturate(.3) brightness(.5)}
@@ -313,6 +315,13 @@ body.fs-lock{overflow:hidden}
 .s3d .row3 span{background:#fff;color:var(--ink);border-radius:999px;padding:calc(var(--u)*.9) calc(var(--u)*2.2);font:700 calc(var(--u)*1.8)/1 var(--body)}
 .s3d small{font:500 calc(var(--u)*1.8)/1.3 var(--body);color:#dfe6fb}
 @media (prefers-reduced-motion:reduce){.hs{animation:none}}
+@media (max-width:520px){
+  .controls .ctl-group{width:100%;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+  .controls .ctl-group .btn{padding:9px 12px;font-size:14px;flex:1 1 auto;min-width:0;white-space:nowrap}
+  .t3d small{display:none}
+}
+
+.brand p.by{margin:3px 0 0;font:600 13px/1.3 var(--body);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -323,6 +332,7 @@ body.fs-lock{overflow:hidden}
       <div>
         <h1>Шәйнек жарысы 3D</h1>
         <p>Функционалдық сауаттылық · Физика, 8-сынып, §7 · дауысты 3D мультфильм</p>
+        <p class="by">Ысмайл Рамазан Оразханұлы · Қаратай Тұрысов атындағы №53 мектеп-гимназиясы</p>
       </div>
     </div>
     <div class="top-actions">
@@ -335,7 +345,7 @@ body.fs-lock{overflow:hidden}
       <div class="stage" id="stage">
         <canvas id="gl" role="img" aria-label="Шәйнек жарысы туралы 3D мультфильм"></canvas>
         <div class="ov" id="ov">
-          <div class="t3d" id="t3d"><span class="tag">1-оқиға · §7 · 3D</span><h2>Шәйнек жарысы<span>3 минут қалды!</span></h2><p>Әжесі үш минуттан кейін келеді. Кімнің шәйнегі бірінші қайнайды?</p><small>Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі</small></div>
+          <div class="t3d" id="t3d"><span class="tag">1-оқиға · §7 · 3D</span><h2>Шәйнек жарысы<span>3 минут қалды!</span></h2><p>Әжесі үш минуттан кейін келеді. Кімнің шәйнегі бірінші қайнайды?</p><small>Авторы: Ысмайл Рамазан Оразханұлы<br>Қаратай Тұрысов атындағы №53 мектеп-гимназиясы</small></div>
           <div class="s3d" id="s3d" hidden><div class="pz"><i></i><i></i></div><b>ТОҚТА!</b><em>Кім үлгереді?</em><div class="row3"><span>1. Болжам жаса</span><span>2. Дерек жина</span><span>3. Есепті шығар</span></div><small>Оқиғаның түйіні есеп шыққан соң ашылады</small></div>
           <div class="bub" id="bub" hidden></div>
         </div>
@@ -369,7 +379,7 @@ body.fs-lock{overflow:hidden}
     </aside>
   </main>
   <section class="task" id="task" aria-labelledby="taskTitle"></section>
-  <p class="foot">Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі</p>
+  <p class="foot">Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі, Қаратай Тұрысов атындағы №53 мектеп-гимназиясы</p>
 </div>
 <script src="vendor/three-r128.min.js"></script>
 <script>

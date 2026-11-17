@@ -284,6 +284,8 @@ body.fs-lock{overflow:hidden}
   .theatre.fs .caption.min::after{content:"Мәтін ▴";font:700 13px/1.2 var(--body)}
   .theatre.fs .scene-tag{font-size:11px;padding:2px 8px;border-width:2px}
 }
+
+.brand p.by{margin:3px 0 0;font:600 13px/1.3 var(--body);color:var(--ink)}
 /* writing space: squared paper, blue "ink", baseline of each line on a grid line */
 .work{--ln:32px;display:flex;flex-direction:column;gap:6px}
 .wk-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
@@ -328,6 +330,7 @@ body.fs-lock{overflow:hidden}
       <div>
         <h1>Физика оқиғалары</h1>
         <p>Функционалдық сауаттылық · 8-сынып, §7–§12 · 6 мультфильм</p>
+        <p class="by">Ысмайл Рамазан Оразханұлы · Қаратай Тұрысов атындағы №53 мектеп-гимназиясы</p>
       </div>
     </div>
     <div class="top-actions">
@@ -370,7 +373,7 @@ body.fs-lock{overflow:hidden}
     </aside>
   </main>
   <section class="task" id="task" aria-labelledby="taskTitle"></section>
-  <p class="foot">Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі</p>
+  <p class="foot">Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі, Қаратай Тұрысов атындағы №53 мектеп-гимназиясы</p>
 </div>
 <script>
 (() => {
@@ -771,7 +774,7 @@ function titleScene(e){
   <text x="90" y="${318+ss+26}" font-size="${ss}" class="t-display" fill="${SUN}">${e.sub}</text>
   ${e.hookLines.map((l,i)=>`<text x="92" y="${500+i*46}" font-size="32" class="t-body" fill="#fff">${l}</text>`).join('')}
   <rect x="90" y="640" width="400" height="54" rx="27" fill="${SUN}"/><text x="290" y="676" text-anchor="middle" font-size="25" class="t-bold" fill="${INK}">Функционалдық сауаттылық</text>
-  <text x="92" y="842" font-size="23" class="t-body" fill="#c9d3f5">Авторы: Ысмайл Рамазан Оразханұлы, физика пәні мұғалімі</text>`;
+  <text x="92" y="842" font-size="23" class="t-body" fill="#c9d3f5">Авторы: Ысмайл Рамазан Оразханұлы, Қаратай Тұрысов атындағы №53 мектеп-гимназиясы</text>`;
 }
 function stopScene(e){
   return `${raysAt().replace(/1185/g,'800').replace('class="rays"','class="rays" style="transform-origin:800px 560px"')}
