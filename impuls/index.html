@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Импульс зертханасы — 68 есеп</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a1120; --panel:#111a2d; --panel2:#16213a; --line:#243354; --line2:#2e4068;
+  --ink:#eaf0ff; --mute:#93a1c3; --dim:#64739a;
+  --c1:#ff7a59; --c2:#2ec4b6; --gold:#ffd166; --pink:#ef476f; --sky:#7dd3fc; --vio:#a78bfa;
+  --ok:#34d399; --bad:#f87171; --r:16px;
+  --font:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{min-height:100vh;background:
+  radial-gradient(1200px 600px at 85% -10%,rgba(46,196,182,.10),transparent 60%),
+  radial-gradient(900px 500px at -10% 10%,rgba(255,122,89,.10),transparent 60%),var(--bg)}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:1380px;margin:0 auto;padding:14px 16px 28px}
+
+/* ---------- header ---------- */
+header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 4px 14px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo .mark{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--c1),#ff9f6e 45%,var(--gold));box-shadow:0 6px 20px rgba(255,122,89,.35)}
+.logo .mark svg{width:28px;height:28px}
+.ttl h1{margin:0;font-size:22px;font-weight:800;letter-spacing:-.01em}
+.ttl p{margin:2px 0 0;color:var(--mute);font-size:13px}
+.brand{margin-left:auto;display:flex;align-items:center;gap:10px}
+.damu{font-weight:800;letter-spacing:.14em;font-size:13px;padding:7px 11px;border-radius:10px;border:1.5px solid var(--gold);color:var(--gold)}
+.author{font-size:12.5px;color:var(--mute);line-height:1.3;text-align:right}
+.author b{color:var(--ink);font-weight:700}
+.score{display:flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:7px 12px;font-size:13px}
+.score .n{font-family:var(--mono);font-weight:700;color:var(--ok)}
+
+/* ---------- level tabs & navigator ---------- */
+.levels{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.lv{flex:1 1 200px;text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:14px;padding:10px 14px;
+  display:flex;align-items:center;gap:12px;transition:border-color .2s,background .2s,transform .15s}
+.lv:hover{border-color:var(--line2)}
+.lv .badge{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:18px;color:#0a1120}
+.lv[data-l=A] .badge{background:var(--c2)} .lv[data-l=B] .badge{background:var(--gold)} .lv[data-l=C] .badge{background:var(--c1)}
+.lv .t1{font-weight:700;font-size:15px} .lv .t2{font-size:12px;color:var(--mute)}
+.lv .bar{height:5px;border-radius:4px;background:var(--line);margin-top:6px;overflow:hidden;width:150px;max-width:100%}
+.lv .bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .4s}
+.lv.on{background:var(--panel2);border-color:var(--sky);box-shadow:0 0 0 1px var(--sky) inset}
+.nav{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:thin}
+.chip{flex:0 0 auto;min-width:40px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--mute);
+  font-weight:700;font-size:14px;font-family:var(--mono)}
+.chip:hover{color:var(--ink);border-color:var(--line2)}
+.chip.on{background:var(--sky);color:#08111f;border-color:var(--sky)}
+.chip.ok{border-color:var(--ok);color:var(--ok)} .chip.bad{border-color:var(--bad);color:var(--bad)}
+.chip.on.ok,.chip.on.bad{color:#08111f}
+.chip.on.ok{background:var(--ok)} .chip.on.bad{background:var(--bad)}
+
+/* ---------- main grid ---------- */
+.main{display:grid;grid-template-columns:minmax(0,1.42fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:1020px){.main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.stagecard{position:sticky;top:10px}
+@media (max-width:1020px){.stagecard{position:static}}
+.stagebox{position:relative;background:#0d1424}
+canvas#stage{display:block;width:100%;aspect-ratio:16/9;height:auto}
+.ctrl{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--line);flex-wrap:wrap}
+.ib{height:38px;min-width:38px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);display:inline-grid;place-items:center;padding:0 10px;font-weight:600;font-size:14px}
+.ib:hover{border-color:var(--sky)}
+.ib svg{width:18px;height:18px}
+.ib.play{background:var(--sky);color:#08111f;border-color:var(--sky)}
+input[type=range]{flex:1 1 160px;accent-color:var(--sky);height:24px}
+.spd{display:flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden}
+.spd button{background:transparent;border:0;color:var(--mute);padding:0 10px;height:36px;font-weight:700;font-size:13px}
+.spd button.on{background:var(--panel2);color:var(--ink);box-shadow:inset 0 -2px 0 var(--sky)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:0 14px 12px;font-size:12.5px;color:var(--mute)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:22px;height:4px;border-radius:3px;display:inline-block}
+
+/* ---------- problem card ---------- */
+.pcard{padding:16px 18px 18px}
+.phead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pnum{font-family:var(--mono);font-weight:700;font-size:13px;padding:5px 10px;border-radius:8px;background:var(--panel2);border:1px solid var(--line2)}
+.ptag{font-size:12px;color:var(--mute)}
+.ptext{font-size:17px;line-height:1.55;margin:4px 0 14px}
+.ptext b{color:var(--gold)}
+.hint{display:flex;gap:10px;align-items:flex-start;background:rgba(125,211,252,.07);border:1px dashed rgba(125,211,252,.35);border-radius:12px;padding:9px 12px;font-size:13.5px;color:#bfe6fb;margin-bottom:14px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+@media (max-width:520px){.opts{grid-template-columns:1fr}}
+.opt{display:flex;align-items:center;gap:10px;text-align:left;background:var(--panel2);border:1.5px solid var(--line2);border-radius:12px;color:var(--ink);padding:11px 12px;font-size:15.5px;min-height:52px;transition:border-color .15s,background .15s,transform .1s}
+.opt:hover:not([disabled]){border-color:var(--sky)}
+.opt .L{flex:0 0 30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:800;background:var(--line);color:var(--ink);font-size:14px}
+.opt.sel{border-color:var(--sky);background:rgba(125,211,252,.10)} .opt.sel .L{background:var(--sky);color:#08111f}
+.opt.right{border-color:var(--ok);background:rgba(52,211,153,.12)} .opt.right .L{background:var(--ok);color:#08111f}
+.opt.wrong{border-color:var(--bad);background:rgba(248,113,113,.12)} .opt.wrong .L{background:var(--bad);color:#08111f}
+.opt[disabled]{cursor:default}
+.actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn{height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);font-weight:700;font-size:15px}
+.btn.pri{background:linear-gradient(135deg,var(--c1),#ff9a6b);border:0;color:#1a0d06;box-shadow:0 6px 18px rgba(255,122,89,.3)}
+.btn.pri[disabled]{opacity:.45;box-shadow:none;cursor:not-allowed}
+.btn:hover:not([disabled]){filter:brightness(1.08)}
+.verdict{margin-top:14px;border-radius:14px;padding:12px 14px;display:flex;gap:12px;align-items:center;font-size:15.5px;animation:pop .35s ease}
+.verdict.ok{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.5)}
+.verdict.bad{background:rgba(248,113,113,.10);border:1px solid rgba(248,113,113,.5)}
+.verdict .ic{font-size:22px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:0 0 38px;font-weight:800}
+.verdict.ok .ic{background:var(--ok);color:#08111f} .verdict.bad .ic{background:var(--bad);color:#08111f}
+@keyframes pop{from{transform:scale(.97);opacity:0}to{transform:none;opacity:1}}
+
+/* ---------- solution steps ---------- */
+.sol{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.sol h3{margin:0 0 10px;font-size:16px;display:flex;align-items:center;gap:8px}
+.sol h3 .pill{font-size:12px;font-weight:600;color:var(--mute);background:var(--panel2);border:1px solid var(--line2);border-radius:20px;padding:2px 9px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.step{border:1px solid var(--line2);border-radius:12px;padding:10px 12px 11px;background:var(--panel2);animation:slide .45s ease;cursor:pointer}
+.step.act{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,209,102,.35) inset}
+.step .sh{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:5px}
+.step .sh .k{font-family:var(--mono);font-size:12px;background:rgba(255,209,102,.15);border-radius:6px;padding:1px 7px}
+.step .sb{font-size:15px;line-height:1.6;color:#dfe7fb}
+.step .sb .f{font-family:var(--mono);font-size:14.5px;background:#0d1527;border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px 0;display:block;overflow-x:auto;white-space:nowrap;color:#fff}
+.step.final{border-color:var(--ok);background:rgba(52,211,153,.08)} .step.final .sh{color:var(--ok)}
+@keyframes slide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.stepbtns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.stepbtns .btn{height:40px;font-size:14px}
+.btn.gold{background:var(--gold);color:#1b1404;border:0}
+.pager{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 3px;line-height:1.12;font-size:.92em}
+.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}
+.vec{position:relative;display:inline-block}
+.vec::after{content:'';position:absolute;left:8%;right:4%;top:-.12em;height:.32em;
+  background:no-repeat center/100% 100% url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 6'%3E%3Cpath d='M0 3h17' stroke='%23dfe7fb' stroke-width='1.3'/%3E%3Cpath d='M14 0.6L19 3L14 5.4' fill='none' stroke='%23dfe7fb' stroke-width='1.3'/%3E%3C/svg%3E")}
+sub,sup{font-size:.72em}
+footer{margin-top:18px;padding:14px 4px 0;border-top:1px solid var(--line);display:flex;gap:16px;flex-wrap:wrap;align-items:center;color:var(--mute);font-size:13px}
+footer .sp{margin-left:auto}
+.reset{background:none;border:1px solid var(--line2);color:var(--mute);border-radius:10px;padding:7px 12px;font-size:12.5px}
+.reset:hover{color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);opacity:0;background:var(--panel2);border:1px solid var(--line2);padding:10px 16px;border-radius:12px;font-size:14px;transition:.3s;pointer-events:none;z-index:9}
+.toast.on{opacity:1;transform:translateX(-50%)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.rot{display:none}
+@media (max-width:640px){
+  .wrap{padding:10px 10px 22px} .ttl h1{font-size:19px} .brand{margin-left:0;width:100%;justify-content:space-between}
+  .author{text-align:left} .ptext{font-size:16px}
+  .levels{flex-wrap:nowrap;gap:6px} .lv{flex:1 1 0;min-width:0;padding:8px;gap:8px} .lv .badge{width:30px;height:30px;font-size:15px;flex:0 0 30px}
+  .lv .t1{font-size:12.5px;line-height:1.25} .lv .t2{display:none} .lv .bar{width:100%}
+  .score{white-space:nowrap} .rot{display:block;font-size:12px;color:var(--dim);padding:0 14px 10px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="logo">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 28 28"><circle cx="8" cy="15" r="5.2" fill="#1a0d06"/><circle cx="21" cy="15" r="4" fill="#1a0d06" opacity=".75"/><path d="M2 6h11" stroke="#1a0d06" stroke-width="2.4" stroke-linecap="round"/><path d="M10 2.8l3.6 3.2-3.6 3.2" fill="none" stroke="#1a0d06" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="ttl">
+      <h1>Импульс зертханасы</h1>
+      <p>Импульс. Импульстің сақталу заңы · 68 есеп · А, В, С деңгейлері</p>
+    </div>
+  </div>
+  <div class="brand">
+    <div class="score" title="Дұрыс жауаптар саны"><span>Дұрыс:</span><span class="n" id="scoreN">0</span><span style="color:var(--dim)">/ 68</span></div>
+    <div class="author"><b>Рамазан ағай</b><br>Ысмайл Рамазан Оразханұлы</div>
+    <div class="damu">DAMU</div>
+  </div>
+</header>
+
+<nav class="levels" id="levels"></nav>
+<div class="nav" id="nav" aria-label="Есептер"></div>
+
+<section class="main">
+  <div class="card stagecard">
+    <div class="stagebox"><canvas id="stage" aria-label="Есептің анимациясы"></canvas></div>
+    <div class="ctrl">
+      <button class="ib play" id="bPlay" title="Ойнату / тоқтату (Space)"></button>
+      <button class="ib" id="bRe" title="Басынан"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
+      <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Уақыт">
+      <div class="spd" id="spd"><button data-s="0.5">0,5×</button><button data-s="1" class="on">1×</button><button data-s="1.5">1,5×</button></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--sky)"></i>υ — жылдамдық</span>
+      <span><i style="background:var(--gold)"></i>p — импульс</span>
+      <span><i style="background:var(--pink)"></i>F — күш</span>
+      <span><b style="color:var(--gold)">?</b> — ізделетін шама</span>
+    </div>
+    <div class="rot">Телефонды көлденең бұрсаңыз, анимация үлкейеді.</div>
+  </div>
+
+  <div class="card pcard" id="pcard"></div>
+</section>
+
+<footer>
+  <span>Авторы: <b style="color:var(--ink)">Ысмайл Рамазан Оразханұлы</b>, физика пәні мұғалімі</span>
+  <span>Қаратай Тұрысов атындағы №53 мектеп-гимназиясы · DAMU</span>
+  <span class="sp"><button class="reset" id="bReset">Нәтижелерді тазалау</button></span>
+</footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* =========================================================
+   Импульс зертханасы — анимация қозғалтқышы (Canvas 2D)
+   Әр сахна t уақытының таза функциясы: draw(t,P,S)
+   ========================================================= */
+const W=960,H=540,GY=440;
+const C={bg:'#0d1424',ink:'#eaf0ff',mute:'#93a1c3',dim:'#5f6f96',line:'#2a3a5e',
+  b1:'#ff7a59',b2:'#2ec4b6',b3:'#a78bfa',p:'#ffd166',v:'#7dd3fc',F:'#ef476f',ok:'#34d399',bad:'#f87171'};
+const FONT="Inter,'Segoe UI',system-ui,sans-serif", MONO="'JetBrains Mono',ui-monospace,monospace";
+const cv=document.getElementById('stage'), cx=cv.getContext('2d');
+let NOW=0;
+
+/* ---------- utils ---------- */
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const lerp=(a,b,u)=>a+(b-a)*u;
+const ease=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+const seg=(t,a,b)=>clamp((t-a)/(b-a),0,1);
+function fmt(v,d=2){ if(v==null||!isFinite(v)) return '—'; const s=String(+(+v).toFixed(d)); return s.replace('-', '−').replace('.', ','); }
+function hexRgb(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];}
+function mix(a,b,u){const A=hexRgb(a),B=hexRgb(b);return 'rgb('+A.map((x,i)=>Math.round(x+(B[i]-x)*u)).join(',')+')';}
+function rgba(h,a){const [r,g,b]=hexRgb(h);return `rgba(${r},${g},${b},${a})`;}
+const hid=(P,S,k)=>!!(P.hide&&P.hide.includes(k)&&!S.rev);
+const isQ=(P,k)=>!!(P.hide&&P.hide.includes(k));
+const V=(P,S,k,s)=>hid(P,S,k)?'?':s;
+const HL=(S,k)=>!!S.hl&&(S.hl===k||(Array.isArray(S.hl)&&S.hl.includes(k)));
+const pulse=()=>.5+.5*Math.sin(NOW*6);
+
+/* ---------- primitives ---------- */
+function rr(x,y,w,h,r){r=Math.min(r,w/2,h/2);cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath();}
+function font(sz,wt=600,mono=false){cx.font=`${wt} ${sz}px ${mono?MONO:FONT}`;}
+function T(s,x,y,o={}){
+  const sz=o.size||19; font(sz,o.w||600,o.mono);
+  cx.textAlign=o.al||'left'; cx.textBaseline='middle';
+  if(o.bg){ const m=cx.measureText(s).width, p=o.pad??8; const bx=o.al==='center'?x-m/2-p:o.al==='right'?x-m-p:x-p;
+    rr(bx,y-sz*.78,m+2*p,sz*1.56,o.rad??9); cx.fillStyle=o.bg; cx.fill(); if(o.bd){cx.strokeStyle=o.bd;cx.lineWidth=o.bw||1.5;cx.stroke();} }
+  cx.fillStyle=o.col||C.ink; cx.fillText(s,x,y);
+  return cx.measureText(s).width;
+}
+function arrow(x1,y1,x2,y2,col,w=4,o={}){
+  const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy); if(L<3) return;
+  const ux=dx/L,uy=dy/L, hl=Math.min(o.head||(9+w*2.2),L*.65), hw=hl*.55;
+  cx.save(); cx.globalAlpha=o.alpha??1;
+  if(o.glow){cx.shadowColor=col;cx.shadowBlur=o.glow;}
+  cx.strokeStyle=col;cx.fillStyle=col;cx.lineWidth=w;cx.lineCap='round';
+  if(o.dash)cx.setLineDash(o.dash);
+  cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2-ux*hl*.85,y2-uy*hl*.85);cx.stroke();cx.setLineDash([]);
+  cx.beginPath();cx.moveTo(x2,y2);cx.lineTo(x2-ux*hl-uy*hw,y2-uy*hl+ux*hw);cx.lineTo(x2-ux*hl+uy*hw,y2-uy*hl-ux*hw);cx.closePath();cx.fill();
+  cx.restore();
+  if(o.label){ const lx=o.lx!=null?o.lx:(x1+x2)/2+(o.ox||0), ly=o.ly!=null?o.ly:(y1+y2)/2+(o.oy??-18);
+    T(o.label,lx,ly,{size:o.ls||18,col:o.lc||col,al:o.al||'center',w:700,bg:o.lbg||'rgba(13,20,36,.78)',pad:5,rad:6}); }
+}
+function dot(x,y,r,col){cx.beginPath();cx.arc(x,y,r,0,7);cx.fillStyle=col;cx.fill();}
+function panel(x,y,w,h,o={}){
+  cx.save(); rr(x,y,w,h,o.r||12); cx.fillStyle=o.bg||'rgba(15,24,43,.9)'; cx.fill();
+  cx.lineWidth=o.on?2.5:1.2; cx.strokeStyle=o.on?rgba(C.p,.55+.45*pulse()):(o.bd||'#2a3a5e'); cx.stroke();
+  if(o.on){cx.shadowColor=C.p;cx.shadowBlur=18;cx.stroke();}
+  cx.restore();
+}
+function bg(){
+  cx.fillStyle=C.bg;cx.fillRect(0,0,W,H);
+  cx.strokeStyle='rgba(125,160,230,.055)';cx.lineWidth=1;cx.beginPath();
+  for(let x=0;x<=W;x+=40){cx.moveTo(x+.5,0);cx.lineTo(x+.5,H);} for(let y=0;y<=H;y+=40){cx.moveTo(0,y+.5);cx.lineTo(W,y+.5);} cx.stroke();
+}
+let STARS=null;
+function stars(){ if(!STARS){let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;STARS=[...Array(110)].map(()=>[r()*W,r()*H,r()*1.6+.3,r()*6]);}
+  for(const[x,y,rad,ph] of STARS){cx.globalAlpha=.35+.35*Math.sin(NOW*1.5+ph);dot(x,y,rad,'#cfe0ff');} cx.globalAlpha=1; }
+function ground(type,y=GY,o={}){
+  if(!type||type==='none')return;
+  if(type==='space'){stars();return;}
+  cx.save();
+  if(type==='water'){
+    const g=cx.createLinearGradient(0,y,0,H);g.addColorStop(0,'#1d5c86');g.addColorStop(1,'#0a2740');cx.fillStyle=g;
+    cx.beginPath();cx.moveTo(0,H);for(let x=0;x<=W;x+=8)cx.lineTo(x,y+3.5*Math.sin(x/34+NOW*2.2));cx.lineTo(W,H);cx.closePath();cx.fill();
+    cx.strokeStyle='rgba(180,225,255,.55)';cx.lineWidth=2;cx.beginPath();for(let x=0;x<=W;x+=8){const yy=y+3.5*Math.sin(x/34+NOW*2.2);x?cx.lineTo(x,yy):cx.moveTo(x,yy);}cx.stroke();
+  } else if(type==='ice'){
+    const g=cx.createLinearGradient(0,y,0,H);g.addColorStop(0,'#bfe3ff');g.addColorStop(1,'#5a8fb8');cx.fillStyle=g;cx.fillRect(0,y,W,H-y);
+    cx.strokeStyle='rgba(255,255,255,.55)';cx.lineWidth=2;for(let i=0;i<9;i++){const x=(i*131+40)%W;cx.beginPath();cx.moveTo(x,y+14+i%3*18);cx.lineTo(x+70,y+10+i%3*18);cx.stroke();}
+  } else if(type==='road'){
+    cx.fillStyle='#262c38';cx.fillRect(0,y,W,H-y);cx.fillStyle='#3a4252';cx.fillRect(0,y,W,5);
+    cx.strokeStyle='#e8edf7';cx.lineWidth=4;cx.setLineDash([34,30]);cx.lineDashOffset=-(o.off||0);cx.beginPath();cx.moveTo(0,y+48);cx.lineTo(W,y+48);cx.stroke();cx.setLineDash([]);
+  } else if(type==='table'){
+    const g=cx.createLinearGradient(0,y,0,H);g.addColorStop(0,'#8a5a36');g.addColorStop(1,'#4a2e1a');cx.fillStyle=g;cx.fillRect(0,y,W,H-y);
+    cx.strokeStyle='rgba(255,220,180,.15)';for(let i=0;i<6;i++){cx.beginPath();cx.moveTo(0,y+12+i*16);cx.bezierCurveTo(300,y+6+i*16,600,y+20+i*16,W,y+10+i*16);cx.stroke();}
+  } else if(type==='track'){
+    cx.fillStyle='#1a2236';cx.fillRect(0,y+8,W,H-y);
+    cx.fillStyle='#4b3a2a';for(let x=-((o.off||0)%38);x<W;x+=38)cx.fillRect(x,y+5,22,9);
+    cx.fillStyle='#aab6cf';cx.fillRect(0,y,W,5);
+  } else {
+    cx.fillStyle='#172036';cx.fillRect(0,y,W,H-y);cx.strokeStyle='#5f6f96';cx.lineWidth=2;cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke();
+    cx.strokeStyle='rgba(95,111,150,.35)';cx.lineWidth=1.5;for(let x=-((o.off||0)%22);x<W;x+=22){cx.beginPath();cx.moveTo(x,y+2);cx.lineTo(x-12,y+16);cx.stroke();}
+  }
+  if(o.shore){ const L=o.shore==='L', sx=o.sx||90; cx.fillStyle='#c9a86a';cx.beginPath();
+    if(L){cx.moveTo(0,y-26);cx.lineTo(sx-10,y-26);cx.lineTo(sx+18,y+40);cx.lineTo(0,y+40);} else {cx.moveTo(W,y-26);cx.lineTo(W-sx+10,y-26);cx.lineTo(W-sx-18,y+40);cx.lineTo(W,y+40);}
+    cx.closePath();cx.fill();cx.fillStyle='#4f9d55';L?cx.fillRect(0,y-32,sx-8,8):cx.fillRect(W-sx+8,y-32,sx-8,8);
+    T('жаға',L?sx/2-4:W-sx/2+4,y-52,{size:15,col:'#c9e7b0',al:'center',w:600});
+  }
+  cx.restore();
+}
+function spark(x,y,u,col=C.p){ if(u<0||u>1)return; cx.save(); cx.globalAlpha=1-u; cx.strokeStyle=col; cx.lineWidth=3; cx.lineCap='round';
+  for(let i=0;i<10;i++){const a=i/10*Math.PI*2, r1=8+u*26, r2=r1+10+u*16; cx.beginPath();cx.moveTo(x+Math.cos(a)*r1,y+Math.sin(a)*r1);cx.lineTo(x+Math.cos(a)*r2,y+Math.sin(a)*r2);cx.stroke();}
+  dot(x,y,10*(1-u)+2,'#fff'); cx.restore(); }
+function boom(x,y,u){ if(u<0||u>1)return; cx.save(); const r=14+u*70; const g=cx.createRadialGradient(x,y,0,x,y,r);
+  g.addColorStop(0,`rgba(255,250,220,${.95*(1-u)})`);g.addColorStop(.45,`rgba(255,160,70,${.7*(1-u)})`);g.addColorStop(1,'rgba(239,71,111,0)');
+  cx.fillStyle=g;cx.beginPath();cx.arc(x,y,r,0,7);cx.fill(); cx.restore(); spark(x,y,u,'#ffb347'); }
+
+/* ---------- bodies ---------- */
+const DIM={ball:[72,72],block:[100,76],cube:[96,96],cart:[140,70],cart2:[270,70],wagon:[190,100],car:[170,66],person:[52,118],
+  boat:[180,50],bullet:[30,11],gun:[160,34],rocket:[140,40],ship:[160,52],stage:[110,46],puck:[44,13],player:[64,108],
+  sack:[56,60],nucleus:[88,88],particle:[18,18],gas:[96,56],stone:[22,18],frag:[48,38],grenade:[60,48],rocketV:[44,150]};
+function defBody(b){ const d=DIM[b.kind]||[60,60], s=b.s||1; b.w=b.w||d[0]*s; b.h=b.h||d[1]*s; b.col=b.col||C.b1; return b; }
+function shade(col,u){return mix(col,'#ffffff',u);} function dark(col,u){return mix(col,'#000000',u);}
+function wheel(x,y,r){dot(x,y,r,'#1b2233');dot(x,y,r*.55,'#8d99b3');dot(x,y,r*.18,'#1b2233');}
+function person(x,yG,h,col,o={}){
+  const ph=o.run?Math.sin(o.run):0, k=h/106;
+  cx.save(); cx.lineCap='round'; cx.lineJoin='round';
+  const hip=yG-46*k, sh=yG-80*k;
+  cx.strokeStyle='#2b3550';cx.lineWidth=9*k;
+  cx.beginPath();cx.moveTo(x,hip);cx.lineTo(x+14*k*ph,yG-2);cx.moveTo(x,hip);cx.lineTo(x-14*k*ph,yG-2);cx.stroke();
+  cx.strokeStyle=dark(col,.15);cx.lineWidth=7*k;
+  const ax=o.arm??(-ph);cx.beginPath();cx.moveTo(x,sh+6*k);cx.lineTo(x+16*k*ax+ (o.reach||0)*k,sh+26*k- (o.raise||0)*k);cx.stroke();
+  rr(x-12*k,sh-2*k,24*k,hip-sh+8*k,9*k);const g=cx.createLinearGradient(x-12*k,0,x+12*k,0);g.addColorStop(0,shade(col,.25));g.addColorStop(1,col);cx.fillStyle=g;cx.fill();
+  dot(x,yG-94*k,11*k,'#f3c9a6'); cx.fillStyle='#3a2a20';cx.beginPath();cx.arc(x,yG-97*k,11.5*k,Math.PI*1.05,Math.PI*1.95);cx.fill();
+  cx.restore();
+}
+function body(b,x,yG,o={}){
+  const {kind,w,h}=b, col=b.col; cx.save();
+  if(o.glow){cx.shadowColor=C.p;cx.shadowBlur=26+10*pulse();}
+  if(o.rot){cx.translate(x,yG-h/2);cx.rotate(o.rot);cx.translate(-x,-(yG-h/2));}
+  const sq=o.squash||0;
+  switch(kind){
+    case 'ball': case 'particle': {
+      const r=h/2, cy=yG-r, rx=r*(1-sq), ry=r*(1+sq*.6);
+      const g=cx.createRadialGradient(x-r*.35,cy-r*.4,r*.1,x,cy,r*1.05);g.addColorStop(0,shade(col,.55));g.addColorStop(1,col);
+      cx.fillStyle=g;cx.beginPath();cx.ellipse(x,cy,rx,ry,0,0,7);cx.fill();
+      if(kind==='particle'){cx.shadowColor=col;cx.shadowBlur=18;cx.fill();}
+      if(b.ball==='soccer'){cx.fillStyle='#1b2233';for(const[a,d]of[[0,0],[1,.6],[2.6,.6],[4.2,.62],[5.5,.58]]){const px=x+Math.cos(a)*r*d,py=cy+Math.sin(a)*r*d;cx.beginPath();for(let i=0;i<5;i++){const q=i/5*Math.PI*2-1.57;cx.lineTo(px+Math.cos(q)*r*.2,py+Math.sin(q)*r*.2);}cx.fill();}}
+      break;}
+    case 'block': case 'cube': case 'sack0': {
+      rr(x-w/2,yG-h,w,h,8);const g=cx.createLinearGradient(0,yG-h,0,yG);g.addColorStop(0,shade(col,.3));g.addColorStop(1,dark(col,.12));cx.fillStyle=g;cx.fill();
+      cx.strokeStyle=dark(col,.3);cx.lineWidth=2;cx.stroke();
+      if(b.wood){cx.strokeStyle='rgba(60,30,10,.35)';cx.lineWidth=1.5;for(let i=1;i<4;i++){cx.beginPath();cx.moveTo(x-w/2+4,yG-h+i*h/4);cx.bezierCurveTo(x-w/6,yG-h+i*h/4-4,x+w/6,yG-h+i*h/4+4,x+w/2-4,yG-h+i*h/4);cx.stroke();}}
+      if(kind==='cube'){cx.fillStyle='rgba(255,255,255,.13)';cx.beginPath();cx.moveTo(x-w/2+6,yG-h+6);cx.lineTo(x+w/2-6,yG-h+6);cx.lineTo(x+w/2-18,yG-h+20);cx.lineTo(x-w/2+18,yG-h+20);cx.fill();}
+      break;}
+    case 'cart': case 'cart2': {
+      const one=(cxp,ww)=>{const r=h*.2; rr(cxp-ww/2,yG-h,ww,h-r*1.4,7);const g=cx.createLinearGradient(0,yG-h,0,yG);g.addColorStop(0,shade(col,.3));g.addColorStop(1,dark(col,.15));cx.fillStyle=g;cx.fill();
+        cx.strokeStyle=dark(col,.35);cx.lineWidth=2;cx.stroke(); wheel(cxp-ww*.3,yG-r,r);wheel(cxp+ww*.3,yG-r,r);};
+      if(kind==='cart2'){const ww=(w-20)/2;one(x-w/2+ww/2,ww);one(x+w/2-ww/2,ww);cx.fillStyle='#8d99b3';cx.fillRect(x-12,yG-h*.55,24,5);} else one(x,w);
+      break;}
+    case 'wagon': {
+      const r=h*.13; rr(x-w/2,yG-h,w,h-r*2.2,5);const g=cx.createLinearGradient(0,yG-h,0,yG);g.addColorStop(0,shade(col,.22));g.addColorStop(1,dark(col,.2));cx.fillStyle=g;cx.fill();
+      cx.strokeStyle=dark(col,.35);cx.lineWidth=2;cx.stroke(); cx.strokeStyle=rgba('#000000',.18);for(let i=1;i<7;i++){cx.beginPath();cx.moveTo(x-w/2+i*w/7,yG-h+6);cx.lineTo(x-w/2+i*w/7,yG-r*2.2-6);cx.stroke();}
+      cx.fillStyle='#6b7690';cx.fillRect(x-w/2-10,yG-r*2.6,10,6);cx.fillRect(x+w/2,yG-r*2.6,10,6);
+      for(const k of[-.36,-.22,.22,.36])wheel(x+k*w,yG-r,r);
+      break;}
+    case 'car': {
+      const r=h*.2; cx.beginPath();cx.moveTo(x-w/2,yG-r*1.3);cx.lineTo(x-w/2,yG-h*.55);cx.quadraticCurveTo(x-w/2+4,yG-h*.62,x-w*.3,yG-h*.62);
+      cx.lineTo(x-w*.18,yG-h);cx.lineTo(x+w*.18,yG-h);cx.lineTo(x+w*.32,yG-h*.62);cx.quadraticCurveTo(x+w/2,yG-h*.6,x+w/2,yG-h*.4);cx.lineTo(x+w/2,yG-r*1.3);cx.closePath();
+      const g=cx.createLinearGradient(0,yG-h,0,yG);g.addColorStop(0,shade(col,.3));g.addColorStop(1,dark(col,.2));cx.fillStyle=g;cx.fill();
+      cx.fillStyle='rgba(200,230,255,.75)';cx.beginPath();cx.moveTo(x-w*.15,yG-h*.92);cx.lineTo(x+w*.15,yG-h*.92);cx.lineTo(x+w*.25,yG-h*.66);cx.lineTo(x-w*.25,yG-h*.66);cx.closePath();cx.fill();
+      dot(x+w/2-6,yG-h*.48,4,'#fff6b0'); wheel(x-w*.3,yG-r,r); wheel(x+w*.3,yG-r,r);
+      break;}
+    case 'person': person(x,yG,h,col,o); break;
+    case 'player': { person(x,yG,h,col,o); cx.strokeStyle='#d6b27a';cx.lineWidth=5;cx.lineCap='round';cx.beginPath();cx.moveTo(x+6,yG-70*h/108);cx.lineTo(x+w*.55,yG-6);cx.lineTo(x+w*.85,yG-4);cx.stroke(); break;}
+    case 'boat': {
+      cx.beginPath();cx.moveTo(x-w/2,yG-h*.55);cx.lineTo(x+w/2,yG-h*.55);cx.lineTo(x+w*.38,yG+h*.4);cx.lineTo(x-w*.4,yG+h*.4);cx.closePath();
+      const g=cx.createLinearGradient(0,yG-h*.6,0,yG+h*.4);g.addColorStop(0,shade(col,.25));g.addColorStop(1,dark(col,.25));cx.fillStyle=g;cx.fill();
+      cx.fillStyle=dark(col,.4);cx.fillRect(x-w/2,yG-h*.62,w,7);
+      break;}
+    case 'bullet': { rr(x-w/2,yG-h,w,h,h/2);cx.fillStyle='#d9a441';cx.fill();cx.fillStyle='#b07a2a';cx.fillRect(x-w/2,yG-h,w*.45,h); break;}
+    case 'gun': {
+      cx.fillStyle='#7a4b2b';cx.beginPath();cx.moveTo(x-w/2,yG-h*.2);cx.lineTo(x-w*.18,yG-h*.62);cx.lineTo(x-w*.05,yG-h*.62);cx.lineTo(x-w*.05,yG-h*.1);cx.lineTo(x-w*.3,yG+h*.15);cx.lineTo(x-w/2,yG+h*.25);cx.closePath();cx.fill();
+      cx.fillStyle='#5b6478';cx.fillRect(x-w*.08,yG-h*.72,w*.58,h*.26);cx.fillRect(x-w*.08,yG-h*.5,w*.22,h*.3);cx.fillStyle='#3d4456';cx.fillRect(x+w*.02,yG-h*.36,w*.06,h*.42);
+      break;}
+    case 'rocket': case 'ship': case 'stage': case 'rocketV0': {
+      const bh=h, top=yG-bh; const g=cx.createLinearGradient(0,top,0,yG);g.addColorStop(0,'#f2f5fb');g.addColorStop(.5,'#c9d3e6');g.addColorStop(1,'#8090ad');
+      if(kind==='stage'){rr(x-w/2,top,w,bh,6);cx.fillStyle=g;cx.fill();cx.fillStyle=col;cx.fillRect(x-w/2,top+bh*.38,w,bh*.24);cx.fillStyle='#4a5470';cx.beginPath();cx.moveTo(x-w/2,top+bh*.2);cx.lineTo(x-w/2-16,top+bh*.05);cx.lineTo(x-w/2-16,top+bh*.95);cx.lineTo(x-w/2,top+bh*.8);cx.fill();break;}
+      const nose=kind==='ship'?w*.26:w*.24; rr(x-w/2,top,w-nose,bh,8);cx.fillStyle=g;cx.fill();
+      cx.beginPath();cx.moveTo(x+w/2-nose,top);cx.quadraticCurveTo(x+w/2,top+bh*.1,x+w/2,top+bh/2);cx.quadraticCurveTo(x+w/2,top+bh*.9,x+w/2-nose,yG);cx.closePath();cx.fillStyle=col;cx.fill();
+      cx.fillStyle=dark(col,.2);cx.beginPath();cx.moveTo(x-w/2+10,top);cx.lineTo(x-w/2-6,top-12);cx.lineTo(x-w/2+26,top);cx.fill();cx.beginPath();cx.moveTo(x-w/2+10,yG);cx.lineTo(x-w/2-6,yG+12);cx.lineTo(x-w/2+26,yG);cx.fill();
+      dot(x+w*.12,top+bh/2,bh*.2,'#1c2b4a');dot(x+w*.12,top+bh/2,bh*.13,'#7dd3fc');
+      break;}
+    case 'puck': { cx.fillStyle='#111827';cx.beginPath();cx.ellipse(x,yG-h/2,w/2,h/2,0,0,7);cx.fill();cx.strokeStyle='#4b5563';cx.lineWidth=2;cx.stroke(); break;}
+    case 'sack': { cx.beginPath();cx.moveTo(x-w*.15,yG-h);cx.quadraticCurveTo(x-w*.62,yG-h*.4,x-w*.42,yG);cx.lineTo(x+w*.42,yG);cx.quadraticCurveTo(x+w*.62,yG-h*.4,x+w*.15,yG-h);cx.closePath();
+      cx.fillStyle='#c9a46b';cx.fill();cx.strokeStyle='#8a6a3a';cx.lineWidth=2;cx.stroke();cx.fillStyle='#8a6a3a';cx.fillRect(x-w*.18,yG-h*.92,w*.36,5); break;}
+    case 'nucleus': { const r=h/2, cy=yG-r; const pts=[[0,0],[.5,0],[-.5,0],[.25,.43],[-.25,.43],[.25,-.43],[-.25,-.43],[.75,.3],[-.75,.3],[.6,-.5],[-.6,-.5],[0,.8],[0,-.8]];
+      pts.forEach(([a,b2],i)=>{const g=cx.createRadialGradient(x+a*r*.75-4,cy+b2*r*.75-4,2,x+a*r*.75,cy+b2*r*.75,r*.32);g.addColorStop(0,i%2?'#ffd0c2':'#d2e6ff');g.addColorStop(1,i%2?C.b1:'#4f7fc9');cx.fillStyle=g;cx.beginPath();cx.arc(x+a*r*.75,cy+b2*r*.75,r*.3,0,7);cx.fill();}); break;}
+    case 'gas': { cx.globalAlpha=o.alpha??.85; for(const[a,b2,r]of[[0,0,.5],[-.3,-.15,.35],[.25,.2,.32],[-.45,.18,.3],[.4,-.2,.28]]){const g=cx.createRadialGradient(x+a*w,yG-h/2+b2*h,1,x+a*w,yG-h/2+b2*h,r*h);g.addColorStop(0,'rgba(255,230,180,.9)');g.addColorStop(1,'rgba(239,140,90,0)');cx.fillStyle=g;cx.beginPath();cx.arc(x+a*w,yG-h/2+b2*h,r*h,0,7);cx.fill();} break;}
+    case 'stone': { cx.fillStyle='#8b93a5';cx.beginPath();cx.moveTo(x-w/2,yG-h*.3);cx.lineTo(x-w*.2,yG-h);cx.lineTo(x+w*.4,yG-h*.8);cx.lineTo(x+w/2,yG-h*.2);cx.lineTo(x,yG);cx.closePath();cx.fill(); break;}
+    case 'grenade': case 'frag': {
+      cx.beginPath();cx.ellipse(x,yG-h/2,w/2,h/2,0,0,7);const g=cx.createRadialGradient(x-w*.2,yG-h*.7,2,x,yG-h/2,w/2);g.addColorStop(0,shade(col,.4));g.addColorStop(1,dark(col,.15));cx.fillStyle=g;cx.fill();
+      cx.strokeStyle=rgba('#000000',.3);cx.lineWidth=1.5;for(let i=-1;i<=1;i++){cx.beginPath();cx.moveTo(x+i*w*.22,yG-h+3);cx.lineTo(x+i*w*.22,yG-3);cx.stroke();}
+      if(kind==='grenade'){cx.fillStyle='#6b7280';cx.fillRect(x-6,yG-h-8,12,10);} break;}
+    default: rr(x-w/2,yG-h,w,h,6);cx.fillStyle=col;cx.fill();
+  }
+  cx.restore();
+  if(b.lab&&!o.nolab){ const lab=o.lab??b.lab; if(b.labTop||['bullet','gun','puck','particle','stone','person','player','rocket','ship','stage','gas','nucleus','sack'].includes(kind))
+      T(lab,x+(b.lox||0),yG-h-16+(b.loy||0),{size:b.ls||16,al:'center',col:o.labCol||C.ink,w:700,bg:'rgba(13,20,36,.7)',pad:5,rad:6});
+    else T(lab,x+(kind==='boat'?-b.w*.22:0),yG-h/2+(kind==='cart'?-h*.12:kind==='wagon'?-h*.1:kind==='car'?-h*.05:kind==='boat'?h*.42:0),{size:b.ls||17,al:'center',col:o.labCol||'#0c1220',w:800}); }
+}
+
+/* ---------- panels ---------- */
+function rowsPanel(x,y,w,rows,P,S,o={}){
+  const rh=o.rh||31, h=(o.title?34:12)+rows.length*rh+6;
+  panel(x,y,w,h,{on:o.on});
+  if(o.title)T(o.title,x+14,y+19,{size:14,col:C.mute,w:700});
+  rows.forEach((r,i)=>{ const yy=y+(o.title?34:12)+i*rh+rh/2; const q=r[3]!==false&&isQ(P,r[0]); const h=hid(P,S,r[0]);
+    const lw=T(r[1]+' = ',x+14,yy,{size:o.fs||18,col:r[4]||C.mute,w:600});
+    T(h?'?':r[2],x+14+lw,yy,{size:o.fs||18,col:h?C.p:(q&&S.rev?C.p:C.ink),w:800,bg:h?rgba(C.p,.14):null,pad:6,rad:6,bd:h?rgba(C.p,.6):null}); });
+  return h;
+}
+function pPanel(x,y,w,title,rows,pmax,P,S,o={}){
+  const rh=31, h=34+rows.length*rh+8;
+  cx.save(); cx.globalAlpha=o.alpha??1; panel(x,y,w,h,{on:o.on});
+  T(title,x+14,y+19,{size:14,col:C.mute,w:700});
+  const bx=x+w*.5, bw=w*.46, zero=bx+bw/2;
+  cx.strokeStyle='rgba(147,161,195,.35)';cx.lineWidth=1;cx.setLineDash([3,3]);cx.beginPath();cx.moveTo(zero,y+30);cx.lineTo(zero,y+h-6);cx.stroke();cx.setLineDash([]);
+  rows.forEach((r,i)=>{ const yy=y+34+i*rh+rh/2-2; const h2=hid(P,S,r.k);
+    const lw=T(r.l+' = ',x+14,yy,{size:17,col:r.col,w:700});
+    T(h2?'?':r.t,x+14+lw,yy,{size:17,col:h2?C.p:C.ink,w:800,bg:h2?rgba(C.p,.14):null,pad:5,rad:6,bd:h2?rgba(C.p,.6):null});
+    if(!h2&&isFinite(r.v)){ const L=clamp(r.v/pmax,-1,1)*bw/2; if(Math.abs(L)>.5){rr(Math.min(zero,zero+L),yy-8,Math.abs(L),16,4);cx.fillStyle=r.col;cx.globalAlpha=(o.alpha??1)*.9;cx.fill();cx.globalAlpha=o.alpha??1;}
+      else dot(zero,yy,3,r.col); }
+    else if(h2){ cx.strokeStyle=rgba(C.p,.6);cx.setLineDash([4,4]);rr(zero-14,yy-8,28,16,4);cx.stroke();cx.setLineDash([]);} });
+  cx.restore(); return h;
+}
+function eqBar(P,S){ const s=S.rev?P.eq:P.eq0; if(!s)return; font(19,700,true); const w0=cx.measureText(s).width, sz=Math.min(19,19*(W-60)/w0), w=w0*sz/19; const ex=clamp(P.eqx||W/2,w/2+24,W-w/2-24); T(s,ex,H-24,{size:sz,al:'center',col:S.rev?C.p:C.ink,w:700,mono:true,bg:'rgba(13,20,36,.88)',bd:S.rev?rgba(C.p,.5):'#2a3a5e',pad:12,rad:10}); }
+function phase(s,x=W/2,y=192,col=C.ink){ if(s)T(s,x,y,{size:16,al:'center',col,w:700,bg:'rgba(30,44,74,.85)',bd:'#33476f',pad:10,rad:14}); }
+function badge(s,x,y,col=C.v){T(s,x,y,{size:14,al:'left',col,w:700,bg:rgba(col,.12),bd:rgba(col,.5),pad:8,rad:8});}
+function vArrow(x,y,len,lab,o={}){ const col=o.col||C.v;
+  if(Math.abs(len)<2){ if(lab)T(lab,x,y,{size:o.ls||17,al:'center',col:o.lc||col,w:700,bg:'rgba(13,20,36,.78)',pad:5,rad:6}); return; }
+  const L=Math.sign(len)*Math.max(Math.abs(len),26); arrow(x-L/2,y,x+L/2,y,col,o.w||4,{label:lab,oy:-20,ls:o.ls||17,lc:o.lc,glow:o.glow}); }
+function axes(x0,y0,w,h,o={}){ cx.save(); cx.strokeStyle='#8a98bb';cx.lineWidth=2;
+  arrow(x0,y0,x0+w,y0,'#8a98bb',2,{head:11}); arrow(x0,y0,x0,y0-h,'#8a98bb',2,{head:11});
+  if(o.xl)T(o.xl,x0+w-4,y0+20,{size:15,col:C.mute,al:'right'}); if(o.yl)T(o.yl,x0+10,y0-h+2,{size:15,col:C.mute});
+  cx.restore(); }
+
+/* =========================================================
+   SCENES
+   ========================================================= */
+const SC={};
+
+/* ---- 1D екі дененің әсерлесуі: соқтығыс / ажырау ---- */
+SC.inter={
+  dur:P=>P.dur||6.8,
+  setup(P){
+    const tc=P.tc??2.7, dur=P.dur||6.8; P._tc=tc; P.b.forEach(defBody);
+    const vels=[P.b[0].v,P.b[1].v,P.b[0].vA,P.b[1].vA], av=vels.map(Math.abs), vmax=Math.max(...av)||1;
+    const nz=av.filter(v=>v>1e-9), vmin=nz.length?Math.min(...nz):1, comp=P.comp??(vmax/vmin>6);
+    P._f=v=>comp?Math.sign(v)*Math.pow(Math.abs(v)/vmax,.42)*vmax:v; P._comp=comp;
+    const c=[-P.b[0].w/2,P.b[1].w/2], hw=c.map(Math.abs), pts=[];
+    P.b.forEach((b,i)=>{pts.push([c[i],P._f(b.v)*-tc,hw[i]]);pts.push([c[i],P._f(b.vA)*(dur-tc),hw[i]]);});
+    const ext=k=>{let lo=1e9,hi=-1e9;for(const[ci,di,h]of pts){lo=Math.min(lo,ci+k*di-h);hi=Math.max(hi,ci+k*di+h);}return[lo,hi];};
+    const fmax=Math.max(...vels.map(v=>Math.abs(P._f(v))))||1, avail=W-90; let a=0,k=(P.vpx||230)/fmax;
+    if(ext(k)[1]-ext(k)[0]>avail){let b=k;for(let i=0;i<40;i++){const m=(a+b)/2;(ext(m)[1]-ext(m)[0]>avail)?b=m:a=m;}k=a;}
+    const[lo,hi]=ext(k); P._k=k; P._c=c; P._xc=W/2-(lo+hi)/2+(P.dx||0);
+    if(P.shoreAuto==='L'){const b0=P.b[0];P._sx=P._xc+P._c[0]+P._k*P._f(b0.v)*(-.75)+12;}
+    if(P.shoreAuto==='R'){const b1=P.b[1];P._sx=W-(P._xc+P._c[1]+P._k*P._f(b1.vA)*.8)+24;}
+    const pv=[]; P.b.forEach(b=>{pv.push(b.m*b.v,b.m*b.vA);}); pv.push(P.b[0].m*P.b[0].v+P.b[1].m*P.b[1].v); P._pmax=P.pmax||Math.max(...pv.map(Math.abs))||1;
+  },
+  draw(t,P,S){
+    const tc=P._tc, dt=t-tc, bef=t<tc, b=P.b;
+    ground(P.ground||'track',GY,{shore:P.shore,sx:P._sx});
+    let xs=b.map((bb,i)=>P._xc+P._c[i]+P._k*P._f(bef?bb.v:bb.vA)*dt), ys=b.map(bb=>GY-(bb.lift||0));
+    // ішіне кіру / ішінен шығу
+    if(P.into&&!bef){const q=P.into,j=1-q.i,u=ease(seg(t,tc,tc+.3));xs[q.i]=lerp(xs[q.i],xs[j]+q.dx,u);ys[q.i]=lerp(ys[q.i],GY+q.dy,u);}
+    if(P.into&&bef&&P.jump){const q=P.into,u=seg(t,tc-.75,tc);ys[q.i]-=Math.sin(Math.PI*u)*P.jump;}
+    if(P.from){const q=P.from,j=1-q.i, sx=P._xc+P._c[j]+q.dx;
+      if(bef){xs[q.i]=xs[j]+q.dx;ys[q.i]=GY+q.dy;}
+      else {const u=ease(seg(t,tc,tc+.3)); xs[q.i]=lerp(sx,xs[q.i],u); ys[q.i]=lerp(GY+q.dy,GY-(b[q.i].lift||0),u)-(P.jump?Math.sin(Math.PI*seg(t,tc,tc+.8))*P.jump:0);} }
+    const showWhole=P.whole&&bef;
+    // денелер
+    const order=(P.into&&!bef&&P.into.i===0)?[1,0]:[0,1];
+    order.forEach(i=>{ const bb=b[i]; if(showWhole)return; if(P.from&&bef&&P.from.hide&&i===P.from.i)return;
+      const run=!P.norun&&(bb.kind==='person'||bb.kind==='player')&&Math.abs(bef?bb.v:bb.vA)>0&&!(P.into&&!bef&&P.into.i===i)&&!(P.from&&bef&&P.from.i===i)?NOW*9:0;
+      const inside=P.into&&!bef&&P.into.i===i&&t>tc+.3; body(bb,xs[i],ys[i],{glow:HL(S,'b'+(i+1)),run,nolab:inside&&bb.kind==='bullet',lab:hid(P,S,'m'+(i+1))?'?':bb.lab}); });
+    if(showWhole){ const wb=defBody(P.whole); body(wb,(xs[0]+xs[1])/2,GY-(wb.lift||0),{glow:HL(S,'b1')}); }
+    if(t>=tc&&t<tc+.7){const xc=P.into||P.from?xs[1]-b[1].w/2:xs[0]+b[0].w/2; const yy=Math.min(ys[0],ys[1])-Math.min(b[0].h,b[1].h)/2;
+      (P.fx==='boom'?boom:spark)(P.whole?(xs[0]+xs[1])/2:xc,yy,seg(t,tc,tc+.7)); if(P.fx==='spring')spark(xc,yy,seg(t,tc,tc+.7),C.v);}
+    // жылдамдық бағыттамалары
+    const joined=bef?P.joinB:P.joinA, kk=P._k*.55;
+    if(joined){ const v=bef?b[0].v:b[0].vA, key=bef?'vJ':'vJA', lab=bef?P.vJL:P.vJAL; const xm=P.whole?(xs[0]+xs[1])/2:(P.into&&!bef?xs[1-P.into.i]:P.from&&bef?xs[1-P.from.i]:(xs[0]+xs[1])/2);
+      const top=Math.min(...b.map((bb,i)=>ys[i]-bb.h)); vArrow(xm,top-44,kk*P._f(v),lab!=null?V(P,S,key,lab):null,{glow:HL(S,key)?12:0}); }
+    else b.forEach((bb,i)=>{ const v=bef?bb.v:bb.vA, key='v'+(i+1)+(bef?'':'A'), lab=bef?bb.vL:bb.vAL; if(lab==null)return;
+      const top=ys[i]-bb.h-(bb.kind==='boat'?bb.h*.9:0); const yy=top-(P.vy?.[i]??44); vArrow(xs[i],yy,kk*P._f(v),V(P,S,key,lab),{glow:HL(S,key)?12:0}); });
+    // импульс панельдері
+    const pr=(bef)=>{ const r=b.map((bb,i)=>({k:'p'+(i+1)+(bef?'':'A'),l:(bef?bb.pn:bb.pnA)||('p'+'₁₂'[i]+(bef?'':'′')),v:bb.m*(bef?bb.v:bb.vA),t:(bef?bb.pL:bb.pAL)??fmt(bb.m*(bef?bb.v:bb.vA)),col:bb.pc||[C.b1,C.b2][i]}));
+      const s=b[0].m*(bef?b[0].v:b[0].vA)+b[1].m*(bef?b[1].v:b[1].vA); r.push({k:bef?'s':'sA',l:bef?'Σp':'Σp′',v:s,t:(bef?P.sL:P.sAL)??fmt(s),col:C.p}); return r; };
+    const pw=P.pw||318;
+    if(!P.noPanel){ pPanel(18,14,pw,P.t0||'Соқтығысқанға дейін, '+(P.pu||'кг·м/с'),pr(true),P._pmax,P,S,{on:HL(S,'before')});
+      pPanel(W-18-pw,14,pw,P.t1||'Соқтығыстан кейін, '+(P.pu||'кг·м/с'),pr(false),P._pmax,P,S,{on:HL(S,'after'),alpha:bef?.32:1}); }
+    phase(bef?(P.ph0||'Соқтығысқанға дейін'):(t<tc+.7?(P.phc||'Соқтығыс!'):(P.ph1||'Соқтығыстан кейін')),W/2,P.phy||192,bef?C.ink:C.p);
+    if(P._comp)T('жылдамдықтар масштабсыз көрсетілген',W-16,GY+(P.ground==='water'?82:24),{size:13,col:C.dim,al:'right',w:500});
+    if(P.note)T(P.note,16,GY+24,{size:14,col:C.mute,w:600});
+    eqBar(P,S);
+  }
+};
+
+/* ---- екі дене әр жолақта қозғалады (соқтығыссыз) ---- */
+SC.two={
+  dur:P=>P.dur||5.5,
+  setup(P){P.b.forEach(defBody);const vm=Math.max(...P.b.map(b=>Math.abs(b.v)));P._k=Math.min(110/vm,620/(vm*(P.dur||5.5)));P._pmax=Math.max(...P.b.map(b=>Math.abs(b.m*b.v)),Math.abs(P.b[0].m*P.b[0].v+P.b[1].m*P.b[1].v));},
+  draw(t,P,S){ const d=P.dur||5.5, lanes=[330,470];
+    lanes.forEach((y,i)=>{cx.fillStyle='#172036';cx.fillRect(0,y,W,i?H-y:16);cx.strokeStyle='#5f6f96';cx.lineWidth=2;cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke();});
+    P.b.forEach((b,i)=>{ const x=W/2+(P.x0?.[i]||0)+P._k*b.v*(t-d/2); body(b,x,lanes[i],{glow:HL(S,'b'+(i+1))});
+      vArrow(x,lanes[i]-b.h-30,P._k*b.v*.9,V(P,S,'v'+(i+1),b.vL),{}); });
+    const s=P.b[0].m*P.b[0].v+P.b[1].m*P.b[1].v;
+    pPanel(W/2-190,10,380,P.t0||'Импульстер, кг·м/с',[...P.b.map((b,i)=>({k:'p'+(i+1),l:'p'+'₁₂'[i],v:b.m*b.v,t:b.pL??fmt(b.m*b.v),col:[C.b1,C.b2][i]})),{k:'s',l:P.sl||'p',v:P.sv??s,t:P.sL??fmt(s),col:C.p}],P._pmax,P,S,{on:HL(S,'sum')});
+    if(P.tag)P.tag.forEach((s2,i)=>T(s2,16,[262,402][i],{size:15,col:C.mute,w:600}));
+    eqBar(P,S);
+  }
+};
+
+/* ---- жалғыз дене қозғалысы (p = mυ) ---- */
+SC.move={
+  dur:()=>5,
+  setup(P){defBody(P.b);},
+  draw(t,P,S){ ground(P.ground||'track');
+    const x=110+P.b.w/2+(W-260-P.b.w)*(t/5); body(P.b,x,GY,{glow:HL(S,'b1')});
+    vArrow(x,GY-P.b.h-34,P.vlen||120,V(P,S,'v','υ'),{});
+    if(!hid(P,S,'parr'))arrow(x-(P.plen||170)/2,GY-P.b.h-84,x+(P.plen||170)/2,GY-P.b.h-84,C.p,7,{label:V(P,S,'p','p'),oy:-22,glow:HL(S,'p')?14:0});
+    rowsPanel(18,14,P.pw||330,P.rows,P,S,{title:'Шамалар',on:HL(S,'rows')});
+    eqBar(P,S);
+  }
+};
+
+/* ---- лақтырылған дене: импульс бағыты ---- */
+SC.proj={
+  dur:()=>5.4,
+  setup(){},
+  draw(t,P,S){ ground('floor'); const x0=110,y0=GY-16, L=720, Hm=300, u=clamp(t/4.6,0,.965);
+    const pos=s=>[x0+L*s,y0-4*Hm*s*(1-s)], [x,y]=pos(u), vx=L, vy=-4*Hm*(1-2*u), n=Math.hypot(vx,vy), ux=vx/n, uy=vy/n;
+    cx.setLineDash([4,7]);cx.strokeStyle='rgba(147,161,195,.5)';cx.lineWidth=2;cx.beginPath();for(let s=0;s<=u;s+=.01){const[a,b]=pos(s);s?cx.lineTo(a,b):cx.moveTo(a,b);}cx.stroke();cx.setLineDash([]);
+    dot(x0,y0,5,C.mute); T('бастапқы нүкте',x0,y0+30,{size:13,col:C.dim,al:'center'});
+    if(u>.05)arrow(x0,y0,x,y,'#9aa7c4',3,{dash:[8,6],label:'s (орын ауыстыру)',ls:15,lc:'#c3cde4',oy:22,glow:HL(S,'s')?10:0});
+    body({kind:'ball',w:34,h:34,col:C.b1},x,y+17,{glow:HL(S,'b1')});
+    arrow(x,y,x+ux*120,y+uy*120,C.v,4,{label:'υ',lx:x+ux*140,ly:y+uy*140,glow:HL(S,'v')?12:0});
+    if(!hid(P,S,'parr'))arrow(x,y,x+ux*190,y+uy*190,C.p,7,{label:'p = mυ',lx:x+ux*190+uy*-34,ly:y+uy*190-ux*-34+(uy>0?0:-6),glow:HL(S,'p')?16:0,alpha:.92});
+    arrow(x,y,x,y+110,C.F,4,{label:'F = mg (g бағытымен)',lx:x+(u>.5?-120:120),ly:y+96,ls:15,glow:HL(S,'F')?12:0});
+    rowsPanel(18,14,400,[['dir','p векторының бағыты',S.rev?'υ векторымен бағыттас':'?',C.mute]],P,S,{});
+    eqBar(P,S);
+  }
+};
+
+/* ---- күш импульсі: F·Δt = Δp ---- */
+SC.force={
+  dur:P=>P.dur||6.2,
+  setup(P){ defBody(P.b); const tA=P.tA??1,tB=P.tB??3.8,d=P.dur||6.2; P._tA=tA;P._tB=tB;
+    const v0=P.v0||0,v1=P.v1; P._I=t=>{ if(t<tA)return v0*t; if(t<tB){const s=t-tA;return v0*tA+v0*s+(v1-v0)*s*s/(2*(tB-tA));} return v0*tA+(v0+v1)/2*(tB-tA)+v1*(t-tB); };
+    const tot=P._I(d), vm=Math.max(Math.abs(v0),Math.abs(v1)); P._x0=P.x0??(((P.dir||1)>0?200:90)+P.b.w/2); P._k=Math.min(240/vm,(W-40-P._x0-P.b.w/2)/Math.max(tot,1e-9));
+    if(P.ruler){P._rA=P._x0+P._k*P._I(tA);P._rB=P._x0+P._k*P._I(tB);} },
+  draw(t,P,S){ const tA=P._tA,tB=P._tB,u=seg(t,tA,tB), act=t>=tA&&t<=tB, v0=P.v0||0, v=v0+(P.v1-v0)*u;
+    ground(P.ground||'floor',GY,{off:0});
+    const x=P._x0+P._k*P._I(t); const b=P.b;
+    if(P.ruler){ const{_rA:a,_rB:bb}=P; cx.strokeStyle=C.mute;cx.lineWidth=2;cx.beginPath();cx.moveTo(a,GY+30);cx.lineTo(bb,GY+30);cx.stroke();
+      for(let i=0;i<=P.ruler.n;i++){const xx=lerp(a,bb,i/P.ruler.n);cx.beginPath();cx.moveTo(xx,GY+22);cx.lineTo(xx,GY+38);cx.stroke();T(fmt(i*P.ruler.s/P.ruler.n)+(i===P.ruler.n?' м':''),xx,GY+54,{size:14,col:C.mute,al:'center'});} }
+    body(b,x,GY,{glow:HL(S,'b1'),lab:hid(P,S,'m')?'?':b.lab});
+    if(act){ const dir=P.dir||1, fy=GY-b.h/2, L=Math.max(70,P.flen||90);
+      if(dir>0)arrow(x-b.w/2-L-8,fy,x-b.w/2-6,fy,C.F,7,{label:'F',oy:-22,glow:14});
+      else arrow(x-b.w/2-4,fy,x-b.w/2-4-L,fy,C.F,7,{label:P.fl||'F',oy:-24,glow:14});
+      if(P.hit&&u<.5)spark(x-b.w/2,fy,u*2,C.F); }
+    vArrow(x,GY-b.h-36,P._k*v*.5,P.novl?null:V(P,S,'v','υ = '+fmt(v,1)+' м/с'),{});
+    // Уақыт жолағы
+    const tx=W-312,ty=196; panel(tx,ty,294,58,{on:HL(S,'dt')}); T('Әсер ету уақыты Δt',tx+12,ty+16,{size:13,col:C.mute,w:700});
+    rr(tx+12,ty+32,270,12,6);cx.fillStyle='#22304f';cx.fill(); if(u>0){rr(tx+12,ty+32,270*u,12,6);cx.fillStyle=C.F;cx.fill();}
+    T(V(P,S,'t',(P.tF?P.tF(u):fmt(u*P.dt,2)+' с')),tx+282,ty+16,{size:14,col:hid(P,S,'t')?C.p:C.ink,al:'right',w:800});
+    if(P.slow)badge(P.slow,tx+12,ty+82,C.v);
+    // Мәндер
+    const D={m:P.m,F:P.F,v,p:P.m*v,Ft:P.F*u*P.dt,dp:P.m*(v-v0),s:P.ruler?P.ruler.s*(P._I(clamp(t,tA,tB))-P._I(tA))/(P._I(tB)-P._I(tA)):0};
+    const rows=P.rows.map(k=>{ const o=(P.R&&P.R[k])||{}; const def={t:['Δt',P.tF?P.tF(u):fmt(u*P.dt,2)+' с'],m:['m',fmt(P.m)+' кг'],F:['F',fmt(P.F)+' Н'],v0:['υ₀',fmt(v0)+' м/с'],v:['υ',fmt(D.v,2)+' м/с'],p:['p',fmt(D.p,2)+' кг·м/с'],Ft:['F·Δt',fmt(D.Ft,2)+' Н·с'],dp:['Δp',fmt(D.dp,2)+' кг·м/с'],s:['S',fmt(D.s,2)+' м']}[k]||[k,''];
+      return [k,o.l||def[0],o.f?o.f(D,u):def[1],undefined,o.c]; });
+    rowsPanel(18,14,P.pw||330,rows,P,S,{title:P.rt||'Шамалар',on:HL(S,'rows')});
+    // p(t) мини-графигі
+    if(!P.nograph){ const gx=W-312,gy=14,gw=294,gh=168; panel(gx,gy,gw,gh,{on:HL(S,'graph')}); const d=P.dur||6.2,p0=P.m*v0,p1=P.m*P.v1,pm=Math.max(Math.abs(p0),Math.abs(p1))||1;
+      const X=tt=>gx+34+(gw-50)*tt/d, Y=pp=>gy+gh-22-(gh-50)*pp/pm;
+      cx.fillStyle=rgba(C.F,.13);cx.fillRect(X(tA),gy+26,X(tB)-X(tA),gh-48); T('Δt',(X(tA)+X(tB))/2,gy+gh-10,{size:12,col:C.F,al:'center',w:700});
+      axes(gx+34,gy+gh-22,gw-46,gh-34,{}); T('p',gx+22,gy+20,{size:14,col:C.p,w:700}); T('t',gx+gw-12,gy+gh-8,{size:14,col:C.mute,w:700});
+      cx.strokeStyle=C.p;cx.lineWidth=3;cx.beginPath(); for(let tt=0;tt<=Math.min(t,d);tt+=.04){const uu=seg(tt,tA,tB),pp=P.m*(v0+(P.v1-v0)*uu);tt?cx.lineTo(X(tt),Y(pp)):cx.moveTo(X(tt),Y(pp));}cx.stroke();
+      dot(X(Math.min(t,d)),Y(P.m*v),5,C.p); T('p(t)',gx+gw-14,gy+18,{size:13,col:C.mute,al:'right',w:700}); }
+    eqBar(P,S);
+  }
+};
+
+/* ---- қабырғаға соғылу (1D) ---- */
+SC.wall={
+  dur:()=>6.4,
+  setup(P){defBody(P.b);},
+  draw(t,P,S){ ground('floor'); const wx=W-150, tc=2.4, b=P.b, r=b.w/2, v=360;
+    cx.fillStyle='#3b4a6b';cx.fillRect(wx,150,26,GY-150);cx.strokeStyle='#6b7da6';cx.lineWidth=2;for(let y=160;y<GY;y+=18){cx.beginPath();cx.moveTo(wx+26,y);cx.lineTo(wx+40,y-12);cx.stroke();}
+    let x, sq=0; const xc=wx-r;
+    if(t<tc)x=xc-v*(tc-t)*.5; else if(P.stick){x=xc+Math.min(t-tc,.12)*20;sq=.28*Math.min(1,(t-tc)/.12);} else {x=xc-v*(t-tc)*.42; if(t-tc<.18)sq=.25*Math.sin(Math.PI*(t-tc)/.18);}
+    body(b,x,GY,{squash:sq,glow:HL(S,'b1')});
+    if(t>=tc&&t<tc+.6)spark(wx,GY-r,seg(t,tc,tc+.6));
+    const bef=t<tc; if(!(P.stick&&!bef))vArrow(x,GY-b.h-34,(bef?1:-1)*100,bef?'υ':(P.vAL||'υ'),{});
+    // векторлық диаграмма
+    const ox=W/2-30, oy=130, L=150; panel(ox-200,20,420,250,{on:HL(S,'diag')}); T('Импульс өзгерісі: Δp = p′ − p',ox-186,40,{size:15,col:C.mute,w:700});
+    arrow(ox-L/2,oy-50,ox+L/2,oy-50,C.p,6,{label:'p = '+(P.pL||'mυ'),oy:-20,glow:HL(S,'p')?12:0});
+    if(t>tc+.3){ const u=ease(seg(t,tc+.3,tc+1.3));
+      if(!P.stick)arrow(ox+L/2,oy+10,ox-L/2,oy+10,'#ffb86b',6,{label:"p′ = "+(P.pAL||'−mυ'),oy:-20,alpha:u,glow:HL(S,'pA')?12:0}); else T("p′ = 0 (жабысып қалды)",ox,oy+10,{size:17,col:'#ffb86b',al:'center',w:700});
+      if(t>tc+1.3){ const u2=ease(seg(t,tc+1.3,tc+2.3)), dl=P.stick?L:2*L; arrow(ox+dl/2,oy+80,ox+dl/2-dl*u2,oy+80,C.F,7,{label:'|Δp| = '+V(P,S,'dp',P.dpL||'?'),oy:-22,glow:HL(S,'dp')?14:0}); } }
+    rowsPanel(W-18-(P.pw||240),14,P.pw||240,P.rows,P,S,{title:'Шамалар'});
+    phase(bef?'Соқтығысқанға дейін':(P.stick?'Шарик жабысып қалды':'Серпімді соғылу: |υ′| = |υ|'),125,300,bef?C.ink:C.p);
+    eqBar(P,S);
+  }
+};
+
+/* ---- қабырғаға көлбеу соғылу (2D) ---- */
+SC.wall2d={
+  dur:()=>7.4,
+  setup(P){P.eqx=700;},
+  draw(t,P,S){ const wx=W-90, hy=290, a=P.a*Math.PI/180, tc=2.2, sp=150;
+    cx.fillStyle='#3b4a6b';cx.fillRect(wx,70,24,420);cx.strokeStyle='#6b7da6';cx.lineWidth=2;for(let y=80;y<490;y+=18){cx.beginPath();cx.moveTo(wx+24,y);cx.lineTo(wx+38,y-12);cx.stroke();}
+    cx.setLineDash([8,6]);cx.strokeStyle='#7d8bb0';cx.beginPath();cx.moveTo(wx,hy);cx.lineTo(wx-380,hy);cx.stroke();cx.setLineDash([]);T('нормаль',wx-380,hy+18,{size:14,col:C.mute});
+    const r=16, hx=wx-r, din=[Math.cos(a),Math.sin(a)], dout=[-Math.cos(a),Math.sin(a)];
+    const pt=tt=>tt<tc?[hx-din[0]*sp*(tc-tt),hy-din[1]*sp*(tc-tt)]:[hx+dout[0]*sp*(tt-tc),hy+dout[1]*sp*(tt-tc)];
+    cx.setLineDash([3,6]);cx.strokeStyle='rgba(147,161,195,.5)';cx.lineWidth=2;cx.beginPath();for(let tt=0;tt<=Math.min(t,4.2);tt+=.05){const[x,y]=pt(tt);tt?cx.lineTo(x,y):cx.moveTo(x,y);}cx.stroke();cx.setLineDash([]);
+    const[x,y]=pt(Math.min(t,4.2)); body({kind:'ball',w:2*r,h:2*r,col:C.b1},x,y+r,{});
+    if(t>=tc&&t<tc+.6)spark(wx,hy,seg(t,tc,tc+.6));
+    // бұрыштар
+    cx.strokeStyle=C.p;cx.lineWidth=2;cx.beginPath();cx.arc(hx,hy,60,Math.PI+a,Math.PI,true);cx.stroke();T(P.a+'°',hx-80,hy-24,{size:15,col:C.p,w:700});
+    if(t>tc){cx.beginPath();cx.arc(hx,hy,60,Math.PI,Math.PI-a,true);cx.stroke();T(P.a+'°',hx-80,hy+26,{size:15,col:C.p,w:700});}
+    // векторлық диаграмма
+    rowsPanel(18,14,420,P.rows,P,S,{title:'Шамалар',rh:27,fs:16,on:HL(S,'rows')});
+    const ox=250, oy=345, L=110; panel(18,206,420,316,{on:HL(S,'diag')}); T('Векторлық диаграмма',34,226,{size:14,col:C.mute,w:700});
+    const pin=[L*Math.cos(a),L*Math.sin(a)], pout=[-L*Math.cos(a),L*Math.sin(a)];
+    const u1=ease(seg(t,.3,1.2)); cx.setLineDash([6,6]);cx.strokeStyle='rgba(147,161,195,.4)';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(40,oy);cx.lineTo(420,oy);cx.stroke();cx.setLineDash([]);T('нормаль',414,oy-14,{size:13,col:C.dim,al:'right'});
+    arrow(ox-pin[0],oy-pin[1],ox-pin[0]+pin[0]*u1,oy-pin[1]+pin[1]*u1,C.p,6,{label:'p',ox:-16,oy:-12,glow:HL(S,'p')?12:0});
+    if(t>tc+.2){ const u2=ease(seg(t,tc+.2,tc+1.1)); arrow(ox,oy,ox+pout[0]*u2,oy+pout[1]*u2,'#ffb86b',6,{label:'p′',ox:-18,oy:12,glow:HL(S,'pA')?12:0}); }
+    if(t>tc+1.3){
+      const u3=ease(seg(t,tc+1.3,tc+2.4)); cx.setLineDash([4,5]);cx.strokeStyle=rgba(C.v,.8);cx.lineWidth=2;
+      cx.beginPath();cx.moveTo(ox-pin[0],oy-pin[1]);cx.lineTo(ox-pin[0],oy);cx.moveTo(ox+pout[0],oy+pout[1]);cx.lineTo(ox+pout[0],oy);cx.stroke();cx.setLineDash([]);
+      T('pₙ = p·cos'+P.a+'°',ox-pin[0]/2,oy-16,{size:14,col:C.v,al:'center',w:700,bg:'rgba(13,20,36,.8)',pad:4});
+      const dpx=pout[0]-pin[0];
+      arrow(400,oy+128,400+dpx*u3,oy+128,C.F,7,{label:'Δp = p′ − p = '+V(P,S,'dp',P.dpL),oy:-24,ls:16,glow:HL(S,'dp')?14:0});
+    }
+    eqBar(P,S);
+  }
+};
+
+/* ---- график: p(t) немесе F(t) ---- */
+SC.graph={
+  dur:P=>P.dur||7,
+  setup(P){},
+  draw(t,P,S){ const gx=70,gy=430,gw=470,gh=340, pts=P.pts, tm=P.tmax, ym=P.ymax, d=P.dur||7;
+    const X=v=>gx+gw*v/tm, Y=v=>gy-gh*v/ym, tau=clamp((t-.4)/(d-1.2),0,1)*tm;
+    panel(20,20,560,500,{on:HL(S,'graph')});
+    // тор
+    cx.strokeStyle='rgba(147,161,195,.15)';cx.lineWidth=1;P.xt.forEach(v=>{cx.beginPath();cx.moveTo(X(v),gy);cx.lineTo(X(v),gy-gh);cx.stroke();T(fmt(v),X(v),gy+18,{size:15,col:C.mute,al:'center'});});
+    P.yt.forEach(v=>{cx.beginPath();cx.moveTo(gx,Y(v));cx.lineTo(gx+gw,Y(v));cx.stroke();T(fmt(v),gx-10,Y(v),{size:15,col:C.mute,al:'right'});});
+    axes(gx,gy,gw+20,gh+24,{}); T(P.yl,gx+12,gy-gh-14,{size:16,col:C.p,w:700}); T(P.xl,gx+gw+18,gy-16,{size:16,col:C.mute,w:700,al:'right'});
+    const f=v=>{for(let i=1;i<pts.length;i++)if(v<=pts[i][0]){const[a,b]=pts[i-1],[c,dd]=pts[i];return b+(dd-b)*(v-a)/(c-a);}return pts[pts.length-1][1];};
+    if(P.mode==='Ft'){ cx.beginPath();cx.moveTo(X(0),Y(0));for(let v=0;v<=tau;v+=tm/200)cx.lineTo(X(v),Y(f(v)));cx.lineTo(X(tau),Y(0));cx.closePath();cx.fillStyle=rgba(C.F,HL(S,'area')?.25+.2*pulse():.22);cx.fill(); }
+    // сегменттер (p(t))
+    if(P.segs)P.segs.forEach((sg,i)=>{ const[a,b]=[pts[i],pts[i+1]]; const on=tau>=a[0]&&tau<=b[0]; const k='F'+(i+1);
+      cx.strokeStyle=on||HL(S,k)?C.p:'rgba(255,209,102,.45)';cx.lineWidth=on||HL(S,k)?5:3;cx.beginPath();cx.moveTo(X(a[0]),Y(a[1]));cx.lineTo(X(b[0]),Y(b[1]));cx.stroke();
+      const sl2=(b[1]-a[1]); T('F = '+V(P,S,k,sg),X((a[0]+b[0])/2)+(sl2<0?44:sl2>0?-44:0),Y((a[1]+b[1])/2)-(sl2===0?28:10),{size:15,col:hid(P,S,k)?C.p:C.F,al:'center',w:800,bg:'rgba(13,20,36,.85)',pad:5,rad:6,bd:HL(S,k)?C.p:null}); });
+    else { cx.strokeStyle=C.F;cx.lineWidth=4;cx.beginPath();pts.forEach(([a,b],i)=>i?cx.lineTo(X(a),Y(b)):cx.moveTo(X(a),Y(b)));cx.stroke(); }
+    // курсор
+    cx.setLineDash([5,5]);cx.strokeStyle='rgba(234,240,255,.5)';cx.beginPath();cx.moveTo(X(tau),gy);cx.lineTo(X(tau),gy-gh);cx.stroke();cx.setLineDash([]);
+    dot(X(tau),Y(f(tau)),7,P.mode==='Ft'?C.F:C.p);
+    // оң жақ: дене
+    const rx=600, ry=330; cx.fillStyle='#172036';cx.fillRect(rx,ry,W-rx-18,8);
+    let pos=0;const n=120;for(let i=0;i<n;i++){const v=tau*i/n;pos+=(P.mode==='Ft'?(P.v0||1)+(v*v/2)/P.m:f(v))*tau/n;}
+    const off=(P.mode==='Ft'?pos*28:pos*1.2), bx=rx+170;
+    cx.fillStyle='#33476f';for(let i=-1;i<9;i++){const mx=rx+((i*44-off)%396+396)%396;cx.fillRect(mx,ry+12,3,14);}
+    T('ағаштар/белгілер артқа жылжиды — дене қозғалуда',rx+170,ry+48,{size:12,col:C.dim,al:'center'});
+    const b=defBody({kind:'cart',w:96,h:52,col:C.b2,lab:P.blab||''}); body(b,bx,ry,{});
+    const cur=f(tau);
+    if(P.mode==='pt'){ arrow(bx-0,ry-80,bx+cur*1.1,ry-80,C.p,6,{label:'p',oy:-20}); const sl=P.segs?(()=>{for(let i=1;i<pts.length;i++)if(tau<=pts[i][0])return(pts[i][1]-pts[i-1][1])/(pts[i][0]-pts[i-1][0]);return 0;})():0;
+      if(Math.abs(sl)>1e-6&&!(hid(P,S,'F2')&&tau>=10&&tau<=20))arrow(bx,ry-140,bx+sl*16,ry-140,C.F,6,{label:'F',oy:-18}); else T(hid(P,S,'F2')&&tau>=10&&tau<=20?'F = ?':'F = 0',bx,ry-140,{size:17,col:hid(P,S,'F2')?C.p:C.F,al:'center',w:800,bg:'rgba(13,20,36,.85)',pad:6});
+      rowsPanel(rx,40,W-rx-18,[['tt','t',fmt(tau,1)+' с'],['pp','p',fmt(cur,1)+' кг·м/с']],P,S,{title:'Қазіргі мән'}); }
+    else { const area=tau*tau/2; arrow(bx-b.w/2-10-cur*16,ry-26,bx-b.w/2-6,ry-26,C.F,6,{label:'F',oy:-18});
+      rowsPanel(rx,40,W-rx-18,[['tt','t',fmt(tau,2)+' с'],['FF','F',fmt(cur,2)+' Н'],['S','S = FΔt',fmt(area,2)+' Н·с'],['dv','Δυ = S/m',fmt(area/P.m,2)+' м/с']],P,S,{title:'Аудан = импульс өзгерісі',on:HL(S,'rows')}); }
+    eqBar(P,S);
+  }
+};
+
+/* ---- p(m) диаграммасы ---- */
+SC.pm={
+  dur:()=>6.5,
+  setup(){},
+  draw(t,P,S){ const gx=80,gy=440,gw=380,gh=360, pts=[[.25,.27],[.25,.83],[.83,.83],[.83,.27],[.56,.55]], X=v=>gx+gw*v, Y=v=>gy-gh*v;
+    panel(24,20,480,500,{on:HL(S,'graph')}); axes(gx,gy,gw+30,gh+30,{}); T('p, кг·м/с',gx+12,gy-gh-24,{size:16,col:C.p,w:700}); T('m, кг',gx+gw+28,gy+20,{size:16,col:C.mute,al:'right',w:700}); T('0',gx-12,gy+14,{size:14,col:C.mute});
+    pts.forEach(([m,p],i)=>{ const u=ease(seg(t,.4+i*.7,1+i*.7)); const sp=p/m, best=(P.target===i+1);
+      const on=S.rev&&best; cx.strokeStyle=on?C.p:rgba(C.v,.55);cx.lineWidth=on?4:2;cx.setLineDash(on?[]:[6,5]);cx.beginPath();cx.moveTo(gx,gy);cx.lineTo(lerp(gx,X(m),u),lerp(gy,Y(p),u));cx.stroke();cx.setLineDash([]);
+      dot(X(m),Y(p),9,on?C.p:'#3b82f6'); T(String(i+1),X(m)+16,Y(p),{size:19,col:C.ink,w:800}); });
+    T('υ = p/m — бастан жүргізілген түзудің көлбеулігі',gx-50,gy+52,{size:14,col:C.v,w:600});
+    // жарыс
+    const rx=530; panel(rx,20,W-rx-18,500,{on:HL(S,'race')}); T('5 дененің жарысы (υ = p/m)',rx+16,44,{size:15,col:C.mute,w:700});
+    if(!S.rev){T('Жауап бергеннен кейін ашылады',rx+(W-rx-18)/2,270,{size:17,col:C.dim,al:'center',w:700});}
+    else pts.forEach(([m,p],i)=>{ const y=100+i*80, sp=p/m, x=rx+40+((t*55*sp)%(W-rx-110)); cx.strokeStyle='#2a3a5e';cx.beginPath();cx.moveTo(rx+20,y+16);cx.lineTo(W-40,y+16);cx.stroke();
+      const best=P.target===i+1; body({kind:'ball',w:28,h:28,col:best?C.p:C.b2},x,y+16,{}); T(String(i+1),rx+20,y-6,{size:15,col:best?C.p:C.mute,w:800}); T('υ ∝ '+fmt(sp,2),W-40,y-6,{size:13,col:C.dim,al:'right'}); });
+    eqBar(P,S);
+  }
+};
+
+/* ---- санақ жүйелері ---- */
+SC.frames={
+  dur:()=>10,
+  setup(P){P._k=Math.min(70,300/Math.max(Math.abs(P.v1),Math.abs(P.v2),Math.abs(P.v2-P.v1)));},
+  draw(t,P,S){ const earth=t<4.8, tau=earth?t:t-5.2, k=P._k; const lanes=[GY-60,GY+56];
+    cx.fillStyle='#14301f';cx.fillRect(0,GY-150,W,40);
+    const camV=earth?0:P.v1*k; const off=camV*Math.max(tau,0);
+    cx.fillStyle='#262c38';cx.fillRect(0,GY-110,W,H);
+    cx.strokeStyle='#e8edf7';cx.lineWidth=4;cx.setLineDash([34,30]);cx.lineDashOffset=off;cx.beginPath();cx.moveTo(0,GY);cx.lineTo(W,GY);cx.stroke();cx.setLineDash([]);
+    for(let i=-1;i<9;i++){const x=((i*140-off)%1120+1120)%1120-80;cx.fillStyle='#2f6b3e';cx.beginPath();cx.arc(x,GY-150,22,0,7);cx.fill();cx.fillStyle='#6b4a2b';cx.fillRect(x-4,GY-130,8,18);}
+    const cars=[{kind:'car',col:C.b1,lab:'1'},{kind:'car',col:C.b2,lab:'2'}].map(defBody);
+    const vrel=[earth?P.v1:0,earth?P.v2:P.v2-P.v1];
+    cars.forEach((c,i)=>{ const x=W/2+k*vrel[i]*(tau-2.2);
+      cx.save(); if([P.v1,P.v2][i]<0){cx.translate(2*x,0);cx.scale(-1,1);} body(c,x,lanes[i],{nolab:true}); cx.restore();
+      T(c.lab,x,lanes[i]-c.h*.42,{size:17,al:'center',col:'#0c1220',w:800});
+      const lab=earth?(i?P.v2L:P.v1L):(i?V(P,S,'vr','υ₂₁ = '+P.vrV):'υ = 0 (тыныштықта)');
+      vArrow(x,lanes[i]-c.h-26,k*vrel[i]*.9,lab,{glow:(!earth&&i===1&&HL(S,'vr'))?12:0}); });
+    panel(18,14,W-36,64,{});
+    T(earth?'Санақ жүйесі: Жер':'Санақ жүйесі: 1-автомобиль (бірге қозғаламыз)',36,46,{size:20,col:earth?C.v:C.p,w:800});
+    T(earth?P.dirL:'Жол мен ағаштар артқа «жылжиды»',W-36,46,{size:15,col:C.mute,al:'right',w:600});
+    if(!earth)rowsPanel(18,88,440,[['vr','υ₂₁ = υ₂ − υ₁',P.vrV],['p21','p₂₁ = m·υ₂₁',P.pV]],P,S,{title:'1-автомобильге қатысты',on:HL(S,'rel')});
+    else rowsPanel(18,88,330,[['m','m',P.mL||'1000 кг'],['v1','υ₁',P.v1L.split('= ').pop()],['v2','υ₂',P.v2L.split('= ').pop()]],P,S,{title:'Жерге қатысты'});
+    if(t>4.8&&t<5.2){cx.fillStyle=`rgba(13,20,36,${1-Math.abs(t-5)/.2})`;cx.fillRect(0,0,W,H);}
+    eqBar(P,S);
+  }
+};
+
+/* ---- құлаған қап (B17) ---- */
+SC.drop={
+  dur:()=>6.4,
+  setup(P){P._cart=defBody({kind:'cart',w:210,h:70,col:C.b2,lab:'M = 100 кг'});P._sack=defBody({kind:'sack',lab:'m = 10 кг'});},
+  draw(t,P,S){ ground('floor'); const tl=2.6, v=110, u=v/1.1, x0=120; const xc=t<tl?x0+v*t:x0+v*tl+u*(t-tl); const xl=x0+v*tl;
+    const c=P._cart, s=P._sack; body(c,xc-30,GY,{glow:HL(S,'b1')});
+    let sy; if(t<.6)sy=120; else if(t<tl)sy=120+(GY-c.h*.62-120)*Math.pow(seg(t,.6,tl),2); else sy=GY-c.h*.62;
+    const sx=(t<tl?xl:xc)+62; body(s,sx,sy,{glow:HL(S,'b2')});
+    if(t<tl&&t>.6)arrow(sx-46,sy-40,sx-46,sy-40+60*seg(t,.6,tl),C.v,3,{label:'υ тік',ox:-40,oy:0,ls:14});
+    if(t>=tl&&t<tl+.6)spark(sx,sy-10,seg(t,tl,tl+.6));
+    vArrow(xc,GY-c.h-(t<tl?40:110),(t<tl?v:u)*.7,t<tl?'υ':V(P,S,'u','V = υ/1,1'),{glow:HL(S,'u')?12:0});
+    rowsPanel(W-18-430,14,430,[['px1','Арбаның pₓ','Mυ = 100υ'],['px2','Қаптың pₓ','0 (тік құлайды)'],['pxA','Түскеннен кейін pₓ','(M + m)V = 110V'],['u','V',S.rev?'υ/1,1 (1,1 есе кемиді)':'?']],P,S,{title:'Горизонталь (OX) бойынша импульс',on:HL(S,'rows')});
+    phase(t<tl?'Қап тік құлап келеді':'Қап арбаға түсті',190,40,t<tl?C.ink:C.p);
+    eqBar(P,S);
+  }
+};
+
+/* ---- үш вагонның тізбекті тіркелуі (B24) ---- */
+SC.chain={
+  dur:()=>8,
+  setup(P){P._w=[0,1,2].map(i=>defBody({kind:'wagon',w:150,h:84,col:[C.b1,C.b2,C.b3][i],lab:'m'}));},
+  draw(t,P,S){ ground('track'); const t1=2,t2=4.6, v=110, ww=150; const x2=330, gap=v/2*(t2-t1), x3=x2+ww+gap;
+    let a,b2,c; if(t<t1){a=x2-ww+v*(t-t1);b2=x2;c=x3;} else if(t<t2){a=x2-ww+v/2*(t-t1);b2=a+ww;c=x3;} else {a=x2-ww+v/2*(t2-t1)+v/3*(t-t2);b2=a+ww;c=b2+ww;}
+    [a,b2,c].forEach((x,i)=>body(P._w[i],x+ww/2,GY,{}));
+    if(t>=t1&&t<t1+.6)spark(x2,GY-50,seg(t,t1,t1+.6)); if(t>=t2&&t<t2+.6)spark(x3,GY-50,seg(t,t2,t2+.6));
+    const vv=t<t1?v:t<t2?v/2:v/3, lab=t<t1?'υ = 3 м/с':t<t2?'υ′ = 1,5 м/с':V(P,S,'u','V = 1 м/с'), xm=t<t1?a+ww/2:t<t2?(a+b2+ww)/2:(a+c+ww)/2;
+    vArrow(xm,GY-140,vv*.8,lab,{glow:HL(S,'u')?12:0});
+    rowsPanel(18,14,440,[['p0','Бастапқы импульс','m·3 = 3m'],['p1','1–2 тіркелгенде','2m·υ′ = 3m'],['u','3 вагон: 3m·V = 3m ⇒ V',S.rev?'1 м/с':'?']],P,S,{title:'Импульс сақталады',on:HL(S,'rows')});
+    phase(t<t1?'1-вагон қозғалады':t<t2?'1 мен 2 тіркелді':'Үшеуі тіркелді',W-190,40,t<t2?C.ink:C.p);
+    eqBar(P,S);
+  }
+};
+
+/* ---- биіктіктен түсу (C2) ---- */
+SC.fall={
+  dur:()=>5.4,
+  setup(){},
+  draw(t,P,S){ ground('floor'); const y0=110, tf=3.2, u=seg(t,.6,.6+tf), r=22, y=y0+(GY-2*r-y0)*u*u;
+    const rx=330; cx.strokeStyle=C.mute;cx.lineWidth=2;cx.beginPath();cx.moveTo(rx,y0+r);cx.lineTo(rx,GY);cx.stroke();for(let i=0;i<=4;i++){const yy=lerp(y0+r,GY,i/4);cx.beginPath();cx.moveTo(rx-8,yy);cx.lineTo(rx+8,yy);cx.stroke();T(fmt(1-i/4)+' м',rx-14,yy,{size:14,col:C.mute,al:'right'});}
+    T('h = 1 м',rx+16,(y0+GY)/2,{size:16,col:C.v,w:700});
+    body({kind:'ball',w:2*r,h:2*r,col:C.b1},460,y+2*r,{glow:HL(S,'b1')});
+    const v=4*u; if(u>0)arrow(460,y+r,460,y+r+v*26,C.p,6,{label:'p',ox:26,oy:0,glow:HL(S,'p')?12:0});
+    arrow(520,y+r,520,y+r+60,C.F,3,{label:'a = 8 м/с²',ox:62,oy:0,ls:15});
+    rowsPanel(W-18-330,14,330,[['m','m','0,2 кг'],['a','a','8 м/с²'],['v','υ',hid(P,S,'v')?'?':fmt(v,2)+' м/с'],['dp','Δp',hid(P,S,'dp')?'?':fmt(.2*v,2)+' кг·м/с']],P,S,{title:'Шамалар',on:HL(S,'rows')});
+    T('a < g: ауа кедергісі бар',W-180,250,{size:14,col:C.dim,al:'center'});
+    eqBar(P,S);
+  }
+};
+
+/* ---- бөгеттен өту (C4) ---- */
+SC.barrier={
+  dur:()=>6,
+  setup(){},
+  draw(t,P,S){ ground('floor'); const s1=420,s2=720,yb=GY-110, a=137.5;
+    const g=cx.createLinearGradient(s1,0,s2,0);g.addColorStop(0,'#6b4a2b');g.addColorStop(1,'#8a5a36');cx.fillStyle=g;cx.fillRect(s1,yb-90,s2-s1,180);cx.strokeStyle='#3d2817';cx.lineWidth=2;cx.strokeRect(s1,yb-90,s2-s1,180);
+    T('бөгет, d = 8 см (үлкейтілген)',(s1+s2)/2,yb-110,{size:15,col:'#e2c9a6',al:'center',w:700});
+    const tA=.4+(s1-60)/(2*a), tIn=(s2-s1)/(1.5*a), tB=tA+tIn; let x,v;
+    if(t<.4){x=60;v=2*a;} else if(t<tA){x=60+2*a*(t-.4);v=2*a;} else if(t<tB){const s=t-tA, acc=(a-2*a)/tIn; x=s1+2*a*s+acc*s*s/2; v=2*a+acc*s;} else {x=s2+a*(t-tB);v=a;}
+    x=Math.min(x,W-30);
+    body({kind:'bullet',w:44,h:16,col:'#d9a441'},x,yb+8,{});
+    vArrow(x,yb-40-(t>=tA&&t<tB?120:0),v*.45,'υ = '+fmt(800*v/(2*a),0)+' м/с',{});
+    if(t>=tA&&t<tB)arrow(x+30,yb+40,x-60,yb+40,C.F,6,{label:'F кедергі',oy:22,glow:12});
+    const tr=clamp((t-tA)/tIn,0,1);
+    rowsPanel(18,14,330,[['m','m','10 г = 0,01 кг'],['v0','υ₀ → υ','800 → 400 м/с'],['d','d','8 см = 0,08 м'],['dt','Δt',fmt(tr*1.33,2)+'·10⁻⁴ с'],['F','F','3·10⁴ Н']],P,S,{title:'Шамалар',on:HL(S,'rows')});
+    if(t>=tA&&t<tB)badge('Баяулатылған көрініс',W-230,30,C.v);
+    eqBar(P,S);
+  }
+};
+
+/* ---- автоматтан оқ ату (C5) ---- */
+SC.burst={
+  dur:()=>6,
+  setup(){},
+  draw(t,P,S){ ground('floor'); const per=.5, n=Math.floor(t/per)+1, ph=t%per, gx=210, gunY=GY-76, by=gunY-40*.59+4.5;
+    person(110,GY,120,'#4b6aa8',{reach:30,raise:16});
+    const kick=Math.exp(-ph*16)*10; body(defBody({kind:'gun',w:200,h:40}),gx-kick,gunY,{nolab:true});
+    if(ph<.25)arrow(gx-kick-110,gunY-60,gx-kick-110-60*Math.exp(-ph*10),gunY-60,C.F,5,{label:'иыққа әсер',oy:-18,ls:14});
+    for(let i=0;i<n;i++){const tt=t-i*per; const x=gx+100+tt*900; if(x<W)body({kind:'bullet',w:26,h:9},x,by,{});}
+    if(ph<.12)boom(gx+108,by-5,ph/.12);
+    // F(t) графигі
+    const gx0=430,gy0=180,gw=490; panel(400,14,542,190,{on:HL(S,'graph')}); axes(gx0,gy0,gw,150,{}); T('F',gx0+12,gy0-146,{size:15,col:C.F,w:700}); T('t',gx0+gw-4,gy0+16,{size:15,col:C.mute,al:'right'});
+    const X=tt=>gx0+tt/6*gw; cx.strokeStyle=C.F;cx.lineWidth=2.5;cx.beginPath();cx.moveTo(gx0,gy0);
+    for(let tt=0;tt<=t;tt+=.01){const q=tt%per;cx.lineTo(X(tt),gy0-(q<.06?120*Math.sin(Math.PI*q/.06):0));}cx.stroke();
+    cx.setLineDash([8,6]);cx.strokeStyle=C.p;cx.lineWidth=2.5;cx.beginPath();cx.moveTo(gx0,gy0-28);cx.lineTo(gx0+gw-10,gy0-28);cx.stroke();cx.setLineDash([]);
+    T('F орт = '+V(P,S,'F','20 Н'),gx0+gw-14,gy0-44,{size:16,col:C.p,al:'right',w:800,bg:'rgba(13,20,36,.85)',pad:5});
+    rowsPanel(18,14,360,[['n','Атылған оқ саны',String(Math.min(n,12))],['tt','Уақыт',fmt(t/2,2)+' с'],['rate','Жиілік','240 / 60 с = 4 оқ/с'],['p1','Бір оқ: p = mυ','0,005·1000 = 5 кг·м/с']],P,S,{title:'Автомат (1 с = 2 с анимация)',on:HL(S,'rows'),rh:29,fs:16});
+    eqBar(P,S);
+  }
+};
+
+/* ---- зымыран (C6) ---- */
+SC.rocket={
+  dur:()=>7,
+  setup(){},
+  draw(t,P,S){ ground('floor'); const ts=1.1, T5=4.4, u=seg(t,ts,ts+T5), hTop=190, rx=420;
+    const hmeters=125*(1-Math.pow(1-u,2)), y=GY-(GY-hTop)*hmeters/125, vcur=50*(1-u);
+    const rl=170; cx.strokeStyle=C.mute;cx.lineWidth=2;cx.beginPath();cx.moveTo(rl,GY);cx.lineTo(rl,hTop);cx.stroke();
+    for(let i=0;i<=5;i++){const yy=lerp(GY,hTop,i/5);cx.beginPath();cx.moveTo(rl-8,yy);cx.lineTo(rl+8,yy);cx.stroke();T(fmt(i*25)+' м',rl-14,yy,{size:14,col:C.mute,al:'right'});}
+    cx.save(); cx.translate(rx,y-60); cx.rotate(-Math.PI/2); body({kind:'rocket',w:120,h:40,col:C.b1},0,20,{}); cx.restore();
+    if(t>=ts){ const g=seg(t,ts,ts+1.6); for(let i=0;i<7;i++){const gy=GY-20+g*360*(0.5+i*.08); body({kind:'gas',w:70,h:46},rx+(i-3)*16*g,Math.min(gy,H+30),{alpha:(1-g)*.9});}
+      if(t<ts+.5)boom(rx,GY-10,seg(t,ts,ts+.5)); }
+    if(t>=ts&&u<1)arrow(rx+60,y-60,rx+60,y-60-vcur*2.2,C.v,4,{label:V(P,S,'v','υ = '+fmt(vcur,0)+' м/с'),ox:74,oy:0,glow:HL(S,'v')?12:0});
+    if(t>=ts)T('газ: V = '+V(P,S,'u','400 м/с')+' ↓',rx+130,GY-30,{size:16,col:'#ffb86b',w:800});
+    rowsPanel(W-18-340,14,340,[['M','Зымыран (отынсыз) M','400 т'],['m','Отын (газ) m','50 т'],['h','h','125 м'],['gg','g','10 м/с²']],P,S,{title:'Берілгені',on:HL(S,'rows')});
+    if(u>=1)phase('Ең жоғарғы нүкте: υ = 0',rx,GY+34,C.p);
+    eqBar(P,S);
+  }
+};
+
+/* ---- қайық пен тас (C7) ---- */
+SC.boat={
+  dur:()=>7.4,
+  setup(){},
+  draw(t,P,S){ ground('water',GY,{shore:'L',sx:110}); const tt=1.4, T1=5.6, u=seg(t,tt,tt+T1), x0=110+520+90, x=lerp(x0,110+90+4,u);
+    const boat=defBody({kind:'boat',w:180,h:50,col:'#c9a46b'}); body(boat,x,GY+6,{glow:HL(S,'b1')}); person(x+20,GY-14,96,C.b2,{reach:t<tt?20:34,raise:t<tt?0:24});
+    if(t<tt) body({kind:'stone',w:20,h:16},x+46,GY-60,{}); else { const s=t-tt; const sx=x0+46+s*150, sy=GY-60-200*s+260*s*s; if(sy<GY)body({kind:'stone',w:20,h:16},sx,sy,{}); else if(s<1.6)spark(Math.min(sx,W-20),GY,seg(s,1.05,1.6),'#bfe6ff'); }
+    // қашықтық
+    cx.strokeStyle=C.mute;cx.lineWidth=2;const xa=110,xb=x-90; if(xb-xa>6){arrow(xa+(xb-xa)/2,GY+70,xa,GY+70,C.mute,2,{head:9});arrow(xa+(xb-xa)/2,GY+70,xb,GY+70,C.mute,2,{head:9});T(fmt(10*(1-u),1)+' м',xa+(xb-xa)/2,GY+52,{size:15,col:C.ink,al:'center',w:700});}
+    if(t>=tt&&u<1)vArrow(x,GY-140,-70,V(P,S,'u','V = 0,02 м/с'),{glow:HL(S,'u')?12:0});
+    if(t>=tt&&t<tt+.9)vArrow(x0+120,GY-130,90,'υ = 4 м/с',{col:'#ffb86b'});
+    rowsPanel(W-18-330,14,330,[['m','Тас m','0,5 кг'],['v','Тас υ','4 м/с'],['M','Қайық + адам M','100 кг'],['tt','Уақыт t',S.rev?fmt(500*u,0)+' с':'?']],P,S,{title:'Шамалар',on:HL(S,'rows')});
+    if(t>tt+.6&&u<1)badge('Уақыт жылдамдатылған',18,30,C.v);
+    if(u>=1)phase('Қайық жағаға жетті!',W/2,170,C.p);
+    eqBar(P,S);
+  }
+};
+
+/* ---- арбада жүгіру (C8, C9) ---- */
+SC.cartrun={
+  dur:()=>6.6,
+  setup(P){},
+  draw(t,P,S){ const L=440,t0=.8,T1=4.2,u=seg(t,t0,t0+T1), kv=(L-70)/T1, ku=kv*P.ur; const X0=P.X0||600;
+    const xc=X0-ku*(u*T1); ground('track',GY,{off:0});
+    for(let i=0;i<12;i++){const mx=40+i*80;cx.fillStyle='#33476f';cx.fillRect(mx,GY+22,3,14);}
+    const cart=defBody({kind:'cart',w:L,h:56,col:C.b2,lab:P.cl}); body(cart,xc,GY,{glow:HL(S,'b1')});
+    const xb=xc-L/2+35+kv*u*T1; person(xb,GY-cart.h+6,96,C.b1,{run:u>0&&u<1?NOW*10:0});
+    T(P.bl,xb,GY-cart.h-112,{size:15,col:C.ink,al:'center',w:700,bg:'rgba(13,20,36,.7)',pad:5});
+    if(u>0&&u<1){ vArrow(xb,GY-cart.h-140,kv*.8,P.vL,{col:'#ffb86b',lc:'#ffb86b'}); vArrow(xc+60,GY+80,-ku*.8,V(P,S,'u',P.uL),{glow:HL(S,'u')?12:0}); }
+    rowsPanel(18,14,P.pw||420,P.rows,P,S,{title:'Шамалар',on:HL(S,'rows'),rh:29,fs:17});
+    if(u>=1)phase('Бала тоқтады ⇒ арба да тоқтады (Σp = 0)',W/2,200,C.p);
+    eqBar(P,S);
+  }
+};
+
+/* ---- 2D векторлар ---- */
+SC.vec={
+  dur:P=>P.dur||7,
+  setup(){},
+  draw(t,P,S){
+    if(P.mode==='c2d'){ // C14
+      panel(20,20,500,500,{}); T('Үстел (жоғарыдан көрініс)',36,42,{size:14,col:C.mute,w:700});
+      const tc=1.5, r1=16,r2=26, B=[330,300], n=[Math.SQRT1_2,Math.SQRT1_2], A=[B[0]-(r1+r2)*n[0],B[1]-(r1+r2)*n[1]], vu=32, v0=vu*3*Math.SQRT2, tt=Math.min(t,3.6);
+      let p1,p2; if(tt<tc){p1=[A[0]-v0*(tc-tt),A[1]];p2=B;} else {const s=tt-tc;p1=[A[0]+3*vu*s*Math.SQRT1_2,A[1]-3*vu*s*Math.SQRT1_2];p2=[B[0]+vu*s*Math.SQRT1_2,B[1]+vu*s*Math.SQRT1_2];}
+      cx.setLineDash([4,6]);cx.strokeStyle='rgba(147,161,195,.45)';cx.beginPath();cx.moveTo(A[0]-v0*tc,A[1]);cx.lineTo(A[0],A[1]);if(tt>tc){cx.lineTo(p1[0],p1[1]);cx.moveTo(B[0],B[1]);cx.lineTo(p2[0],p2[1]);}cx.stroke();cx.setLineDash([]);
+      body({kind:'ball',w:2*r1,h:2*r1,col:C.b1},p1[0],p1[1]+r1,{}); body({kind:'ball',w:2*r2,h:2*r2,col:C.b2},p2[0],p2[1]+r2,{});
+      T('m',p1[0],p1[1]-28,{size:15,al:'center',w:800}); T('3m',p2[0],p2[1]+42,{size:15,al:'center',w:800});
+      if(tt<tc)arrow(p1[0]+20,p1[1],p1[0]+90,p1[1],C.v,4,{label:'υ₀ = ?',oy:-18});
+      else{arrow(p1[0],p1[1],p1[0]+40,p1[1]-40,C.v,4,{label:'3υ',ox:-30,oy:-10});arrow(p2[0],p2[1],p2[0]+28,p2[1]+28,C.v,4,{label:'υ',ox:20,oy:6});
+        const K=[(A[0]+B[0])/2,(A[1]+B[1])/2]; cx.setLineDash([3,4]);cx.strokeStyle=rgba(C.p,.6);cx.lineWidth=1.5;cx.beginPath();cx.moveTo(K[0],K[1]);cx.lineTo(K[0]+70,K[1]-70);cx.moveTo(K[0],K[1]);cx.lineTo(K[0]+70,K[1]+70);cx.stroke();cx.setLineDash([]);
+        cx.strokeStyle=C.p;cx.lineWidth=2;cx.beginPath();cx.arc(K[0],K[1],30,-Math.PI/4,Math.PI/4);cx.stroke();T('90°',K[0]+46,K[1],{size:14,col:C.p,w:800});}
+      if(t>=tc&&t<tc+.6)spark((A[0]+B[0])/2,(A[1]+B[1])/2,seg(t,tc,tc+.6));
+      const ox=580,oy=330,L=110; panel(540,20,W-558,500,{on:HL(S,'diag')}); T('Импульстер үшбұрышы',556,42,{size:14,col:C.mute,w:700});
+      const u1=ease(seg(t,3.8,4.6)),u2=ease(seg(t,4.6,5.4)),u3=ease(seg(t,5.4,6.2)); const a=[ox,oy], b=[ox+L,oy-L], c=[ox+2*L,oy];
+      if(u1>0)arrow(a[0],a[1],lerp(a[0],b[0],u1),lerp(a[1],b[1],u1),C.b1,6,{label:"p₁′ = 3mυ",ox:-56,oy:-4,glow:HL(S,'p1')?12:0});
+      if(u2>0)arrow(b[0],b[1],lerp(b[0],c[0],u2),lerp(b[1],c[1],u2),C.b2,6,{label:"p₂′ = 3mυ",ox:56,oy:-4,glow:HL(S,'p2')?12:0});
+      if(u3>0){arrow(a[0],a[1],lerp(a[0],c[0],u3),a[1],C.p,7,{label:'p₀ = mυ₀ = '+V(P,S,'p0','3√2·mυ'),oy:28,glow:HL(S,'p0')?14:0});
+        cx.strokeStyle=C.ink;cx.lineWidth=1.5;const q=12;cx.beginPath();cx.moveTo(b[0]-q*.707,b[1]+q*.707);cx.lineTo(b[0],b[1]+2*q*.707);cx.lineTo(b[0]+q*.707,b[1]+q*.707);cx.stroke();}
+      T('p₀² = p₁′² + p₂′²',ox+L,oy+90,{size:17,col:C.ink,al:'center',w:700,mono:true});
+    }
+    else if(P.mode==='perp'){ // C15
+      panel(20,20,440,500,{}); T('Қозғалыс (жоғарыдан)',36,42,{size:14,col:C.mute,w:700});
+      const O=[120,420], s=Math.min(t,3.4); const p1=[O[0]+s*80,O[1]], p2=[O[0],O[1]-s*60];
+      cx.setLineDash([4,6]);cx.strokeStyle='rgba(147,161,195,.45)';cx.beginPath();cx.moveTo(O[0],O[1]);cx.lineTo(p1[0],p1[1]);cx.moveTo(O[0],O[1]);cx.lineTo(p2[0],p2[1]);cx.stroke();cx.setLineDash([]);
+      body({kind:'ball',w:34,h:34,col:C.b1},p1[0],p1[1]+17,{}); body({kind:'ball',w:26,h:26,col:C.b2},p2[0],p2[1]+13,{});
+      T('200 г, 4 м/с',p1[0],p1[1]+36,{size:14,al:'center',w:700}); T('100 г, 3 м/с',p2[0]+64,p2[1],{size:14,al:'left',w:700});
+      cx.strokeStyle=C.p;cx.lineWidth=1.5;cx.strokeRect(O[0],O[1]-14,14,14);
+      const ox=560,oy=420,k=300; panel(490,20,W-508,500,{on:HL(S,'diag')}); T('Импульстерді қосу',506,42,{size:14,col:C.mute,w:700});
+      const u1=ease(seg(t,.6,1.6)),u2=ease(seg(t,1.6,2.6)),u3=ease(seg(t,3,4.2));
+      arrow(ox,oy,ox+.8*k*u1,oy,C.b1,6,{label:'p₁ = 0,8',oy:24,glow:HL(S,'p1')?12:0}); arrow(ox,oy,ox,oy-.3*k*u2,C.b2,6,{label:'p₂ = 0,3',ox:-54,oy:0,glow:HL(S,'p2')?12:0});
+      if(u3>0){cx.setLineDash([5,5]);cx.strokeStyle='rgba(234,240,255,.4)';cx.beginPath();cx.moveTo(ox+.8*k,oy);cx.lineTo(ox+.8*k,oy-.3*k);cx.lineTo(ox,oy-.3*k);cx.stroke();cx.setLineDash([]);
+        arrow(ox,oy,ox+.8*k*u3,oy-.3*k*u3,C.p,7,{label:'p = '+V(P,S,'p','≈ 0,85'),ox:-10,oy:-26,glow:HL(S,'p')?14:0});}
+      T('p = √(p₁² + p₂²)',ox+130,oy-200,{size:17,col:C.ink,al:'center',w:700,mono:true});
+    }
+    else { // C18 sum
+      const O=[110,330],u=62; panel(20,20,500,500,{on:HL(S,'grid')});
+      cx.strokeStyle='rgba(147,161,195,.13)';cx.lineWidth=1;for(let i=-1;i<=6;i++){cx.beginPath();cx.moveTo(O[0]+i*u,40);cx.lineTo(O[0]+i*u,510);cx.stroke();}for(let j=-2;j<=4;j++){cx.beginPath();cx.moveTo(40,O[1]-j*u);cx.lineTo(500,O[1]-j*u);cx.stroke();}
+      arrow(40,O[1],505,O[1],'#8a98bb',2,{head:10});arrow(O[0],505,O[0],36,'#8a98bb',2,{head:10});T('pₓ',495,O[1]+18,{size:14,col:C.mute,al:'right'});T('pᵧ',O[0]+14,44,{size:14,col:C.mute});
+      const vs=[[2,-1.5,C.b1,'p₁'],[2.5,3,C.b2,'p₂'],[-.5,1.5,C.b3,'p₃']]; let cxp=0,cyp=0;
+      vs.forEach(([a,b,col,l],i)=>{const k=ease(seg(t,.5+i*.9,1.3+i*.9)); if(k>0)arrow(O[0]+cxp*u,O[1]-cyp*u,O[0]+(cxp+a*k)*u,O[1]-(cyp+b*k)*u,col,6,{label:l,ox:a<0?-22:18,oy:-10,glow:HL(S,'p'+(i+1))?12:0}); cxp+=a;cyp+=b;});
+      if(S.rev){const k=ease(seg(t,3.4,4.4)); cx.setLineDash([5,5]);cx.strokeStyle=rgba(C.p,.7);cx.lineWidth=2;cx.beginPath();cx.moveTo(O[0],O[1]);cx.lineTo(O[0]+4*u,O[1]);cx.lineTo(O[0]+4*u,O[1]-3*u);cx.stroke();cx.setLineDash([]);
+        arrow(O[0],O[1],O[0]+4*u*k,O[1]-3*u*k,C.p,7,{label:'P = 5',ox:-30,oy:-16,glow:HL(S,'P')?14:0}); T('Pₓ = 4',O[0]+2*u,O[1]+22,{size:15,col:C.p,al:'center',w:800}); T('Pᵧ = 3',O[0]+4*u+40,O[1]-1.5*u,{size:15,col:C.p,w:800});}
+      rowsPanel(540,20,W-558,[['x1','p₁ₓ; p₁ᵧ','2; −1,5'],['x2','p₂ₓ; p₂ᵧ','2,5; 3'],['x3','p₃ₓ; p₃ᵧ','−0,5; 1,5'],['Px','Pₓ = Σpₓ','4'],['Py','Pᵧ = Σpᵧ','3'],['P','P = √(Pₓ² + Pᵧ²)','5 кг·м/с']],P,S,{title:'Проекциялар, кг·м/с',on:HL(S,'rows'),rh:34});
+    }
+    eqBar(P,S);
+  }
+};
+/* =========================================================
+   ЕСЕПТЕР: мәтін, нұсқалар, жауап, сахна, қадамдық шешім
+   st: [тақырып, html, анимация уақыты (0..1), бөлектеу]
+   ========================================================= */
+const F=s=>`<span class="f">${s}</span>`;
+const FR=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const VC=s=>`<span class="vec">${s}</span>`;
+const GUN_L=70, BUL_L=84.5;
+
+const PR=[
+/* ======================= А ДЕҢГЕЙІ ======================= */
+{id:'A1',q:'Қандай физикалық шама «Н·с» өлшем бірлігімен өлшенеді?',
+ o:['Күш импульсі','Күш моменті','Жұмыс','Күш'],a:0,
+ sc:{type:'force',b:{kind:'ball',lab:'1 кг'},m:1,v0:0,v1:5,F:10,dt:.5,rows:['F','t','Ft','name'],
+   R:{name:{l:'F·Δt атауы',f:()=>'күш импульсі'}},hide:['name'],eq:'F·Δt = Δp,   1 Н·с = 1 кг·м/с'},
+ st:[['Өлшем бірлігін талдаймыз','Н — <b>күштің</b>, с — <b>уақыттың</b> бірлігі. Ізделетін шама — күш пен уақыттың көбейтіндісі:'+F('[F·Δt] = Н·с'),.55,'dt'],
+     ['Анықтама','F·Δt көбейтіндісі <b>күш импульсі</b> деп аталады. Ол дене импульсінің өзгерісіне тең:'+F('F·Δt = Δp, &nbsp; 1 Н·с = 1 кг·м/с'),.95,'rows'],
+     ['Қалған нұсқалар','Күш моменті — Н·м, жұмыс — Дж (= Н·м), күш — Н. Олардың ешқайсысы Н·с емес.',.95,null]]},
+
+{id:'A2',q:'Дененің импульс векторының бағыты',
+ o:['орын ауыстыру векторына қарама-қарсы','күш векторымен бағыттас','жылдамдық векторымен бағыттас','еркін түсу үдеуі векторымен бағыттас'],a:2,
+ sc:{type:'proj',hide:['parr','dir'],eq:'p = m·υ,  m > 0  ⇒  p ↑↑ υ'},
+ st:[['Импульс анықтамасы',F(VC('p')+' = m·'+VC('υ'))+'Масса m — оң скаляр шама.',.4,'v'],
+     ['Бағыты','Векторды оң санға көбейткенде бағыты өзгермейді. Сондықтан импульс векторы әрқашан <b>жылдамдық векторымен бағыттас</b> — траекторияға жанама бойымен.',.5,'p'],
+     ['Неге басқалары емес?','Анимацияда: орын ауыстыру <i>s</i> бастапқы нүктеден денеге қарай бағытталған, ал ауырлық күші мен <i>g</i> — тік төмен. Олардың бағыты υ-мен сәйкес келмейді.',.78,'s']]},
+
+{id:'A3',q:'Дене импульсінің өзгерісі',
+ o:['потенциалдық энергия өзгерісіне тең','қуатқа тең','күш импульсіне тең','жұмысқа тең'],a:2,
+ sc:{type:'force',b:{kind:'ball',lab:'2 кг'},m:2,v0:0,v1:6,F:8,dt:1.5,rows:['m','F','t','Ft','dp'],hide:['Ft','dp'],eq:'F·Δt = mυ − mυ₀ = Δp'},
+ st:[['Ньютонның II заңы',F('F = ma = m·'+FR('υ − υ₀','Δt')),.3,'rows'],
+     ['Δt-ға көбейтеміз',F('F·Δt = mυ − mυ₀ = Δp')+'Демек, дене импульсінің өзгерісі <b>күш импульсіне</b> тең.',.7,'graph'],
+     ['Анимациямен тексереміз',F('F·Δt = 8 Н · 1,5 с = 12 Н·с')+F('Δp = 2 кг · 6 м/с − 0 = 12 кг·м/с'),.97,'rows']]},
+
+{id:'A4',q:'Дененің массасы мен жылдамдығының көбейтіндісі – оның',
+ o:['кинетикалық энергиясы','потенциалдық энергиясы','дене импульсі','күш импульсі'],a:2,
+ sc:{type:'move',b:{kind:'cart',lab:'2 кг'},rows:[['m','m','2 кг'],['v','υ','3 м/с'],['mv','m·υ','6 кг·м/с'],['name','m·υ атауы','дене импульсі']],hide:['name','parr'],eq:'p = m·υ   [кг·м/с]'},
+ st:[['Анықтама','Дененің массасы мен жылдамдығының көбейтіндісі — <b>дене импульсі</b> (қозғалыс мөлшері):'+F('p = m·υ'),.5,'p'],
+     ['Басқа шамалармен салыстыру',F('E<sub>k</sub> = '+FR('mυ²','2')+', &nbsp; E<sub>p</sub> = mgh, &nbsp; күш импульсі = F·Δt')+'Олардың ешқайсысы жай ғана m·υ емес.',.5,'rows']]},
+
+{id:'A5',q:'Екі өзара әсерлесуші дене үшін импульстің сақталу заңы:',
+ o:[VC('p')+' = m'+VC('υ'),VC('F')+'·Δt = m'+VC('υ')+' − m'+VC('υ')+'<sub>0</sub>',FR('mυ₁²','2')+' + mgh₁ = '+FR('mυ₂²','2')+' + mgh₂','m₁'+VC('υ')+'₁ + m₂'+VC('υ')+'₂ = m₁'+VC('υ')+'₁′ + m₂'+VC('υ')+'₂′'],a:3,
+ sc:{type:'inter',ground:'table',b:[{kind:'ball',m:2,v:3,vA:-1,lab:'2 кг',vL:'υ₁ = 3 м/с',vAL:'υ₁′ = 1 м/с'},{kind:'ball',s:.8,m:1,v:-3,vA:5,col:C.b2,lab:'1 кг',vL:'υ₂ = 3 м/с',vAL:'υ₂′ = 5 м/с'}],
+   hide:['s','sA'],eq:'m₁υ₁ + m₂υ₂ = m₁υ₁′ + m₂υ₂′'},
+ st:[['Тұйық жүйе','Денелер тек бір-бірімен әсерлеседі (сыртқы күштер жоқ немесе теңгерілген). Мұндай жүйе <b>тұйық</b> деп аталады.',.3,'before'],
+     ['Сақталу заңы','Тұйық жүйенің толық импульсі өзгермейді:'+F('m₁'+VC('υ')+'₁ + m₂'+VC('υ')+'₂ = m₁'+VC('υ')+'₁′ + m₂'+VC('υ')+'₂′'),.85,'after'],
+     ['Анимациядағы тексеру',F('Дейін: 2·3 + 1·(−3) = 3 кг·м/с')+F('Кейін: 2·(−1) + 1·5 = 3 кг·м/с'),.9,['before','after']],
+     ['Қалған формулалар','A — импульстің анықтамасы, B — Ньютонның II заңының импульстік түрі, C — механикалық энергияның сақталу заңы.',.9,null]]},
+
+{id:'A6',q:'Массасы 10 кг дененің импульсі 40 кг·м/с болса, оның жылдамдығы',
+ o:['1 м/с','2 м/с','4 м/с','5 м/с'],a:2,
+ sc:{type:'move',b:{kind:'block',lab:'10 кг'},rows:[['m','m','10 кг'],['p','p','40 кг·м/с'],['v','υ','4 м/с']],hide:['v'],eq:'υ = p / m = 40 / 10 = 4 м/с'},
+ st:[['Берілгені',F('m = 10 кг, &nbsp; p = 40 кг·м/с, &nbsp; υ — ?'),.3,'rows'],
+     ['Формула',F('p = mυ &nbsp;⇒&nbsp; υ = '+FR('p','m')),.5,'p'],
+     ['Есептеу',F('υ = '+FR('40','10')+' = 4 м/с'),.7,'rows']]},
+
+{id:'A7',q:'Жылтыр горизонталь жазықтықта массалары <i>m</i>₁ = <i>m</i>₂ = 2 кг екі арба бір-біріне қарама-қарсы υ₁ = υ₂ = 3 м/с жылдамдықпен қозғалады. Арбалардың соқтығысқанға дейінгі жалпы импульсі',
+ o:['6 кг·м/с','12 кг·м/с','36 кг·м/с','0'],a:3,
+ sc:{type:'inter',b:[{kind:'cart',m:2,v:3,vA:0,lab:'2 кг',vL:'υ₁ = 3 м/с'},{kind:'cart',m:2,v:-3,vA:0,col:C.b2,lab:'2 кг',vL:'υ₂ = 3 м/с'}],joinA:true,vJAL:'υ = 0',
+   ph1:'Соқтығыстан кейін (мысалы, іліністі)',hide:['s','sA'],eq:'p = m₁υ₁ − m₂υ₂ = 6 − 6 = 0'},
+ st:[['Осьті таңдаймыз','OX осін 1-арбаның қозғалыс бағытымен (оңға) бағыттаймыз:'+F('υ₁ = +3 м/с, &nbsp; υ₂ = −3 м/с'),.25,'b1'],
+     ['Әр арбаның импульсі',F('p₁ = 2·3 = 6 кг·м/с, &nbsp; p₂ = 2·(−3) = −6 кг·м/с'),.3,'before'],
+     ['Жалпы импульс — векторлық қосынды',F('p = p₁ + p₂ = 6 + (−6) = 0')+'Импульс — векторлық шама, сондықтан модульдерді емес, проекцияларды қосамыз.',.35,'before']]},
+
+{id:'A8',q:'20 м/с жылдамдықпен түзу сызықты қозғалып келе жатқан массасы 2 кг дене тыныштықта тұрған массасы 3 кг денемен соқтығысады да, әрі қарай екеуі бірігіп υ жылдамдықпен қозғала бастайды. Денелердің соқтығысуға дейінгі жалпы импульсі',
+ o:['40 кг·м/с','50 кг·м/с','20 кг·м/с','30 кг·м/с'],a:0,
+ sc:{type:'inter',b:[{kind:'block',m:2,v:20,vA:8,lab:'2 кг',vL:'υ₁ = 20 м/с'},{kind:'block',s:1.15,m:3,v:0,vA:8,col:C.b2,lab:'3 кг',vL:'υ₂ = 0'}],joinA:true,vJAL:'υ = 8 м/с',
+   hide:['s','sA','p1A','p2A','vJA'],eq:'p = m₁υ₁ + m₂·0 = 2·20 = 40 кг·м/с'},
+ st:[['Берілгені',F('m₁ = 2 кг, υ₁ = 20 м/с; &nbsp; m₂ = 3 кг, υ₂ = 0'),.2,'b1'],
+     ['Соқтығысқа дейінгі импульстер',F('p₁ = 2·20 = 40 кг·м/с, &nbsp; p₂ = 3·0 = 0'),.3,'before'],
+     ['Жалпы импульс',F('p = p₁ + p₂ = 40 кг·м/с')+'Сақталу заңы бойынша соқтығыстан кейін де 40 кг·м/с: υ = 40 / 5 = 8 м/с.',.85,['before','after']]]},
+
+{id:'A9',q:'Массалары 200 г және 500 г шарлар 4 м/с және 3 м/с жылдамдықтарымен бір бағытта қозғалады. Шарлардың қорытқы импульсінің модулі',
+ o:['1,7 кг·м/с','5 кг·м/с','2,6 кг·м/с','2,3 кг·м/с'],a:3,
+ sc:{type:'two',b:[{kind:'ball',s:.75,m:.2,v:4,lab:'200 г',vL:'υ₁ = 4 м/с'},{kind:'ball',m:.5,v:3,col:C.b2,lab:'500 г',vL:'υ₂ = 3 м/с'}],hide:['s'],eq:'p = 0,8 + 1,5 = 2,3 кг·м/с'},
+ st:[['SI жүйесіне келтіру',F('m₁ = 200 г = 0,2 кг; &nbsp; m₂ = 500 г = 0,5 кг'),.2,'b1'],
+     ['Әр шардың импульсі',F('p₁ = 0,2·4 = 0,8 кг·м/с; &nbsp; p₂ = 0,5·3 = 1,5 кг·м/с'),.5,'sum'],
+     ['Бір бағытта ⇒ қосамыз',F('p = p₁ + p₂ = 0,8 + 1,5 = 2,3 кг·м/с'),.6,'sum']]},
+
+{id:'A10',q:'Массалары 200 г және 500 г шарлар 4 м/с және 3 м/с жылдамдықтарымен бір-біріне қарама-қарсы қозғалады. Шарлардың қорытқы импульсінің модулі',
+ o:['2,3 кг·м/с','0,7 кг·м/с','1,5 кг·м/с','0,8 кг·м/с'],a:1,
+ sc:{type:'two',b:[{kind:'ball',s:.75,m:.2,v:4,lab:'200 г',vL:'υ₁ = 4 м/с'},{kind:'ball',m:.5,v:-3,col:C.b2,lab:'500 г',vL:'υ₂ = 3 м/с'}],hide:['s'],sL:'−0,7',eq:'|p| = |0,8 − 1,5| = 0,7 кг·м/с'},
+ st:[['SI және импульстер',F('p₁ = 0,2·4 = 0,8 кг·м/с; &nbsp; p₂ = 0,5·3 = 1,5 кг·м/с'),.4,'sum'],
+     ['Қарама-қарсы ⇒ проекцияларды қосамыз','OX — бірінші шардың бағыты:'+F('p = 0,8 + (−1,5) = −0,7 кг·м/с'),.55,'sum'],
+     ['Модулі',F('|p| = 0,7 кг·м/с')+'Минус таңбасы қорытқы импульстің ауыр шардың бағытымен бағытталғанын көрсетеді.',.6,'sum']]},
+
+{id:'A11',q:'Массасы <i>m</i> доп υ жылдамдықпен горизонталь қозғалып келіп, массасы <i>M</i> бекітілген қабырғаға барып тиеді. Егер соқтығыс абсолют серпімді болса, доп импульсінің өзгерісінің модулі',
+ o:['−mυ','mυ','(m + M)υ','2mυ'],a:3,
+ sc:{type:'wall',b:{kind:'ball',lab:'m'},pL:'mυ',pAL:'−mυ',dpL:'2mυ',rows:[['pp','p','mυ'],['ppA','p′','−mυ'],['dp','|Δp|','2mυ']],hide:['dp'],eq:'|Δp| = |−mυ − mυ| = 2mυ'},
+ st:[['Осьті таңдаймыз','OX осі доптың алғашқы қозғалыс бағытымен. Соғылғанға дейін:'+F('p = mυ'),.3,'p'],
+     ['Серпімді соғылу','Абсолют серпімді соғылғанда жылдамдық модулі сақталады, бағыты керісінше өзгереді:'+F('p′ = −mυ'),.6,'pA'],
+     ['Импульс өзгерісі',F('Δp = p′ − p = −mυ − mυ = −2mυ')+'Модулі: <b>2mυ</b>. Қабырға бекітілген, сондықтан M жауапқа кірмейді.',.92,'dp']]},
+
+{id:'A12',q:'Ракетаның жанып біткен сатысы ғарыш кемесінен ажырағанда қандай да бір '+VC('p')+' импульс алады. Сол кездегі ғарыш кемесінің импульсі қандай шамаға өзгерді?',
+ o:['−2'+VC('p'),'−'+VC('p'),'2'+VC('p'),VC('p')],a:1,
+ sc:{type:'inter',ground:'space',fx:'spring',joinB:true,vJL:null,
+   b:[{kind:'stage',m:1,v:0,vA:-1.6,lab:'саты',vAL:'',pn:'p саты',pnA:'Δp саты',pL:'0',pAL:'p'},{kind:'ship',m:2,v:0,vA:.8,col:C.b2,lab:'кеме',vAL:'',pn:'p кеме',pnA:'Δp кеме',pL:'0',pAL:'−p'}],
+   sL:'0',sAL:'0',t0:'Ажырауға дейін',t1:'Ажырау кезіндегі өзгеріс',ph0:'Кеме мен саты бірге',phc:'Ажырау!',ph1:'Ажыраудан кейін',
+   note:'Санақ жүйесі зымыранмен бірге қозғалады',hide:['p2A'],eq:'Δp кеме = −Δp саты = −p'},
+ st:[['Жүйе тұйық','Ажырау кезінде тек ішкі күштер (серіппе, қопару) әсер етеді, сондықтан «кеме + саты» жүйесінің импульсі сақталады.',.3,'before'],
+     ['Ньютонның III заңы','Саты мен кеме бір-біріне модульдері тең, бағыттары қарама-қарсы күштермен бірдей уақыт әсер етеді:'+F(VC('F')+'₁·Δt = −'+VC('F')+'₂·Δt'),.48,null],
+     ['Импульс өзгерістері',F('Δ'+VC('p')+'<sub>саты</sub> + Δ'+VC('p')+'<sub>кеме</sub> = 0 &nbsp;⇒&nbsp; Δ'+VC('p')+'<sub>кеме</sub> = −'+VC('p')),.9,'after']]},
+
+{id:'A13',q:'Суретте дене импульсінің уақытқа тәуелділік графигі берілген. 10 с-тан 20 с аралығында денеге әсер ететін күш шамасы',
+ o:['0 Н','15 Н','10 Н','1 кН'],a:0,
+ sc:{type:'graph',mode:'pt',pts:[[0,100],[10,50],[20,50],[30,100]],tmax:30,ymax:112,xt:[10,20,30],yt:[50,100],yl:'p, кг·м/с',xl:'t, с',segs:['−5 Н','0','+5 Н'],hide:['F2'],dur:8,eq:'F = Δp/Δt = (50 − 50)/10 = 0'},
+ st:[['Күш пен импульс байланысы',F('F = '+FR('Δp','Δt'))+'Яғни p(t) графигінің көлбеулігі — денеге әсер ететін күш.',.2,'F1'],
+     ['10–20 с аралығы','Бұл аралықта график горизонталь: p = 50 кг·м/с тұрақты, яғни'+F('Δp = 50 − 50 = 0'),.5,'F2'],
+     ['Күшті есептейміз',F('F = '+FR('0','10 с')+' = 0 Н')+'Салыстыру: 0–10 с аралығында F = (50 − 100)/10 = −5 Н (тежелу).',.55,'F2']]},
+
+{id:'A14',q:'Пластилин шарик қабырғаға <i>p</i>₀ = 1 кг·м/с импульспен келіп соқтығысып, жабысып қалды. Егер өзара әсерлесу уақыты 0,01 с болса, соқтығысудың орташа күші',
+ o:['100 Н','0,01 Н','200 Н','1 Н'],a:0,
+ sc:{type:'wall',stick:true,b:{kind:'ball',s:.8,col:C.b3},pL:'1 кг·м/с',dpL:'1 кг·м/с',rows:[['p0','p₀','1 кг·м/с'],['pA','p','0'],['dt','Δt','0,01 с'],['F','F','100 Н']],hide:['F'],eq:'F = |Δp| / Δt = 1 / 0,01 = 100 Н'},
+ st:[['Импульстің өзгерісі','Шарик жабысып қалды ⇒ соңғы импульсі 0:'+F('|Δp| = |0 − p₀| = 1 кг·м/с'),.65,'dp'],
+     ['Импульс түріндегі II заң',F('F·Δt = |Δp| &nbsp;⇒&nbsp; F = '+FR('|Δp|','Δt')),.8,'rows'],
+     ['Есептеу',F('F = '+FR('1','0,01')+' = 100 Н'),.9,'rows']]},
+
+{id:'A15',q:'Массасы 10 кг дене 20 Н күштің әсерінен жылдамдығын 2 м/с-ға арттырса, күш әсері созылатын уақыт',
+ o:['1 с','6 с','4 с','2 с'],a:0,
+ sc:{type:'force',b:{kind:'block',lab:'10 кг'},m:10,v0:1,v1:3,F:20,dt:1,rows:['m','F','v0','v','t'],hide:['t'],eq:'Δt = mΔυ / F = 10·2 / 20 = 1 с'},
+ st:[['Берілгені',F('m = 10 кг, &nbsp; F = 20 Н, &nbsp; Δυ = 2 м/с, &nbsp; Δt — ?'),.1,'rows'],
+     ['Импульс түріндегі II заң',F('F·Δt = m·Δυ &nbsp;⇒&nbsp; Δt = '+FR('m·Δυ','F')),.5,'graph'],
+     ['Есептеу',F('Δt = '+FR('10·2','20')+' = 1 с'),.65,'dt']]},
+
+{id:'A16',q:'Массасы 400 г тыныштықтағы доп 2 кН күштің әсерінен 15 м/с жылдамдық ала қозғалды. Соққының созылу уақыты',
+ o:['5 мс','1,2 с','3 мс','0,8 с'],a:2,
+ sc:{type:'force',b:{kind:'ball',ball:'soccer',col:'#e9eef8',lab:''},m:.4,v0:0,v1:15,F:2000,dt:.003,hit:true,slow:'Баяулатылған көрініс (≈1000 есе)',tF:u=>fmt(u*3,2)+' мс',
+   rows:['m','F','v','t'],R:{m:{f:()=>'400 г = 0,4 кг'},F:{f:()=>'2 кН = 2000 Н'}},hide:['t'],eq:'Δt = mυ / F = 0,4·15 / 2000 = 0,003 с = 3 мс'},
+ st:[['SI жүйесіне келтіру',F('m = 400 г = 0,4 кг; &nbsp; F = 2 кН = 2000 Н'),.1,'rows'],
+     ['Импульс өзгерісі','Доп бастапқыда тыныштықта болған:'+F('Δp = mυ − 0 = 0,4·15 = 6 кг·м/с'),.62,'graph'],
+     ['Соққы уақыты',F('Δt = '+FR('Δp','F')+' = '+FR('6','2000')+' = 0,003 с = 3 мс'),.65,'dt']]},
+
+{id:'A17',q:'Массасы 500 кг вагонетканы 25 Н күшпен әсер ету арқылы тыныштық күйден шығарған. Ол 2 м/с жылдамдық алғанға дейін кететін уақыт',
+ o:['80 с','30 с','40 с','50 с'],a:2,
+ sc:{type:'force',ground:'track',b:{kind:'cart',lab:'500 кг',s:1.1},m:500,v0:0,v1:2,F:25,dt:40,tF:u=>fmt(u*40,1)+' с',rows:['m','F','v','t'],hide:['t'],eq:'Δt = mυ / F = 500·2 / 25 = 40 с'},
+ st:[['Берілгені',F('m = 500 кг, &nbsp; F = 25 Н, &nbsp; υ₀ = 0, &nbsp; υ = 2 м/с'),.1,'rows'],
+     ['Импульс түріндегі II заң',F('F·Δt = mυ − 0 &nbsp;⇒&nbsp; Δt = '+FR('mυ','F')),.5,'graph'],
+     ['Есептеу',F('Δt = '+FR('500·2','25')+' = 40 с'),.65,'dt']]},
+
+{id:'A18',q:'Массасы 0,5 кг денеге 0,5 минут бойы 15 Н күш әсер етті. Күш импульсі',
+ o:['0,25 Н·с','7,5 Н·с','450 Н·с','150 Н·с'],a:2,
+ sc:{type:'force',b:{kind:'block',lab:'0,5 кг',s:.8},m:.5,v0:0,v1:900,F:15,dt:30,novl:true,tF:u=>fmt(u*30,1)+' с',rows:['m','F','t','Ft'],R:{t:{l:'Δt',f:(D,u)=>fmt(u*30,1)+' с'}},hide:['Ft'],eq:'F·Δt = 15·30 = 450 Н·с'},
+ st:[['Уақытты SI-ге келтіру',F('Δt = 0,5 мин = 0,5·60 с = 30 с'),.2,'dt'],
+     ['Күш импульсі',F('F·Δt = 15 Н · 30 с = 450 Н·с')+'Масса (0,5 кг) бұл сұраққа керек емес — артық берілген шама.',.97,'rows']]},
+
+{id:'A19',q:'Массасы 10 кг доп 0,2 с созылған соғудан кейін 10 м/с жылдамдыққа ие болды. Соққының орташа күші',
+ o:['500 Н','550 Н','490 Н','600 Н'],a:0,
+ sc:{type:'force',b:{kind:'ball',lab:'10 кг',s:1.15},m:10,v0:0,v1:10,F:500,dt:.2,hit:true,rows:['m','v','t','F'],hide:['F'],eq:'F = mυ / Δt = 10·10 / 0,2 = 500 Н'},
+ st:[['Берілгені',F('m = 10 кг, &nbsp; υ₀ = 0, &nbsp; υ = 10 м/с, &nbsp; Δt = 0,2 с'),.1,'rows'],
+     ['Импульс өзгерісі',F('Δp = mυ − 0 = 10·10 = 100 кг·м/с'),.65,'graph'],
+     ['Орташа күш',F('F = '+FR('Δp','Δt')+' = '+FR('100','0,2')+' = 500 Н'),.7,'rows']]},
+
+{id:'A20',q:'Біреуінің массасы екіншісінен 1,5 есе артық, бастапқыда тыныштықта тұрған екі бала мұз үстінде бір-бірін итеріп қалады. Осы кезде',
+ o:['массасы аз бала аз жылдамдықпен сырғанайды','екі бала бірдей сырғанайды','массасы аз бала 2,25 есе артық жылдамдықпен сырғанайды','массасы көп бала 1,5 есе аз жылдамдықпен сырғанайды'],a:3,
+ sc:{type:'inter',ground:'ice',fx:'spring',joinB:true,norun:true,tc:1.6,
+   b:[{kind:'person',s:1.1,m:60,v:0,vA:-1,lab:'1,5m',vAL:'υ₁ = υ',pL:'0',pAL:'−1,5m·υ'},{kind:'person',s:.9,m:40,v:0,vA:1.5,col:C.b2,lab:'m',vAL:'υ₂ = 1,5υ',pL:'0',pAL:'m·1,5υ'}],
+   sL:'0',sAL:'0',t0:'Итеруге дейін',t1:'Итеруден кейін',ph0:'Балалар тыныштықта',phc:'Итеру!',ph1:'Итерілгеннен кейін',hide:['v1A','v2A','p1A','p2A'],eq:'0 = −1,5m·υ₁ + m·υ₂  ⇒  υ₂ = 1,5·υ₁'},
+ st:[['Бастапқы импульс','Балалар тыныштықта тұрған:'+F('Σp = 0'),.15,'before'],
+     ['Сақталу заңы','Итерілгеннен кейін де Σp = 0:'+F('0 = −m₁υ₁ + m₂υ₂ &nbsp;⇒&nbsp; m₁υ₁ = m₂υ₂'),.8,'after'],
+     ['Жылдамдықтар қатынасы',F(FR('υ₂','υ₁')+' = '+FR('m₁','m₂')+' = 1,5')+'Массасы көп бала <b>1,5 есе аз</b> жылдамдықпен сырғанайды (массасы аз бала — 1,5 есе жылдам).',.85,['v1A','v2A']]]},
+
+{id:'A21',q:'Массасы 600 г ракетадан массасы 15 г газ 800 м/с жылдамдықпен ұшып шығады. Ракетаның ракетницамен салыстырғандағы жылдамдығы',
+ o:['10 м/с','15 м/с','20 м/с','25 м/с'],a:2,
+ sc:{type:'inter',ground:'floor',fx:'boom',joinB:true,vJL:null,tc:1.8,from:{i:0,dx:-50,dy:-20,hide:true},
+   b:[{kind:'gas',m:.015,v:0,vA:-800,lab:'газ 15 г',lift:6,vAL:'V = 800 м/с'},{kind:'rocket',m:.6,v:0,vA:20,lab:'ракета 600 г',lift:14,vAL:'υ = 20 м/с'}],
+   t0:'Ұшуға дейін, кг·м/с',t1:'Газ шыққаннан кейін',ph0:'Ракета тыныштықта',phc:'Газ атқылады!',ph1:'Кері тебу',hide:['v2A','p1A','p2A'],eq:'0 = Mυ − mu  ⇒  υ = mu/M = 0,015·800/0,6 = 20 м/с'},
+ st:[['SI жүйесі',F('M = 600 г = 0,6 кг; &nbsp; m = 15 г = 0,015 кг; &nbsp; V = 800 м/с'),.15,'b2'],
+     ['Импульстің сақталуы','Ұшқанға дейін Σp = 0. Газ бір жаққа, ракета қарсы жаққа қозғалады:'+F('0 = Mυ − mu'),.8,['before','after']],
+     ['Есептеу',F('υ = '+FR('mu','M')+' = '+FR('0,015·800','0,6')+' = 20 м/с')+'<span style="color:var(--mute)">Газ шыққаннан кейінгі массаны (0,585 кг) алсақ та υ ≈ 20,5 м/с ≈ 20 м/с.</span>',.9,'v2A']]},
+
+{id:'A22',q:'Массасы 8 кг мылтықтан массасы 16 г оқ 600 м/с жылдамдықпен ұшып шықты. Мылтықтың кері қозғалу жылдамдығы',
+ o:['1,2 м/с','0,6 м/с','2,2 м/с','0,1 м/с'],a:0,
+ sc:{type:'inter',ground:'floor',fx:'boom',joinB:true,vJL:null,tc:1.8,from:{i:1,dx:64,dy:-BUL_L,hide:true},
+   b:[{kind:'gun',m:8,v:0,vA:-1.2,lab:'8 кг',lift:GUN_L,vAL:'V = 1,2 м/с'},{kind:'bullet',m:.016,v:0,vA:600,lab:'16 г',lift:BUL_L,vAL:'υ = 600 м/с'}],
+   t0:'Атуға дейін, кг·м/с',t1:'Атқаннан кейін',ph0:'Мылтық тыныштықта',phc:'Ату!',ph1:'Кері тебу',hide:['v1A','p1A','p2A'],eq:'0 = mυ − MV  ⇒  V = mυ/M = 0,016·600/8 = 1,2 м/с'},
+ st:[['SI жүйесі',F('M = 8 кг; &nbsp; m = 16 г = 0,016 кг; &nbsp; υ = 600 м/с'),.15,'b2'],
+     ['Импульстің сақталуы','Атуға дейін мылтық пен оқ тыныштықта: Σp = 0. Кейін:'+F('0 = mυ − MV'),.8,['before','after']],
+     ['Есептеу',F('V = '+FR('mυ','M')+' = '+FR('0,016·600','8')+' = 1,2 м/с'),.9,'v1A']]},
+
+/* ======================= В ДЕҢГЕЙІ ======================= */
+{id:'B1',q:'Суретте дене импульсінің оның массасына тәуелділік диаграммасы берілген. Ең аз жылдамдыққа сәйкес нүкте',
+ o:['5','2','4','1'],a:2,
+ sc:{type:'pm',target:4,eq:'υ = p/m — ең жатық түзу: 4-нүкте'},
+ st:[['Жылдамдықты өрнектейміз',F('p = mυ &nbsp;⇒&nbsp; υ = '+FR('p','m')),.3,'graph'],
+     ['Графиктен оқу','p/m қатынасы — координат басынан нүктеге жүргізілген түзудің көлбеулігі (tg α). Түзу неғұрлым <b>жатық</b> болса, жылдамдық соғұрлым аз.',.75,'graph'],
+     ['Қорытынды','<b>4-нүкте</b>: массасы ең үлкен, импульсі ең аз ⇒ түзуі ең жатық ⇒ υ ең аз.',1,'race']]},
+
+{id:'B2',q:'1-есептегі диаграммада ең үлкен жылдамдыққа сәйкес нүкте',
+ o:['5','2','4','1'],a:1,
+ sc:{type:'pm',target:2,eq:'υ = p/m — ең тік түзу: 2-нүкте'},
+ st:[['Жылдамдықты өрнектейміз',F('υ = '+FR('p','m')+' = tg α'),.3,'graph'],
+     ['Графиктен оқу','Координат басынан нүктеге жүргізілген түзу неғұрлым <b>тік</b> болса, жылдамдық соғұрлым үлкен.',.75,'graph'],
+     ['Қорытынды','<b>2-нүкте</b>: массасы ең аз, импульсі ең үлкен ⇒ түзуі ең тік ⇒ υ ең үлкен.',1,'race']]},
+
+{id:'B3',q:'Әрқайсысының массасы 1000 кг екі автомобиль Жермен байланысты санақ жүйесінде горизонталь жолмен қарама-қарсы бағытта сәйкесінше 10 м/с және 20 м/с жылдамдықпен қозғалады. Екінші автомобильдің бірінші автомобильмен байланысты санақ жүйесіндегі импульсі',
+ o:['30000 кг·м/с','35000 кг·м/с','28000 кг·м/с','20000 кг·м/с'],a:0,
+ sc:{type:'frames',v1:10,v2:-20,v1L:'υ₁ = 10 м/с',v2L:'υ₂ = 20 м/с',vrV:'30 м/с',pV:'30 000 кг·м/с',dirL:'Қарама-қарсы бағытта',hide:['vr','p21'],eq:'p₂₁ = m(υ₂ + υ₁) = 1000·30 = 30 000 кг·м/с'},
+ st:[['Салыстырмалы жылдамдық','Бірінші автомобильмен байланысқан санақ жүйесінде:'+F(VC('υ')+'₂₁ = '+VC('υ')+'₂ − '+VC('υ')+'₁'),.6,'rel'],
+     ['Қарама-қарсы бағыт','OX осін 2-автомобильдің бағытымен алсақ: υ₂ = 20 м/с, υ₁ = −10 м/с:'+F('υ₂₁ = 20 − (−10) = 30 м/с'),.75,'vr'],
+     ['Импульс',F('p₂₁ = m·υ₂₁ = 1000·30 = 30 000 кг·м/с'),.8,'rel']]},
+
+{id:'B4',q:'Әрқайсысының массасы 1000 кг екі автомобиль Жермен байланысты санақ жүйесінде горизонталь жолмен бір бағытта сәйкесінше 10 м/с және 20 м/с жылдамдықпен қозғалады. Екінші автомобильдің бірінші автомобильмен байланысты санақ жүйесіндегі импульсі',
+ o:['30000 кг·м/с','35000 кг·м/с','28000 кг·м/с','10000 кг·м/с'],a:3,
+ sc:{type:'frames',v1:10,v2:20,v1L:'υ₁ = 10 м/с',v2L:'υ₂ = 20 м/с',vrV:'10 м/с',pV:'10 000 кг·м/с',dirL:'Бір бағытта',hide:['vr','p21'],eq:'p₂₁ = m(υ₂ − υ₁) = 1000·10 = 10 000 кг·м/с'},
+ st:[['Салыстырмалы жылдамдық',F(VC('υ')+'₂₁ = '+VC('υ')+'₂ − '+VC('υ')+'₁'),.6,'rel'],
+     ['Бір бағыт','Екеуі де OX бойымен:'+F('υ₂₁ = 20 − 10 = 10 м/с')+'1-автомобильден қарағанда 2-автомобиль 10 м/с жылдамдықпен алға озады.',.75,'vr'],
+     ['Импульс',F('p₂₁ = m·υ₂₁ = 1000·10 = 10 000 кг·м/с'),.8,'rel']]},
+
+{id:'B5',q:'Массалары бірдей <i>m</i>-ге тең екі автомобиль Жерге қатысты бірдей бағытта υ және 3υ жылдамдықтармен қозғалады. Бірінші автомобильмен байланысқан санақ жүйесіндегі екінші автомобильдің импульсі',
+ o:['mυ','2mυ','3mυ','4mυ'],a:1,
+ sc:{type:'frames',v1:1,v2:3,v1L:'υ₁ = υ',v2L:'υ₂ = 3υ',vrV:'2υ',pV:'2mυ',mL:'m',dirL:'Бір бағытта',hide:['vr','p21'],eq:'p₂₁ = m(3υ − υ) = 2mυ'},
+ st:[['Салыстырмалы жылдамдық',F('υ₂₁ = υ₂ − υ₁ = 3υ − υ = 2υ'),.75,'vr'],
+     ['Импульс',F('p₂₁ = m·υ₂₁ = 2mυ'),.8,'rel']]},
+
+{id:'B6',q:'Қорғасыннан және болаттан жасалған көлемдері тең екі дене бірдей жылдамдықпен қозғалады. Осы денелер импульстерінің қатынасы (ρ<sub>қорғ</sub> = 11,3·10³ кг/м³; ρ<sub>бол</sub> = 7,8·10³ кг/м³)',
+ o:['≈ 1,45','≈ 145','≈ 6,9','≈ 69'],a:0,
+ sc:{type:'two',b:[{kind:'cube',s:.75,m:11.3,v:2,col:'#7b8794',lab:'Pb',vL:'υ',pL:'ρ₁Vυ'},{kind:'cube',s:.75,m:7.8,v:2,col:'#b8c4d6',lab:'Fe',vL:'υ',pL:'ρ₂Vυ'}],
+   tag:['Қорғасын, ρ₁ = 11 300 кг/м³','Болат, ρ₂ = 7 800 кг/м³'],sl:'p₁/p₂',sv:NaN,sL:'1,45 (шамамен)',t0:'Импульстер (V және υ бірдей)',hide:['s'],eq:'p₁/p₂ = ρ₁Vυ / ρ₂Vυ = ρ₁/ρ₂ ≈ 1,45'},
+ st:[['Масса арқылы өрнектеу',F('m = ρV &nbsp;⇒&nbsp; p = mυ = ρVυ'),.3,'sum'],
+     ['Қатынас','Көлемдері мен жылдамдықтары бірдей, сондықтан V мен υ қысқарады:'+F(FR('p₁','p₂')+' = '+FR('ρ₁','ρ₂')),.5,'sum'],
+     ['Есептеу',F(FR('p₁','p₂')+' = '+FR('11,3·10³','7,8·10³')+' ≈ 1,45'),.6,'sum']]},
+
+{id:'B7',q:'Массасы 2 кг денеге 150 Н күш 3 секунд бойы әсер етеді. Дененің бастапқы жылдамдығын 5 м/с деп есептеп, күш әсер еткеннен кейінгі дененің импульсін табыңыз.',
+ o:['360 Н·с','400 Н·с','460 Н·с','500 Н·с'],a:2,
+ sc:{type:'force',b:{kind:'block',lab:'2 кг',s:.85},m:2,v0:5,v1:230,F:150,dt:3,rows:['m','F','t','v0','p'],hide:['p','v'],tF:u=>fmt(u*3,2)+' с',eq:'p = mυ₀ + FΔt = 10 + 450 = 460 Н·с'},
+ st:[['Бастапқы импульс',F('p₀ = mυ₀ = 2·5 = 10 кг·м/с'),.1,'rows'],
+     ['Күш импульсі','Күш қозғалыс бағытымен әсер етеді деп аламыз:'+F('F·Δt = 150·3 = 450 Н·с'),.62,'graph'],
+     ['Соңғы импульс',F('p = p₀ + F·Δt = 10 + 450 = 460 Н·с (кг·м/с)'),.7,'graph']]},
+
+{id:'B8',q:'Массасы 5 кг денеге 10 Н күш 2 с бойы әсер етеді. Дененің бастапқы жылдамдығы 3 м/с болса, күш әсер еткеннен кейінгі дененің импульсі',
+ o:['35 кг·м/с','40 кг·м/с','25 кг·м/с','30 кг·м/с'],a:0,
+ sc:{type:'force',b:{kind:'block',lab:'5 кг'},m:5,v0:3,v1:7,F:10,dt:2,rows:['m','F','t','v0','p'],hide:['p','v'],eq:'p = mυ₀ + FΔt = 15 + 20 = 35 кг·м/с'},
+ st:[['Бастапқы импульс',F('p₀ = mυ₀ = 5·3 = 15 кг·м/с'),.1,'rows'],
+     ['Күш импульсі',F('F·Δt = 10·2 = 20 Н·с'),.62,'graph'],
+     ['Соңғы импульс',F('p = p₀ + F·Δt = 15 + 20 = 35 кг·м/с'),.7,'graph']]},
+
+{id:'B9',q:'Бастапқыда 72 км/сағ жылдамдықпен келе жатқан массасы 1000 кг автомобиль двигателін сөндірген соң тежеліп тоқтайды. Кедергі күші 0,20 кН болса, тежелу уақыты',
+ o:['10 с','100 с','0,1 с','1000 с'],a:1,
+ sc:{type:'force',ground:'road',b:{kind:'car',lab:'1000 кг',s:1.1},m:1000,v0:20,v1:0,F:200,dt:100,dir:-1,fl:'F кедергі',tA:1,tB:4.6,dur:6,tF:u=>fmt(u*100,0)+' с',
+   rows:['m','v0','F','t'],R:{v0:{f:()=>'72 км/сағ = 20 м/с'},F:{l:'F кедергі',f:()=>'0,20 кН = 200 Н'}},hide:['t'],eq:'Δt = mυ₀ / F = 1000·20 / 200 = 100 с'},
+ st:[['SI жүйесіне келтіру',F('υ₀ = 72 км/сағ = '+FR('72 000 м','3600 с')+' = 20 м/с; &nbsp; F = 0,20 кН = 200 Н'),.1,'rows'],
+     ['Импульс түріндегі II заң','Автомобиль тоқтайды (υ = 0):'+F('F·Δt = mυ₀ − 0 &nbsp;⇒&nbsp; Δt = '+FR('mυ₀','F')),.5,'graph'],
+     ['Есептеу',F('Δt = '+FR('1000·20','200')+' = 100 с'),.8,'dt']]},
+
+{id:'B10',q:'Массалары <i>m</i>₁ және <i>m</i>₂ екі дене υ₁ = 4 м/с және υ₂ = 20 м/с жылдамдықтармен бір-біріне қарама-қарсы қозғалып келе жатып, серпімсіз соқтығысқаннан кейін екеуі де тоқтады. Бірінші дене массасының екінші дене массасына қатынасы <i>m</i>₁/<i>m</i>₂',
+ o:['8','1/5','1/8','5'],a:3,
+ sc:{type:'inter',b:[{kind:'ball',s:1.15,m:5,v:4,vA:0,lab:'m₁',vL:'υ₁ = 4 м/с',pL:'4m₁',pAL:'0'},{kind:'ball',s:.6,m:1,v:-20,vA:0,col:C.b2,lab:'m₂',vL:'υ₂ = 20 м/с',pL:'−20m₂',pAL:'0'}],
+   joinA:true,vJAL:'υ = 0',sL:'4m₁ − 20m₂',sAL:'0',hide:['s'],eq:'m₁υ₁ − m₂υ₂ = 0  ⇒  m₁/m₂ = υ₂/υ₁ = 20/4 = 5'},
+ st:[['Соқтығыстан кейін','Екі дене де тоқтады ⇒'+F('Σp′ = 0'),.9,'after'],
+     ['Сақталу заңы','Ендеше соқтығысқа дейін де Σp = 0 болған:'+F('m₁υ₁ − m₂υ₂ = 0'),.3,'before'],
+     ['Қатынас',F(FR('m₁','m₂')+' = '+FR('υ₂','υ₁')+' = '+FR('20','4')+' = 5'),.35,'before']]},
+
+{id:'B11',q:'Массалары 400 г және 600 г екі дене бір-біріне қарама-қарсы қозғалып келе жатып, соқтығысып тоқтады. Егер бірінші дене 3 м/с жылдамдықпен қозғалған болса, екінші дененің жылдамдығы',
+ o:['6 м/с','5 м/с','4 м/с','2 м/с'],a:3,
+ sc:{type:'inter',b:[{kind:'block',s:.85,m:.4,v:3,vA:0,lab:'400 г',vL:'υ₁ = 3 м/с'},{kind:'block',m:.6,v:-2,vA:0,col:C.b2,lab:'600 г',vL:'υ₂ = 2 м/с'}],
+   joinA:true,vJAL:'υ = 0',hide:['v2','p2','s'],eq:'0,4·3 = 0,6·υ₂  ⇒  υ₂ = 2 м/с'},
+ st:[['Соқтығыстан кейін','Денелер тоқтады ⇒'+F('Σp′ = 0'),.9,'after'],
+     ['Сақталу заңы','Соқтығысқа дейін де Σp = 0:'+F('m₁υ₁ − m₂υ₂ = 0'),.3,'before'],
+     ['Есептеу',F('υ₂ = '+FR('m₁υ₁','m₂')+' = '+FR('0,4·3','0,6')+' = 2 м/с'),.35,'v2']]},
+
+{id:'B12',q:'Массалары бірдей <i>m</i>-ге тең екі шар модульдері тең υ жылдамдықпен бір-біріне қарай қозғалып, соқтығысқаннан кейін екі шар да модульдері бірдей жылдамдықпен қарама-қарсы қозғалады. Соқтығысу нәтижесінде екі шар импульстері қосындысының өзгерісі',
+ o:['−2m'+VC('υ'),'−4m'+VC('υ'),'4m'+VC('υ'),'0'],a:3,
+ sc:{type:'inter',b:[{kind:'ball',m:1,v:3,vA:-3,lab:'m',vL:'υ',vAL:'υ',pL:'mυ',pAL:'−mυ'},{kind:'ball',m:1,v:-3,vA:3,col:C.b2,lab:'m',vL:'υ',vAL:'υ',pL:'−mυ',pAL:'mυ'}],
+   sL:'0',sAL:'0',hide:['s','sA'],eq:'ΔΣp = Σp′ − Σp = 0 − 0 = 0'},
+ st:[['Дейін',F('Σp = mυ + m(−υ) = 0'),.3,'before'],
+     ['Кейін','Шарлар бағыттарын өзгертті, бірақ модульдері тең:'+F('Σp′ = m(−υ) + mυ = 0'),.85,'after'],
+     ['Өзгеріс',F('ΔΣp = Σp′ − Σp = 0')+'Бұл — сақталу заңының өзі: тұйық жүйенің толық импульсі өзгермейді. (−2mυ — бір шардың ғана импульс өзгерісі.)',.9,['before','after']]]},
+
+{id:'B13',q:'υ жылдамдықпен қозғалып келе жатқан шар жылдамдығы сондай, қарама-қарсы қозғалып келе жатқан екінші шармен серпімсіз соқтығысады. Шарлардың массалары бірдей. Шарлардың соқтығысқаннан кейінгі жылдамдығы',
+ o:['υ','2υ','υ/2','0'],a:3,
+ sc:{type:'inter',b:[{kind:'ball',m:1,v:3,vA:0,lab:'m',vL:'υ',pL:'mυ',pAL:'0'},{kind:'ball',m:1,v:-3,vA:0,col:C.b2,lab:'m',vL:'υ',pL:'−mυ',pAL:'0'}],
+   joinA:true,vJAL:'V = 0',sL:'0',sAL:'2m·V',hide:['vJA','s','p1A','p2A'],eq:'mυ − mυ = 2m·V  ⇒  V = 0'},
+ st:[['Дейін',F('Σp = mυ + m(−υ) = 0'),.3,'before'],
+     ['Серпімсіз соқтығыс','Шарлар бірігіп, ортақ V жылдамдықпен қозғалады:'+F('Σp′ = 2m·V'),.85,'after'],
+     ['Сақталу заңы',F('2m·V = 0 &nbsp;⇒&nbsp; V = 0')+'Шарлар соқтығыстан кейін тоқтайды.',.9,'vJA']]},
+
+{id:'B14',q:'Массасы <i>m</i> оқ υ жылдамдықпен горизонталь қозғалып, тегіс бетте жатқан массасы <i>M</i> денеге барып тиеді. Оқ оның ішінде қалып қойса, дененің қозғалыс жылдамдығы',
+ o:[FR('M','m')+'υ',FR('m','M')+'υ','υ(m + M)',FR('m','m + M')+'υ'],a:3,
+ sc:{type:'inter',ground:'table',into:{i:0,dx:-24,dy:-27},b:[{kind:'bullet',s:1.3,m:.02,v:400,vA:3.96,lab:'m',lift:27,vL:'υ',pL:'mυ',pAL:'mu'},{kind:'block',wood:true,m:2,v:0,vA:3.96,col:'#c08a55',lab:'M',vL:null,pL:'0',pAL:'MV'}],
+   joinA:true,vJAL:'V = mυ/(m + M)',sL:'mυ',sAL:'(m + M)V',hide:['vJA'],eq:'mυ = (m + M)V  ⇒  V = mυ/(m + M)'},
+ st:[['Дейін','Дене тыныштықта:'+F('Σp = mυ + M·0 = mυ'),.3,'before'],
+     ['Кейін','Оқ денеде қалады — екеуі бірге қозғалады (серпімсіз соқтығыс):'+F('Σp′ = (m + M)V'),.85,'after'],
+     ['Сақталу заңы',F('mυ = (m + M)V &nbsp;⇒&nbsp; V = '+FR('m','m + M')+'υ'),.9,'vJA']]},
+
+{id:'B15',q:'Массасы <i>M</i> тыныштықтағы ядродан массасы <i>m</i> бөлшек υ жылдамдықпен ұшып шығады. Ядро жылдамдығының модулі',
+ o:[FR('M','m')+'υ',FR('m','M')+'υ','υ(m + M)',FR('m','m + M')+'υ'],a:1,
+ sc:{type:'inter',ground:'space',fx:'boom',joinB:true,vJL:null,tc:1.8,from:{i:1,dx:0,dy:-35,hide:true},
+   b:[{kind:'nucleus',m:20,v:0,vA:-.5,lab:'M',vAL:'V = mυ/M',pL:'0',pAL:'−MV'},{kind:'particle',m:1,v:0,vA:10,col:C.p,lab:'m',lift:35,vAL:'υ',pL:'0',pAL:'mυ'}],
+   sL:'0',sAL:'0',t0:'Ыдырауға дейін',t1:'Ыдыраудан кейін',ph0:'Ядро тыныштықта',phc:'Бөлшек ұшып шықты!',ph1:'Ядроның кері тебілуі',hide:['v1A','p1A'],eq:'0 = mυ − MV  ⇒  V = mυ/M'},
+ st:[['Бастапқы импульс','Ядро тыныштықта:'+F('Σp = 0'),.2,'before'],
+     ['Сақталу заңы',F('0 = mυ − MV')+'Бөлшек пен ядро қарама-қарсы бағытта қозғалады.',.8,'after'],
+     ['Ядро жылдамдығы',F('V = '+FR('m','M')+'υ')+'<span style="color:var(--mute)">Ядро массасы бөлшектен әлдеқайда үлкен (M ≫ m), сондықтан қалған ядро массасын ≈ M деп аламыз.</span>',.9,'v1A']]},
+
+{id:'B16',q:'Автоматтан атылған оқтың массасы <i>m</i>, жылдамдығы υ. Егер автоматтың массасы оқтың массасынан 500 есе артық болса, онда автоматтың жылдамдығының модулі',
+ o:['υ',FR('υ','500'),'500υ','0'],a:1,
+ sc:{type:'inter',ground:'floor',fx:'boom',joinB:true,vJL:null,tc:1.8,from:{i:1,dx:64,dy:-BUL_L,hide:true},
+   b:[{kind:'gun',m:500,v:0,vA:-1,lab:'500m',lift:GUN_L,vAL:'V = υ/500',pL:'0',pAL:'−500m·V'},{kind:'bullet',m:1,v:0,vA:500,lab:'m',lift:BUL_L,vAL:'υ',pL:'0',pAL:'mυ'}],
+   sL:'0',sAL:'0',t0:'Атуға дейін',t1:'Атқаннан кейін',ph0:'Автомат тыныштықта',phc:'Ату!',ph1:'Кері тебу',hide:['v1A','p1A'],eq:'0 = mυ − 500m·V  ⇒  V = υ/500'},
+ st:[['Бастапқы импульс',F('Σp = 0'),.2,'before'],
+     ['Сақталу заңы',F('0 = mυ − 500m·V'),.8,'after'],
+     ['Шешу','m қысқарады:'+F('V = '+FR('υ','500')),.9,'v1A']]},
+
+{id:'B17',q:'Массасы 100 кг арбаша горизонталь бетте бірқалыпты қозғалады. Оған массасы 10 кг құмы бар қап құлайды. Арбашаның жылдамдығы',
+ o:['1,1 есе кемиді','2,1 есе артады','3,1 есе кемиді','4,1 есе артады'],a:0,
+ sc:{type:'drop',hide:['u'],eq:'Mυ = (M + m)V  ⇒  V = 100υ/110 = υ/1,1'},
+ st:[['Қаптың горизонталь импульсі','Қап тік құлайды ⇒ оның горизонталь жылдамдығы жоқ:'+F('p<sub>x</sub>(қап) = 0'),.3,'b2'],
+     ['OX бойынша сақталу заңы','Тік бағытта еден әсер етеді, ал горизонталь бағытта жүйе тұйық:'+F('Mυ + 0 = (M + m)V'),.6,'rows'],
+     ['Жылдамдық',F('V = '+FR('100','110')+'υ = '+FR('υ','1,1'))+'Арбашаның жылдамдығы <b>1,1 есе кемиді</b>.',.8,'u']]},
+
+{id:'B18',q:'Массалары 7 кг және 3 кг, ал жылдамдықтары сәйкесінше 3 м/с және 2 м/с екі дене бір-біріне қарсы қозғалып, серпімсіз соқтығысады. Соққыдан кейінгі денелердің жалпы жылдамдығы (OX осі оңға бағытталған)',
+ o:['3 м/с','4 м/с','1,5 м/с','5 м/с'],a:2,
+ sc:{type:'inter',b:[{kind:'block',s:1.15,m:7,v:3,vA:1.5,lab:'7 кг',vL:'υ₁ = 3 м/с'},{kind:'block',s:.85,m:3,v:-2,vA:1.5,col:C.b2,lab:'3 кг',vL:'υ₂ = 2 м/с'}],
+   joinA:true,vJAL:'V = 1,5 м/с',hide:['vJA','sA','p1A','p2A'],eq:'7·3 − 3·2 = 10V  ⇒  V = 1,5 м/с'},
+ st:[['Проекциялар','OX оңға:'+F('p₁ = 7·3 = 21 кг·м/с; &nbsp; p₂ = 3·(−2) = −6 кг·м/с'),.3,'before'],
+     ['Серпімсіз соқтығыс','Денелер бірігіп қозғалады:'+F('m₁υ₁ − m₂υ₂ = (m₁ + m₂)V'),.85,'after'],
+     ['Есептеу',F('V = '+FR('21 − 6','10')+' = 1,5 м/с')+'Оң таңба: денелер оңға (ауыр дененің бағытымен) қозғалады.',.9,'vJA']]},
+
+{id:'B19',q:'Үстелде массасы 600 г ағаш кесегі жатыр. Үстел бетіне параллель 500 м/с жылдамдықпен ұшып келе жатқан массасы 9 г оқ ағаш кесегіне тиіп, сонда тұрып қалды. Ағаш кесегінің қозғалыс жылдамдығы',
+ o:['7,4 м/с','740 м/с','60 м/с','75 м/с'],a:0,
+ sc:{type:'inter',ground:'table',into:{i:0,dx:-24,dy:-27},b:[{kind:'bullet',s:1.3,m:.009,v:500,vA:7.39,lab:'9 г',lift:27,vL:'υ = 500 м/с'},{kind:'block',wood:true,m:.6,v:0,vA:7.39,col:'#c08a55',lab:'600 г',vL:null}],
+   joinA:true,vJAL:'V ≈ 7,4 м/с',hide:['vJA','sA','p1A','p2A'],eq:'0,009·500 = 0,609·V  ⇒  V ≈ 7,4 м/с'},
+ st:[['SI жүйесі',F('m = 9 г = 0,009 кг; &nbsp; M = 600 г = 0,6 кг'),.2,'b1'],
+     ['Дейінгі импульс',F('Σp = mυ = 0,009·500 = 4,5 кг·м/с'),.3,'before'],
+     ['Сақталу заңы',F('mυ = (m + M)V &nbsp;⇒&nbsp; V = '+FR('4,5','0,609')+' ≈ 7,4 м/с'),.9,'vJA']]},
+
+{id:'B20',q:'6 м/с жылдамдықпен қозғалып келе жатқан массасы 2 кг дене тыныш тұрған екінші денеге соқтығысады. Соқтығысқаннан кейін екі дене де бірдей 2 м/с жылдамдықпен қозғалса, екінші дененің массасы неге тең?',
+ o:['4 кг','3,5 кг','3 кг','4,5 кг'],a:0,
+ sc:{type:'inter',b:[{kind:'block',m:2,v:6,vA:2,lab:'2 кг',vL:'υ₁ = 6 м/с'},{kind:'block',m:4,v:0,vA:2,col:C.b2,lab:'m₂ = 4 кг',ls:14,vL:'υ₂ = 0',pL:'0'}],
+   joinA:true,vJAL:'V = 2 м/с',hide:['m2','p2A','sA'],eq:'2·6 = (2 + m₂)·2  ⇒  m₂ = 4 кг'},
+ st:[['Дейін',F('Σp = 2·6 + m₂·0 = 12 кг·м/с'),.3,'before'],
+     ['Кейін','Екі дене бірдей 2 м/с жылдамдықпен:'+F('Σp′ = (2 + m₂)·2'),.85,'after'],
+     ['Сақталу заңы',F('12 = (2 + m₂)·2 &nbsp;⇒&nbsp; 2 + m₂ = 6 &nbsp;⇒&nbsp; m₂ = 4 кг'),.9,'b2']]},
+
+{id:'B21',q:'Массасы 10 т вагон 2 м/с жылдамдықпен қозғалады. Оны 3 м/с жылдамдықпен келе жатқан массасы 15 т вагон қуып жетеді. Егер соқтығысу серпімсіз болса, соқтығысқаннан кейінгі вагондардың жылдамдығы',
+ o:['26 м/с','0,26 м/с','2,6 м/с','0,026 м/с'],a:2,
+ sc:{type:'inter',b:[{kind:'wagon',m:15,v:3,vA:2.6,lab:'15 т',vL:'υ₁ = 3 м/с'},{kind:'wagon',s:.85,m:10,v:2,vA:2.6,col:C.b2,lab:'10 т',vL:'υ₂ = 2 м/с'}],
+   joinA:true,vJAL:'V = 2,6 м/с',pu:'т·м/с',ph0:'15 т вагон қуып келеді',hide:['vJA','sA','p1A','p2A'],eq:'15·3 + 10·2 = 25V  ⇒  V = 2,6 м/с'},
+ st:[['Дейін','Екеуі бір бағытта:'+F('Σp = 15·3 + 10·2 = 65 т·м/с'),.3,'before'],
+     ['Серпімсіз соқтығыс',F('Σp′ = (15 + 10)·V = 25V'),.85,'after'],
+     ['Есептеу',F('V = '+FR('65','25')+' = 2,6 м/с')+'Масса тоннамен алынса да қатынас өзгермейді — SI-ге ауыстыру міндетті емес.',.9,'vJA']]},
+
+{id:'B22',q:'5 м/с жылдамдықпен жүгіріп келе жатқан массасы 60 кг адам 2 м/с жылдамдықпен кетіп бара жатқан массасы 40 кг арбаны қуып жетіп, оған секіріп мінеді. Осыдан кейінгі арбаның қозғалыс жылдамдығы',
+ o:['2,2 м/с','3,2 м/с','3,8 м/с','7 м/с'],a:2,
+ sc:{type:'inter',into:{i:0,dx:0,dy:-52},jump:46,b:[{kind:'person',m:60,v:5,vA:3.8,lab:'60 кг',vL:'υ₁ = 5 м/с'},{kind:'cart',m:40,v:2,vA:3.8,col:C.b2,lab:'40 кг',vL:'υ₂ = 2 м/с'}],
+   joinA:true,vJAL:'V = 3,8 м/с',ph0:'Адам арбаны қуып келеді',phc:'Секірді!',ph1:'Адам арбада',hide:['vJA','sA','p1A','p2A'],eq:'60·5 + 40·2 = 100V  ⇒  V = 3,8 м/с'},
+ st:[['Дейін','Екеуі бір бағытта:'+F('Σp = 60·5 + 40·2 = 380 кг·м/с'),.3,'before'],
+     ['Кейін','Адам мен арба бірге:'+F('Σp′ = (60 + 40)·V'),.85,'after'],
+     ['Есептеу',F('V = '+FR('380','100')+' = 3,8 м/с'),.9,'vJA']]},
+
+{id:'B23',q:'Массасы 10 кг арбаша 2 м/с жылдамдықпен қозғалады. Массасы 40 кг бала 3 м/с жылдамдықпен қарама-қарсы жүгіріп келіп, оған секіріп мінді. Бала мен арбашаның жылдамдығы',
+ o:['2,2 м/с','3,2 м/с','2 м/с','7 м/с'],a:2,
+ sc:{type:'inter',into:{i:0,dx:0,dy:-43},jump:46,b:[{kind:'person',s:.9,m:40,v:3,vA:2,lab:'40 кг',vL:'υ₁ = 3 м/с'},{kind:'cart',s:.82,m:10,v:-2,vA:2,col:C.b2,lab:'10 кг',vL:'υ₂ = 2 м/с'}],
+   joinA:true,vJAL:'V = 2 м/с',phc:'Секірді!',ph1:'Бала арбашада',hide:['vJA','sA','p1A','p2A'],eq:'40·3 − 10·2 = 50V  ⇒  V = 2 м/с'},
+ st:[['Проекциялар','OX — баланың бағыты:'+F('p₁ = 40·3 = 120; &nbsp; p₂ = 10·(−2) = −20 (кг·м/с)'),.3,'before'],
+     ['Сақталу заңы',F('120 − 20 = (40 + 10)·V'),.85,'after'],
+     ['Есептеу',F('V = '+FR('100','50')+' = 2 м/с')+'Бала мен арбаша баланың бағытымен қозғалады.',.9,'vJA']]},
+
+{id:'B24',q:'Бір-біріне жақын тұрған бірдей үш вагонды тіркеу үшін бірінші вагонға 3 м/с жылдамдық береді. Тіркелгеннен кейінгі вагондардың қозғалу жылдамдығы',
+ o:['0,5 м/с','0,75 м/с','1,25 м/с','1 м/с'],a:3,
+ sc:{type:'chain',hide:['u'],eq:'m·3 = 3m·V  ⇒  V = 1 м/с'},
+ st:[['Бастапқы импульс','Тек бірінші вагон қозғалады:'+F('Σp = m·3 = 3m'),.15,'rows'],
+     ['Тізбекті тіркелу','Әр тіркелу — серпімсіз соқтығыс, импульс сақталады: алдымен 2m·υ′ = 3m ⇒ υ′ = 1,5 м/с.',.45,'rows'],
+     ['Үш вагон бірге',F('3m·V = 3m &nbsp;⇒&nbsp; V = 1 м/с'),.85,'u']]},
+
+{id:'B25',q:'2 м/с жылдамдықпен қозғалып келе жатқан массасы 60 т темір жол вагоны массасы 30 т қозғалмай тұрған вагонға тіркеледі. Тіркелгеннен кейінгі вагондардың жылдамдығы (үйкелісті ескермеңдер)',
+ o:['300 м/с','1,33 м/с','0,03 м/с','30 м/с'],a:1,
+ sc:{type:'inter',b:[{kind:'wagon',m:60,v:2,vA:4/3,lab:'60 т',vL:'υ = 2 м/с'},{kind:'wagon',s:.8,m:30,v:0,vA:4/3,col:C.b2,lab:'30 т',vL:'υ₂ = 0'}],
+   joinA:true,vJAL:'V ≈ 1,33 м/с',pu:'т·м/с',hide:['vJA','sA','p1A','p2A'],eq:'60·2 = 90V  ⇒  V ≈ 1,33 м/с'},
+ st:[['Дейін',F('Σp = 60·2 + 30·0 = 120 т·м/с'),.3,'before'],
+     ['Кейін','Вагондар тіркеліп бірге қозғалады:'+F('Σp′ = (60 + 30)·V'),.85,'after'],
+     ['Есептеу',F('V = '+FR('120','90')+' ≈ 1,33 м/с'),.9,'vJA']]},
+
+{id:'B26',q:'Массасы 50 кг бала суда тыныш тұрған қайыққа 6 м/с жылдамдықпен жағадан секіріп мінеді. Егер қайықтың массасы 30 кг болса, қайықтың баламен бірге жылдамдығы',
+ o:['2,6 м/с','3,75 м/с','2,2 м/с','0,375 м/с'],a:1,
+ sc:{type:'inter',ground:'water',shore:'L',shoreAuto:'L',into:{i:0,dx:10,dy:2},jump:60,tc:2.4,
+   b:[{kind:'person',m:50,v:6,vA:3.75,lab:'50 кг',lift:26,vL:'υ = 6 м/с'},{kind:'boat',m:30,v:0,vA:3.75,col:'#c9a46b',lab:'30 кг',vL:null}],
+   joinA:true,vJAL:'V = 3,75 м/с',ph0:'Бала жағадан жүгіріп келеді',phc:'Секірді!',ph1:'Бала қайықта',hide:['vJA','sA','p1A','p2A'],eq:'50·6 = 80V  ⇒  V = 3,75 м/с'},
+ st:[['Дейін','Қайық тыныштықта:'+F('Σp = 50·6 + 30·0 = 300 кг·м/с'),.3,'before'],
+     ['Кейін','Бала мен қайық бірге:'+F('Σp′ = (50 + 30)·V'),.85,'after'],
+     ['Есептеу',F('V = '+FR('300','80')+' = 3,75 м/с'),.9,'vJA']]},
+
+{id:'B27',q:'8 м/с жылдамдықпен қозғалып келе жатқан массасы 50 кг хоккейші тыныш жатқан массасы 0,5 кг шайбаны хоккей таяғымен өз қозғалысының бағытына қарай ұрды. Соққыдан кейін шайба 100 м/с жылдамдықпен қозғалады. Хоккейшінің шайбаны соққаннан кейінгі жылдамдығы',
+ o:['70 м/с','7 м/с','700 м/с','0,07 м/с'],a:1,
+ sc:{type:'inter',ground:'ice',b:[{kind:'player',m:50,v:8,vA:7,lab:'50 кг',vL:'υ = 8 м/с',vAL:'V = 7 м/с'},{kind:'puck',m:.5,v:0,vA:100,lab:'0,5 кг',vL:null,vAL:'100 м/с'}],
+   t0:'Соққыға дейін, кг·м/с',t1:'Соққыдан кейін, кг·м/с',ph0:'Хоккейші сырғанап келеді',phc:'Соққы!',ph1:'Соққыдан кейін',hide:['v1A','p1A'],eq:'50·8 = 50V + 0,5·100  ⇒  V = 7 м/с'},
+ st:[['Дейін',F('Σp = 50·8 + 0,5·0 = 400 кг·м/с'),.3,'before'],
+     ['Кейін',F('Σp′ = 50·V + 0,5·100 = 50V + 50'),.85,'after'],
+     ['Сақталу заңы',F('400 = 50V + 50 &nbsp;⇒&nbsp; V = '+FR('350','50')+' = 7 м/с'),.9,'v1A']]},
+
+{id:'B28',q:'Массасы 70 кг адам суда тыныш тұрған қайықтан жағаға 3 м/с жылдамдықпен секірді. Егер қайық массасы 35 кг болса, кісі секірген соң қайықтың жылдамдығы',
+ o:['6 м/с','1,5 м/с','4 м/с','3 м/с'],a:0,
+ sc:{type:'inter',ground:'water',shore:'R',shoreAuto:'R',joinB:true,vJL:null,from:{i:1,dx:10,dy:2},jump:60,tc:1.8,
+   b:[{kind:'boat',m:35,v:0,vA:-6,col:'#c9a46b',lab:'35 кг',vAL:'V = 6 м/с'},{kind:'person',m:70,v:0,vA:3,lab:'70 кг',lift:26,vAL:'υ = 3 м/с'}],
+   t0:'Секіруге дейін',t1:'Секіргеннен кейін',ph0:'Адам қайықта тұр',phc:'Секірді!',ph1:'Адам жағада',hide:['v1A','p1A'],eq:'0 = 70·3 − 35V  ⇒  V = 6 м/с'},
+ st:[['Бастапқы импульс','Қайық пен адам тыныштықта:'+F('Σp = 0'),.2,'before'],
+     ['Сақталу заңы',F('0 = m<sub>а</sub>υ − m<sub>қ</sub>V')+'Қайық адамға қарама-қарсы жаққа жылжиды.',.8,'after'],
+     ['Есептеу',F('V = '+FR('70·3','35')+' = 6 м/с'),.9,'v1A']]},
+
+/* ======================= С ДЕҢГЕЙІ ======================= */
+{id:'C1',q:'Модулі 10 Н күш әсерінен орнынан қозғалған массасы 1 кг дененің 5 м жол жүргеннен кейінгі импульсі',
+ o:['20 кг·м/с','10 кг·м/с','50 кг·м/с','2 кг·м/с'],a:1,
+ sc:{type:'force',b:{kind:'block',lab:'1 кг',s:.8},m:1,v0:0,v1:10,F:10,dt:1,ruler:{s:5,n:5},tA:.8,tB:4.2,dur:5.8,rows:['m','F','s','p'],hide:['p','v'],eq:'p = m√(2aS) = 1·√(2·10·5) = 10 кг·м/с'},
+ st:[['Үдеу',F('a = '+FR('F','m')+' = '+FR('10','1')+' = 10 м/с²'),.15,'rows'],
+     ['Жылдамдық','Тыныштықтан бастап S = 5 м жүрді:'+F('υ² = 2aS &nbsp;⇒&nbsp; υ = √(2·10·5) = 10 м/с'),.75,'b1'],
+     ['Импульс',F('p = mυ = 1·10 = 10 кг·м/с')+'Басқа жол: t = √(2S/a) = 1 с, ендеше p = F·t = 10·1 = 10 Н·с.',.8,'graph']]},
+
+{id:'C2',q:'Массасы 0,2 кг дене 1 м биіктіктен 8 м/с² үдеумен түседі. Дене импульсінің өзгерісі',
+ o:['0,8 кг·м/с','80 кг·м/с','0,08 кг·м/с','800 кг·м/с'],a:0,
+ sc:{type:'fall',hide:['v','dp'],eq:'Δp = m√(2ah) = 0,2·√(2·8·1) = 0,8 кг·м/с'},
+ st:[['Соңғы жылдамдық','Дене тыныштықтан түседі:'+F('υ² = 2ah &nbsp;⇒&nbsp; υ = √(2·8·1) = 4 м/с'),.8,'b1'],
+     ['Импульс өзгерісі',F('Δp = mυ − 0 = 0,2·4 = 0,8 кг·м/с'),.8,'p']]},
+
+{id:'C3',q:'Суретте түзу сызықты қозғалыстағы денеге әсер етуші тең әсерлі күш модулінің уақытқа тәуелділік графигі берілген. 4 с ішінде массасы 2 кг дененің жылдамдығының өзгерісі',
+ o:['24 м/с','16 м/с','32 м/с','4 м/с'],a:3,
+ sc:{type:'graph',mode:'Ft',pts:[[0,0],[4,4]],tmax:4,ymax:4.6,xt:[1,2,3,4],yt:[2,4],yl:'F, Н',xl:'t, с',m:2,hide:['S','dv'],eq:'Δυ = S/m = (½·4·4)/2 = 4 м/с'},
+ st:[['Күш импульсі — аудан','F(t) графигінің астындағы аудан — күш импульсі, ол импульс өзгерісіне тең:'+F('F·Δt = Δp'),.5,'area'],
+     ['Үшбұрыштың ауданы',F('S = ½·4 с·4 Н = 8 Н·с = Δp'),.98,'area'],
+     ['Жылдамдық өзгерісі',F('Δυ = '+FR('Δp','m')+' = '+FR('8','2')+' = 4 м/с'),.98,'rows']]},
+
+{id:'C4',q:'Қалыңдығы 8 см бөгеттен өткен массасы 10 г, жылдамдығы 800 м/с оқтың жылдамдығы екі есе кеміді. Оққа әсер еткен кедергі күшінің орташа мәнінің модулі',
+ o:['3,5·10⁴ Н','4,5·10⁴ Н','3·10⁴ Н','5·10⁴ Н'],a:2,
+ sc:{type:'barrier',hide:['dt','F'],eq:'F = |Δp|/Δt = 4 / 1,33·10⁻⁴ = 3·10⁴ Н'},
+ st:[['Импульс өзгерісі',F('|Δp| = m(υ₀ − υ) = 0,01·(800 − 400) = 4 кг·м/с'),.6,'rows'],
+     ['Бөгеттегі уақыт','Бірқалыпты кемімелі қозғалыс:'+F('υ<sub>орт</sub> = '+FR('800 + 400','2')+' = 600 м/с; &nbsp; Δt = '+FR('d','υ<sub>орт</sub>')+' = '+FR('0,08','600')+' ≈ 1,33·10⁻⁴ с'),.55,'rows'],
+     ['Орташа күш',F('F = '+FR('|Δp|','Δt')+' = '+FR('4','1,33·10⁻⁴')+' = 3·10⁴ Н')+'Тексеру (энергия арқылы): F = m(υ₀² − υ²)/(2d) = 0,01·480 000/0,16 = 30 000 Н.',.7,'rows']]},
+
+{id:'C5',q:'Автомат 1 минутта 240 рет оқ атады. Егер оқтың массасы 5 г, жылдамдығы 1000 м/с болса, онда автомат мергеннің иығына қандай орташа күшпен әсер етеді?',
+ o:['25 Н','30 Н','20 Н','15 Н'],a:2,
+ sc:{type:'burst',hide:['F'],eq:'F = n·mυ/t = 4·0,005·1000/1 = 20 Н'},
+ st:[['Атыс жиілігі',F('n = '+FR('240','60 с')+' = 4 оқ/с'),.3,'rows'],
+     ['Бір оқтың импульсі',F('p = mυ = 0,005·1000 = 5 кг·м/с'),.4,'rows'],
+     ['Орташа күш','1 секундта автомат оқтарға жалпы 4·5 = 20 кг·м/с импульс береді. Сонша импульсті кері тебу арқылы иық алады:'+F('F = '+FR('Δp','Δt')+' = '+FR('4·5','1')+' = 20 Н'),.8,'graph']]},
+
+{id:'C6',q:'Отынсыз массасы 400 т зымыран отын жанғанда 125 м биіктікке көтеріледі. Отын массасы 50 т. Отын бірден жанып кетеді деп есептеп, зымыраннан газдың ұшып шығу жылдамдығын табыңыз (<i>g</i> = 10 м/с²).',
+ o:['200 м/с','300 м/с','400 м/с','100 м/с'],a:2,
+ sc:{type:'rocket',hide:['v','u'],eq:'υ = √(2gh) = 50 м/с;  V = Mυ/m = 400·50/50 = 400 м/с'},
+ st:[['Зымыранның бастапқы жылдамдығы','Отын бірден жанды, одан кейін зымыран тек ауырлық күшімен h = 125 м-ге көтеріледі:'+F('υ = √(2gh) = √(2·10·125) = 50 м/с'),.55,'v'],
+     ['Импульстің сақталуы','Ұшқанға дейін Σp = 0:'+F('0 = Mυ − m·V'),.2,'rows'],
+     ['Газ жылдамдығы',F('V = '+FR('Mυ','m')+' = '+FR('400·50','50')+' = 400 м/с'),.25,'u']]},
+
+{id:'C7',q:'Қайық жағадан 10 м қашықтықта тұр. Оның ішіндегі адамның ескектері жоқ, тек қолында 0,5 кг-дық тасы бар. Соның көмегімен адам жағаға жете ала ма? Жете алатын болса, қанша уақытта? Адамның тасты лақтыру жылдамдығы ең көбі 4 м/с, қайықтың адаммен бірге массасы 100 кг, судың кедергі күшін ескермейміз.',
+ o:['Иә, 400 с','Жоқ','Иә, 500 с','Иә, 200 с'],a:2,
+ sc:{type:'boat',hide:['u','tt'],eq:'V = mυ/M = 0,02 м/с;  t = s/V = 500 с'},
+ st:[['Тасты қай жаққа лақтыру керек?','Жағаға <b>қарама-қарсы</b> бағытта лақтырса, қайық кері тебіліп жағаға қарай қозғалады.',.24,'b1'],
+     ['Қайықтың жылдамдығы',F('0 = mυ − MV &nbsp;⇒&nbsp; V = '+FR('mυ','M')+' = '+FR('0,5·4','100')+' = 0,02 м/с'),.3,'u'],
+     ['Уақыт','Судың кедергісі жоқ ⇒ қайық бірқалыпты қозғалады:'+F('t = '+FR('s','V')+' = '+FR('10','0,02')+' = 500 с')+'Иә, жетеді — 500 с ішінде.',.97,'rows']]},
+
+{id:'C8',q:'Массасы <i>m</i>₁ қозғалмай тұрған ұзын арбаның бір шетінде массасы <i>m</i>₂ бала тұр. Егер бала арбаға қатысты υ жылдамдықпен жүгірсе, арба қандай жылдамдықпен қозғалады?',
+ o:[FR('m₁','m₂')+'υ',FR('m₂','m₁ + m₂')+'υ',FR('m₁','m₁ + m₂')+'υ',FR('m₁ + m₂','2')+'υ'],a:1,
+ sc:{type:'cartrun',ur:.25,X0:560,cl:'m₁',bl:'m₂',vL:'υ (арбаға қатысты)',uL:'V = m₂υ/(m₁ + m₂)',
+   rows:[['vr','Баланың арбаға қатысты жылдамдығы','υ'],['vg','Баланың Жерге қатысты жылдамдығы','υ − V'],['u','Арбаның жылдамдығы V','m₂υ/(m₁ + m₂)']],hide:['u'],eq:'0 = m₂(υ − V) − m₁V  ⇒  V = m₂υ/(m₁ + m₂)'},
+ st:[['Жерге қатысты жылдамдық','Арба артқа V жылдамдықпен жылжиды, сондықтан баланың Жерге қатысты жылдамдығы:'+F('υ<sub>Ж</sub> = υ − V'),.4,'b1'],
+     ['Сақталу заңы','Бастапқыда бәрі тыныштықта ⇒ Σp = 0:'+F('m₂(υ − V) − m₁V = 0'),.5,'rows'],
+     ['Шешу',F('m₂υ = (m₁ + m₂)V &nbsp;⇒&nbsp; V = '+FR('m₂','m₁ + m₂')+'υ'),.55,'u']]},
+
+{id:'C9',q:'Массасы 20 кг тыныштықтағы арбада массасы 60 кг адам тұр. Адам арбамен салыстырғанда 1 м/с жылдамдықпен қозғалса, арбаның Жермен салыстырғандағы жылдамдығы',
+ o:['−0,75 м/с','0','1,33 м/с','−1,33 м/с'],a:0,
+ sc:{type:'cartrun',ur:.75,X0:620,cl:'20 кг',bl:'60 кг',vL:'1 м/с (арбаға қатысты)',uL:'V = 0,75 м/с',pw:440,
+   rows:[['m1','Арба m₁','20 кг'],['m2','Адам m₂','60 кг'],['vr','Адам (арбаға қатысты)','1 м/с'],['u','Арба (Жерге қатысты) V','−0,75 м/с']],hide:['u'],eq:'60(1 + V) + 20V = 0  ⇒  V = −0,75 м/с'},
+ st:[['Жерге қатысты жылдамдық','OX — адамның қозғалыс бағыты, V — арбаның жылдамдығы (таңбасымен):'+F('υ<sub>адам</sub> = 1 + V'),.4,'b1'],
+     ['Сақталу заңы','Бастапқыда Σp = 0:'+F('60·(1 + V) + 20·V = 0'),.5,'rows'],
+     ['Шешу',F('60 + 80V = 0 &nbsp;⇒&nbsp; V = −0,75 м/с')+'Минус: арба адамға қарама-қарсы жаққа жылжиды.',.55,'u']]},
+
+{id:'C10',q:'Массалары бірдей екі дененің бірі υ жылдамдықпен, екіншісі оған қарама-қарсы υ/2 жылдамдықпен қозғалып келе жатып, серпімді центрлік соқтығысады. Соқтығысқаннан кейінгі 1-ші дененің жылдамдығы',
+ o:[FR('3υ','2'),'3υ','2υ',FR('υ','2')],a:3,
+ sc:{type:'inter',b:[{kind:'ball',m:1,v:4,vA:-2,lab:'1',vL:'υ',vAL:'υ₁′ = υ/2',pL:'mυ',pAL:'−mυ/2'},{kind:'ball',m:1,v:-2,vA:4,col:C.b2,lab:'2',vL:'υ/2',vAL:'υ₂′ = υ',pL:'−mυ/2',pAL:'mυ'}],
+   sL:'mυ/2',sAL:'mυ/2',hide:['v1A','p1A','p2A'],eq:'υ₁′ = υ₂ = −υ/2  ⇒  |υ₁′| = υ/2'},
+ st:[['Екі сақталу заңы','Серпімді соқтығыста импульс те, кинетикалық энергия да сақталады:'+F('mυ₁ + mυ₂ = mυ₁′ + mυ₂′')+F(FR('mυ₁²','2')+' + '+FR('mυ₂²','2')+' = '+FR('mυ₁′²','2')+' + '+FR('mυ₂′²','2')),.3,'before'],
+     ['Массалар тең','Екі теңдеуді бірге шешсек:'+F('υ₁′ = υ₂, &nbsp; υ₂′ = υ₁')+'Массалары тең шарлар центрлік серпімді соқтығыста <b>жылдамдықтарымен алмасады</b>.',.85,'after'],
+     ['Жауап','1-ші дене 2-ші дененің жылдамдығын алады:'+F('υ₁′ = −'+FR('υ','2')+' &nbsp;⇒&nbsp; |υ₁′| = '+FR('υ','2')),.9,'v1A']]},
+
+{id:'C11',q:'Массалары <i>m</i>₁ және <i>m</i>₂ екі дене υ₁ = 4 м/с және υ₂ = 20 м/с жылдамдықтармен бір-біріне қарама-қарсы қозғалып келе жатып, соқтығысқаннан кейін екеуі жылдамдықтарымен алмасып, қарама-қарсы қозғалады. Олардың массаларының қатынасы <i>m</i>₁/<i>m</i>₂',
+ o:['24','1/5','1','16'],a:2,
+ sc:{type:'inter',b:[{kind:'ball',m:1,v:4,vA:-20,lab:'m₁',vL:'υ₁ = 4 м/с',vAL:'20 м/с',pL:'4m₁',pAL:'−20m₁'},{kind:'ball',m:1,v:-20,vA:4,col:C.b2,lab:'m₂',vL:'υ₂ = 20 м/с',vAL:'4 м/с',pL:'−20m₂',pAL:'4m₂'}],
+   sL:'4m₁ − 20m₂',sAL:'−20m₁ + 4m₂',pw:330,eq:'4m₁ − 20m₂ = −20m₁ + 4m₂  ⇒  m₁/m₂ = 1'},
+ st:[['Ось және таңбалар','OX — 1-дененің бастапқы бағыты:'+F('υ₁ = 4, &nbsp; υ₂ = −20; &nbsp; υ₁′ = −20, &nbsp; υ₂′ = 4 (м/с)'),.3,'before'],
+     ['Сақталу заңы',F('4m₁ − 20m₂ = −20m₁ + 4m₂'),.85,['before','after']],
+     ['Шешу',F('24m₁ = 24m₂ &nbsp;⇒&nbsp; m₁/m₂ = 1'),.9,null]]},
+
+{id:'C12',q:'Өзара тіркескен екі арба 1,2 м/с жылдамдықпен қозғалып, 1,5 м/с жылдамдықпен қарсы келе жатқан арбаға соғылып, тіркеледі. Соғылғаннан кейінгі арбалардың жылдамдығы (арбалардың массалары бірдей)',
+ o:['0,3 м/с','2,7 м/с','1,5 м/с','1,2 м/с'],a:0,
+ sc:{type:'inter',b:[{kind:'cart2',m:2,v:1.2,vA:.3,lab:'',vL:'υ₁ = 1,2 м/с',pL:'2,4m',pAL:'0,6m',pn:'p (2m)',pnA:'p′ (2m)'},{kind:'cart',m:1,v:-1.5,vA:.3,col:C.b2,lab:'m',vL:'υ₂ = 1,5 м/с',pL:'−1,5m',pAL:'0,3m',pn:'p (m)',pnA:'p′ (m)'}],
+   joinA:true,vJAL:'V = 0,3 м/с',sL:'0,9m',sAL:'0,9m',pu:'кг·м/с (m бірлігімен)',hide:['vJA','sA','p1A','p2A'],eq:'2m·1,2 − m·1,5 = 3m·V  ⇒  V = 0,3 м/с'},
+ st:[['Дейін','OX — тіркескен арбалардың бағыты:'+F('Σp = 2m·1,2 − m·1,5 = 0,9m'),.3,'before'],
+     ['Кейін','Үш арба тіркеседі:'+F('Σp′ = 3m·V'),.85,'after'],
+     ['Есептеу',F('3m·V = 0,9m &nbsp;⇒&nbsp; V = 0,3 м/с'),.9,'vJA']]},
+
+{id:'C13',q:'15 м/с жылдамдықпен ұшып келе жатқан граната массалары 6 кг және 14 кг екі жарқыншаққа бөлінеді. Қозғалыс бағытымен үлкен жарқыншақтың жылдамдығы 24 м/с болса, кіші жарқыншақтың жылдамдығы қандай?',
+ o:['6 м/с','−6 м/с','106 м/с','−106 м/с'],a:1,
+ sc:{type:'inter',ground:'none',fx:'boom',joinB:true,vJL:'υ = 15 м/с',whole:{kind:'grenade',col:'#6b7f3a',lab:'20 кг',lift:150},
+   b:[{kind:'frag',m:6,v:15,vA:-6,col:'#8a9a4a',lab:'6 кг',lift:150,vAL:'υ₂ = −6 м/с'},{kind:'frag',s:1.35,m:14,v:15,vA:24,col:'#6b7f3a',lab:'14 кг',lift:150,vAL:'υ₁ = 24 м/с'}],
+   t0:'Жарылысқа дейін, кг·м/с',t1:'Жарылыстан кейін',ph0:'Граната ұшып келеді',phc:'Жарылыс!',ph1:'Жарқыншақтар',phy:340,hide:['v1A','p1A'],eq:'20·15 = 14·24 + 6·υ₂  ⇒  υ₂ = −6 м/с'},
+ st:[['Дейін',F('Σp = (m₁ + m₂)υ = 20·15 = 300 кг·м/с'),.3,'before'],
+     ['Кейін','OX — гранатаның қозғалыс бағыты:'+F('Σp′ = 14·24 + 6·υ₂ = 336 + 6υ₂'),.85,'after'],
+     ['Сақталу заңы',F('300 = 336 + 6υ₂ &nbsp;⇒&nbsp; υ₂ = '+FR('−36','6')+' = −6 м/с')+'Минус таңбасы: кіші жарқыншақ <b>кері</b> бағытта ұшады.',.9,'v1A']]},
+
+{id:'C14',q:'Массасы <i>m</i> қозғалыстағы шар тыныш тұрған массасы 3<i>m</i> шарға соғылады. Соқтығысқаннан кейінгі шарлардың ажырау бұрышы 90° және бірінші шардың жылдамдығы 3υ, ал екіншісінікі υ. Бірінші шардың соқтығысқанға дейінгі жылдамдығы',
+ o:['√2·υ','√3·υ','3υ','3√2·υ'],a:3,
+ sc:{type:'vec',mode:'c2d',dur:7,hide:['p0'],eq:'mυ₀ = √((3mυ)² + (3mυ)²)  ⇒  υ₀ = 3√2·υ'},
+ st:[['Соқтығыстан кейінгі импульстер',F('p₁′ = m·3υ = 3mυ; &nbsp; p₂′ = 3m·υ = 3mυ'),.62,['p1','p2']],
+     ['Векторлық қосынды','Импульс — вектор:'+F(VC('p')+'₀ = '+VC('p')+'₁′ + '+VC('p')+'₂′')+'Шарлар 90° бұрышпен ажырағандықтан, импульстер үшбұрышы тікбұрышты.',.9,'diag'],
+     ['Пифагор теоремасы',F('mυ₀ = √((3mυ)² + (3mυ)²) = 3√2·mυ &nbsp;⇒&nbsp; υ₀ = 3√2·υ'),.92,'p0']]},
+
+{id:'C15',q:'Массалары 200 г және 100 г денелер 4 м/с және 3 м/с жылдамдықтармен қозғалады. Денелердің қозғалыс бағыттары 90° бұрыш жасайды. Денелердің қорытқы импульсі',
+ o:['0,7 кг·м/с','0,1 кг·м/с','0,3 кг·м/с','0,85 кг·м/с'],a:3,
+ sc:{type:'vec',mode:'perp',dur:6,hide:['p'],eq:'p = √(0,8² + 0,3²) = √0,73 ≈ 0,85 кг·м/с'},
+ st:[['Импульстер',F('p₁ = 0,2·4 = 0,8 кг·м/с; &nbsp; p₂ = 0,1·3 = 0,3 кг·м/с'),.45,['p1','p2']],
+     ['Перпендикуляр векторлар','Векторлар 90° жасайды ⇒ Пифагор теоремасы:'+F('p = √(p₁² + p₂²)'),.75,'diag'],
+     ['Есептеу',F('p = √(0,64 + 0,09) = √0,73 ≈ 0,85 кг·м/с'),.8,'p']]},
+
+{id:'C16',q:'Массасы 150 г доп беті тегіс қабырғаға тұрғызылған нормальға 60° бұрыш жасай соғылады да, жылдамдығын жоғалтпастан кері қарай ұшады. Доптың жылдамдығы 10 м/с, ал соқтығысу мерзімі 0,1 с. Қабырға тарапынан допқа әсер етуші күштің орташа мәні',
+ o:['150 Н','0,15 Н','15 Н','0,015 Н'],a:2,
+ sc:{type:'wall2d',a:60,dpL:'2mυ·cos60° = 1,5 Н·с',rows:[['m','m','150 г = 0,15 кг'],['v','υ = υ′','10 м/с'],['a','α','60°'],['dt','Δt','0,1 с'],['F','F','15 Н']],hide:['dp','F'],eq:'F = 2mυ·cosα / Δt = 2·0,15·10·0,5 / 0,1 = 15 Н'},
+ st:[['Құраушыларға жіктеу','Қабырға тегіс ⇒ импульстің жанама құраушысы өзгермейді, нормаль құраушысы таңбасын өзгертеді:'+F('pₙ = mυ·cos60° &nbsp;→&nbsp; −mυ·cos60°'),.62,'diag'],
+     ['Импульс өзгерісі',F('|Δp| = 2mυ·cos60° = 2·0,15·10·0,5 = 1,5 Н·с'),.92,'dp'],
+     ['Орташа күш',F('F = '+FR('|Δp|','Δt')+' = '+FR('1,5','0,1')+' = 15 Н'),.95,'rows']]},
+
+{id:'C17',q:'Импульсінің модулі 40 кг·м/с бөлшек қабырғаға тұрғызылған нормальға 30° бұрыш жасай абсолют серпімді соғылса, импульстің өзгерісі',
+ o:['20√3 кг·м/с','40√3 кг·м/с','40√2 кг·м/с','20√2 кг·м/с'],a:1,
+ sc:{type:'wall2d',a:30,dpL:'2p·cos30° = 40√3',rows:[['p','p = p′','40 кг·м/с'],['a','α','30°'],['dp','|Δp|','40√3 кг·м/с']],hide:['dp'],eq:'|Δp| = 2p·cos30° = 2·40·(√3/2) = 40√3 кг·м/с'},
+ st:[['Құраушыларға жіктеу','Абсолют серпімді соғылу ⇒ |p′| = |p|; жанама құраушы өзгермейді, нормаль құраушы таңбасын өзгертеді.',.62,'diag'],
+     ['Импульс өзгерісі',F('|Δp| = 2p·cos30° = 2·40·'+FR('√3','2')+' = 40√3 кг·м/с'),.92,'dp']]},
+
+{id:'C18',q:'Дене импульстерінің координата осьтеріне проекциялары мынадай (кг·м/с):<br>OX: p<sub>1x</sub> = 2; &nbsp;p<sub>2x</sub> = 2,5; &nbsp;p<sub>3x</sub> = −0,5<br>OY: p<sub>1y</sub> = −1,5; &nbsp;p<sub>2y</sub> = 3; &nbsp;p<sub>3y</sub> = 1,5<br>Жүйе импульсі',
+ o:['8,24 кг·м/с','5 кг·м/с','3 кг·м/с','6,18 кг·м/с'],a:1,
+ sc:{type:'vec',mode:'sum',dur:6,hide:['Px','Py','P'],eq:'P = √(4² + 3²) = 5 кг·м/с'},
+ st:[['OX бойынша қосынды',F('P<sub>x</sub> = 2 + 2,5 + (−0,5) = 4 кг·м/с'),.7,'Px'],
+     ['OY бойынша қосынды',F('P<sub>y</sub> = −1,5 + 3 + 1,5 = 3 кг·м/с'),.7,'Py'],
+     ['Жүйе импульсінің модулі',F('P = √(P<sub>x</sub>² + P<sub>y</sub>²) = √(16 + 9) = 5 кг·м/с'),.85,'P']]}
+];
+PR.forEach(p=>{p.L=p.id[0];p.n=+p.id.slice(1);});
+/* =========================================================
+   Интерфейс: деңгейлер, навигация, тапсыру, қадамдық шешім
+   ========================================================= */
+const LV={A:{t:'А деңгейі',s:'негізгі ұғымдар мен формулалар'},B:{t:'В деңгейі',s:'сақталу заңы, санақ жүйесі, графиктер'},C:{t:'С деңгейі',s:'күрделі және құрама есептер'}};
+const LET=['A','B','C','D'];
+const KEY='impuls_lab_v1';
+let store={}; try{store=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){store={};}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}};
+const S={rev:false,hl:null};
+let lvl='A', idx=0, cur=null, P=null, t=0, playing=true, speed=1, hold=0, tween=null, sel=null, stepN=0, dragging=false;
+const $=id=>document.getElementById(id);
+const list=l=>PR.filter(p=>p.L===l);
+
+function toast(s){const el=$('toast');el.textContent=s;el.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('on'),1800);}
+
+/* ---------- деңгейлер мен навигация ---------- */
+function renderLevels(){
+  $('levels').innerHTML=Object.keys(LV).map(l=>{const ps=list(l),ok=ps.filter(p=>store[p.id]&&store[p.id].ok).length,done=ps.filter(p=>store[p.id]).length;
+    return `<button class="lv${l===lvl?' on':''}" data-l="${l}"><span class="badge">${l==='A'?'А':l==='B'?'В':'С'}</span><span style="min-width:0;flex:1"><div class="t1">${LV[l].t} · ${ps.length} есеп</div><div class="t2">${LV[l].s}</div>
+      <div class="bar"><i style="width:${ps.length?ok/ps.length*100:0}%"></i></div><div class="t2" style="margin-top:3px">дұрыс ${ok} · жауап берілді ${done}</div></span></button>`;}).join('');
+  $('levels').querySelectorAll('.lv').forEach(b=>b.onclick=()=>{lvl=b.dataset.l;idx=0;load();});
+  const ok=PR.filter(p=>store[p.id]&&store[p.id].ok).length; $('scoreN').textContent=ok;
+}
+function renderNav(){
+  $('nav').innerHTML=list(lvl).map((p,i)=>{const r=store[p.id];return `<button class="chip${i===idx?' on':''}${r?(r.ok?' ok':' bad'):''}" data-i="${i}" title="${p.id}">${p.n}</button>`;}).join('');
+  $('nav').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{idx=+b.dataset.i;load();});
+  const on=$('nav').querySelector('.chip.on'); if(on&&on.scrollIntoView)on.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+}
+
+/* ---------- есепті жүктеу ---------- */
+function load(){
+  cur=list(lvl)[idx]; P=cur.sc; if(!P._ok){SC[P.type].setup(P);P._ok=1;}
+  t=0;hold=0;tween=null;playing=true;sel=null;
+  const r=store[cur.id]; S.rev=!!r; S.hl=null; stepN=r?cur.st.length+1:0; if(r)sel=r.c;
+  renderLevels();renderNav();renderCard();setPlayIcon();
+  try{ if(location.hash.slice(1)!==cur.id) history.replaceState(null,'','#'+cur.id); }catch(e){}
+}
+function optHtml(i){ const r=store[cur.id]; let cls='opt';
+  if(r){ if(i===cur.a)cls+=' right'; else if(i===r.c)cls+=' wrong'; } else if(i===sel)cls+=' sel';
+  return `<button class="${cls}" data-o="${i}" ${r?'disabled':''}><span class="L">${LET[i]}</span><span>${cur.o[i]}</span></button>`; }
+function renderCard(){
+  const r=store[cur.id], lvName=LV[cur.L].t;
+  let h=`<div class="phead"><span class="pnum">${cur.L==='A'?'А':cur.L==='B'?'В':'С'}-${cur.n}</span><span class="ptag">${lvName} · ${idx+1} / ${list(lvl).length}</span></div>
+    <div class="ptext">${cur.q}</div>`;
+  if(!r)h+=`<div class="hint"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex:0 0 18px;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Алдымен анимацияны қарап, процесті талда. <b style="color:var(--gold)">?</b> белгісі — ізделетін шама. Жауапты таңдап, «Тапсыру» батырмасын бас — содан кейін жауабы мен шешу жолы ашылады.</span></div>`;
+  h+=`<div class="opts">${cur.o.map((_,i)=>optHtml(i)).join('')}</div>`;
+  if(!r)h+=`<div class="actions"><button class="btn pri" id="bSubmit" ${sel==null?'disabled':''}>Тапсыру</button></div>`;
+  else{
+    const ok=r.ok;
+    h+=`<div class="verdict ${ok?'ok':'bad'}"><div class="ic">${ok?'✓':'✗'}</div><div>${ok?'<b>Дұрыс!</b> Жарайсың!':'<b>Қате.</b> Дұрыс жауабы — '+LET[cur.a]+')'} &nbsp;<span style="color:var(--mute)">Жауабы: ${LET[cur.a]}) ${cur.o[cur.a]}</span></div></div>`;
+    const n=Math.min(stepN,cur.st.length);
+    h+=`<div class="sol"><h3>Шешу жолы <span class="pill">қадам ${Math.min(stepN,cur.st.length)} / ${cur.st.length}</span></h3><ol class="steps">`;
+    for(let i=0;i<n;i++){const s=cur.st[i];h+=`<li class="step${i===n-1&&stepN<=cur.st.length?' act':''}" data-s="${i}"><div class="sh"><span class="k">${i+1}-қадам</span>${s[0]}</div><div class="sb">${s[1]}</div></li>`;}
+    if(stepN>cur.st.length)h+=`<li class="step final"><div class="sh"><span class="k" style="background:rgba(52,211,153,.18)">Жауабы</span>${LET[cur.a]}) ${cur.o[cur.a]}</div><div class="sb" style="color:var(--mute)">${cur.sc.eq?'<span class="f">'+cur.sc.eq+'</span>':''}</div></li>`;
+    h+=`</ol><div class="stepbtns">`;
+    if(stepN<=cur.st.length)h+=`<button class="btn gold" id="bStep">${stepN<cur.st.length?'Келесі қадам →':'Жауабын көрсету ✓'}</button><button class="btn" id="bAll">Барлық қадамдар</button>`;
+    h+=`<button class="btn" id="bRetry">Қайта шешу</button></div></div>`;
+  }
+  h+=`<div class="pager"><button class="btn" id="bPrev">← Алдыңғы</button><button class="btn" id="bNext">Келесі есеп →</button></div>`;
+  $('pcard').innerHTML=h;
+  $('pcard').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{ if(store[cur.id])return; sel=+b.dataset.o; renderCard(); });
+  const bs=$('bSubmit'); if(bs)bs.onclick=submit;
+  const bst=$('bStep'); if(bst)bst.onclick=()=>{stepN++;afterStep();};
+  const ba=$('bAll'); if(ba)ba.onclick=()=>{stepN=cur.st.length+1;afterStep();};
+  const brt=$('bRetry'); if(brt)brt.onclick=()=>{delete store[cur.id];save();load();};
+  $('pcard').querySelectorAll('.step[data-s]').forEach(li=>li.onclick=()=>{const i=+li.dataset.s;focusStep(i);$('pcard').querySelectorAll('.step').forEach(x=>x.classList.remove('act'));li.classList.add('act');});
+  $('bPrev').onclick=()=>go(-1); $('bNext').onclick=()=>go(1);
+  if(window.MathJax){} // формулалар HTML арқылы
+}
+function go(d){ const L=['A','B','C']; let i=idx+d, l=lvl;
+  if(i<0){const k=L.indexOf(l);if(k>0){l=L[k-1];i=list(l).length-1;}else i=0;}
+  else if(i>=list(l).length){const k=L.indexOf(l);if(k<2){l=L[k+1];i=0;}else i=list(l).length-1;}
+  lvl=l;idx=i;load(); window.scrollTo&&window.scrollTo({top:0,behavior:'smooth'}); }
+function submit(){
+  if(sel==null)return; const ok=sel===cur.a; store[cur.id]={c:sel,ok}; save();
+  S.rev=true; stepN=1; renderLevels(); renderNav(); renderCard(); focusStep(0);
+  toast(ok?'Дұрыс! Енді шешу жолын қара':'Қате — шешу жолын қадамдап қара');
+}
+function afterStep(){ renderCard(); if(stepN<=cur.st.length)focusStep(stepN-1); else {S.hl=null;playing=true;setPlayIcon();}
+  const last=$('pcard').querySelector('.step:last-of-type'); if(last&&last.scrollIntoView)last.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+function focusStep(i){ const s=cur.st[i]; if(!s)return; S.hl=s[3]; const d=SC[P.type].dur(P);
+  if(s[2]!=null){tween={from:t,to:s[2]*d,t0:performance.now()/1000,d:.7};playing=false;setPlayIcon();} }
+
+/* ---------- басқару ---------- */
+const ICON_PLAY='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>', ICON_PAUSE='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4.2" height="15" rx="1"/><rect x="13.8" y="4.5" width="4.2" height="15" rx="1"/></svg>';
+function setPlayIcon(){$('bPlay').innerHTML=playing?ICON_PAUSE:ICON_PLAY;$('bPlay').setAttribute('aria-label',playing?'Тоқтату':'Ойнату');}
+$('bPlay').onclick=()=>{ const d=SC[P.type].dur(P); if(!playing&&t>=d-.01)t=0; playing=!playing;tween=null;setPlayIcon(); };
+$('bRe').onclick=()=>{t=0;hold=0;tween=null;playing=true;setPlayIcon();};
+$('scrub').addEventListener('input',e=>{dragging=true;tween=null;playing=false;setPlayIcon();t=e.target.value/1000*SC[P.type].dur(P);});
+$('scrub').addEventListener('change',()=>{dragging=false;});
+$('spd').querySelectorAll('button').forEach(b=>b.onclick=()=>{speed=+b.dataset.s;$('spd').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));});
+$('bReset').onclick=()=>{ if($('bReset').dataset.c!=='1'){$('bReset').dataset.c='1';$('bReset').textContent='Растау: барлығын тазалау?';setTimeout(()=>{$('bReset').dataset.c='';$('bReset').textContent='Нәтижелерді тазалау';},3000);return;}
+  store={};save();$('bReset').dataset.c='';$('bReset').textContent='Нәтижелерді тазалау';load();toast('Нәтижелер тазаланды'); };
+document.addEventListener('keydown',e=>{ if(e.target&&['INPUT','TEXTAREA'].includes(e.target.tagName))return;
+  if(e.code==='Space'&&!(e.target&&e.target.tagName==='BUTTON')){e.preventDefault();$('bPlay').click();}
+  else if(e.key==='ArrowRight'&&e.altKey===false&&e.shiftKey){go(1);} else if(e.key==='ArrowLeft'&&e.shiftKey){go(-1);} });
+window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);const p=PR.find(x=>x.id===id);if(p&&(!cur||p.id!==cur.id)){lvl=p.L;idx=list(lvl).indexOf(p);load();}});
+
+/* ---------- canvas ---------- */
+function resize(){ const r=cv.getBoundingClientRect(), dpr=Math.min(2.5,window.devicePixelRatio||1); const w=Math.max(320,Math.round(r.width*dpr)); if(cv.width!==w){cv.width=w;cv.height=Math.round(w*H/W);} }
+if(window.ResizeObserver)new ResizeObserver(resize).observe(cv); window.addEventListener('resize',resize);
+let last=performance.now();
+function frame(ts){
+  const dt=Math.min(.05,(ts-last)/1000); last=ts; NOW=ts/1000;
+  if(P){ const sc=SC[P.type], d=sc.dur(P);
+    if(tween){const u=clamp((NOW-tween.t0)/tween.d,0,1);t=lerp(tween.from,tween.to,ease(u));if(u>=1)tween=null;}
+    else if(playing){ if(t>=d){hold+=dt;if(hold>1.5){hold=0;t=0;}} else t=Math.min(d,t+dt*speed); }
+    cx.setTransform(cv.width/W,0,0,cv.height/H,0,0);
+    try{ bg(); sc.draw(t,P,S); }catch(err){ console.error(err); }
+    T('Рамазан ағай · DAMU',W-10,H-10,{size:11,col:'rgba(147,161,195,.45)',al:'right',w:600});
+    if(!dragging)$('scrub').value=Math.round(t/d*1000);
+  }
+  requestAnimationFrame(frame);
+}
+/* ---------- іске қосу ---------- */
+(function init(){
+  resize(); const id=(location.hash||'').slice(1), p=PR.find(x=>x.id===id);
+  if(p){lvl=p.L;idx=list(lvl).indexOf(p);} load();
+  requestAnimationFrame(frame);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{});
+})();
+</script>
+</body></html>
